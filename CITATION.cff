@@ -1,0 +1,39 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+title: "Robust multi-objective low-Reynolds-number airfoil design"
+abstract: >-
+  A reproducible pipeline and config-driven tool for robust, multi-objective
+  airfoil optimization at low Reynolds number, using AeroSandbox and the
+  differentiable NeuralFoil surrogate, with manufacturing-tolerance robustness
+  and independent XFoil validation.
+type: software
+authors:
+  - family-names: Madhav
+    given-names: Neel
+    email: neelmadhavsingharoy@gmail.com
+keywords:
+  - airfoil optimization
+  - low Reynolds number
+  - robust optimization
+  - multi-objective optimization
+  - NeuralFoil
+  - AeroSandbox
+  - XFoil
+license: MIT
+version: "1.0.0"
+date-released: "2026-06-24"
+references:
+  - type: software
+    title: AeroSandbox
+    authors:
+      - family-names: Sharpe
+        given-names: Peter
+    notes: Differentiable optimization + NeuralFoil surrogate.
+  - type: software
+    title: XFoil
+    authors:
+      - family-names: Drela
+        given-names: Mark
+      - family-names: Youngren
+        given-names: Harold
+    notes: Viscous-inviscid panel solver used for independent validation (GPL).

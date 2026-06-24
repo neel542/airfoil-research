@@ -1,0 +1,25 @@
+# Medical-delivery UAV wing section.
+# Flies over communities in gusty, hot-and-high conditions, built in the field.
+# Priorities: reliable across the envelope, quiet, gentle stall, robust to build error.
+name: delivery_drone
+model: large
+envelope:
+  Re: [80e3, 400e3]      # small electric UAV cruise band
+  AoA: [0, 8]
+  n_Re: 5
+  n_AoA: 5
+design_point:
+  Re: 200e3
+  AoA: 4
+objectives:
+  efficiency: 1.0        # worst-case L/D (range/endurance)
+  safety: 1.0            # gentle, late stall (flies over people)
+  structure: 0.5         # spar depth
+  noise: 1.0             # quiet trailing edge (community overflight)
+constraints:
+  thickness: [0.09, 0.15]
+manufacturing:
+  enabled: true          # field-built / 3D-printed
+  sigma_weight: 0.04     # ~0.5% chord RMS surface error
+  n_ensemble: 8
+validate_xfoil: true

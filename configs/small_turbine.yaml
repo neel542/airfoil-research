@@ -1,0 +1,23 @@
+# Small distributed wind-turbine blade tip section for off-grid power.
+# Priorities: squeeze peak efficiency at the design Re, thick for structure;
+# stall/noise less critical than for an overflight vehicle. Precision-molded.
+name: small_turbine
+model: large
+envelope:
+  Re: [100e3, 500e3]
+  AoA: [2, 8]
+  n_Re: 5
+  n_AoA: 5
+design_point:
+  Re: 350e3
+  AoA: 5
+objectives:
+  efficiency: 1.0
+  safety: 0.2
+  structure: 1.0         # thick root/tip for bending loads
+  noise: 0.2
+constraints:
+  thickness: [0.12, 0.18]
+manufacturing:
+  enabled: false         # factory-molded blades
+validate_xfoil: true

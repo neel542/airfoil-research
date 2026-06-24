@@ -1,0 +1,13 @@
+# Core dependencies for the low-Re airfoil design pipeline.
+# Tested with Python 3.9 on macOS (Apple Silicon).
+neuralfoil==0.3.2
+aerosandbox==4.2.8
+numpy==2.0.2
+pandas==2.3.3
+matplotlib==3.9.4
+PyYAML==6.0.3
+# casadi is pulled in by aerosandbox (gradient-based Opti backend); pinned for reproducibility.
+casadi==3.7.2
+
+# Optional: true-XFoil validation needs an `xfoil` binary on PATH.
+# There is no pip package; build a headless binary per THIRD_PARTY_XFOIL.md.
