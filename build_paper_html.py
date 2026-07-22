@@ -44,6 +44,14 @@ FIGURE_INSERTS = [
          "Figure 6. NeuralFoil's self-reported confidence versus its true error. "
          "The negative trend means the model can flag when it is unreliable."),
     ]),
+    ("no prior airfoil-optimization work feeds", [
+        ("20_trust_vs_performance.png",
+         "Figure 7. The uncertainty-aware optimizer. Left: turning up the "
+         "confidence dial moves the design from an untrustworthy corner "
+         "(confidence 0.14) to a trustworthy one (0.96); worst-case L/D actually "
+         "improves at first, then trades off slowly. Right: the blind-optimum and "
+         "trust-aware shapes differ."),
+    ]),
 ]
 
 
