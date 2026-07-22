@@ -1,0 +1,11 @@
+{
+  "LD_band_pct": 16.2,
+  "CL_err_pct": 7.0,
+  "CD_err_pct": 15.0,
+  "validated_conf_range": [
+    0.7,
+    0.92
+  ],
+  "note": "band is a FLOOR; A/B operate below validated confidence so true error >= this. NF under-predicts bubble drag => over-predicts L/D => true L/D trends to LOWER edge.",
+  "systematic_bias": "one-sided: true L/D <= predicted at low Re"
+}
