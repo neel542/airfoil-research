@@ -12,7 +12,7 @@ Reynolds numbers (Re ≈ 50,000-500,000). The air is fussy in this range: a thin
 layer near the wing can peel away and form a laminar separation bubble, which is
 where most of the drag comes from, and a wing that works well at one setting can do
 badly at another. To design wings quickly, people now lean on fast neural
-stand-ins for the slow flow solvers — NeuralFoil is the best known. These
+stand-ins for the slow flow solvers - NeuralFoil is the best known. These
 stand-ins are *differentiable*, so they drop straight into an optimizer. But there
 was a problem: NeuralFoil had only ever been checked against real wind-tunnel data
 at one high Reynolds number (Re = 1.8 × 10⁶), roughly ten times faster than where
@@ -55,12 +55,12 @@ that is only good at one setting is close to useless. What you actually want is
 **robustness**: a wing that does decently across the whole range of conditions it
 will really see.
 
-### 1.3 The role — and the unchecked trust — of stand-ins
+### 1.3 The role - and the unchecked trust - of stand-ins
 
 To find good shapes, you have to test thousands of candidate wings, and running a
 full flow solver on each one takes too long. So the field turned to **NeuralFoil**
 (Sharpe & Hansman, 2025), a neural network trained to copy the classic solver XFoil
-almost instantly and — the important part — *differentiably*, so it can go straight
+almost instantly and - the important part - *differentiably*, so it can go straight
 into gradient-based optimization. The catch: NeuralFoil's only published check
 against experiment was at Re = 1.8 × 10⁶, about ten times higher than where small
 drones fly. **Nobody had checked it against real measurements in the low-Re range
@@ -90,7 +90,7 @@ where it gets used the most.** That is the gap this paper closes.
 Every airfoil shape is written as 17 numbers (8 for the top surface, 8 for the
 bottom, and 1 leading-edge weight) using the Kulfan, or Class-Shape-Transformation,
 basis. This basis is smooth, uses few numbers, makes shapes you can actually build,
-and is differentiable — which is exactly what gradient-based optimization needs.
+and is differentiable - which is exactly what gradient-based optimization needs.
 
 ### 2.2 Aerodynamics: NeuralFoil
 
@@ -107,7 +107,7 @@ you want to raise the score of your *weakest* subject in school. You do not aver
 all your subjects; you push up the lowest one. In math, you add a variable *g* that
 must stay at or below the L/D at *every* operating point, and then you push *g* as
 high as it will go. Since *g* can never exceed the worst point, maximizing *g*
-maximizes the worst case — and it does so with a smooth equation an optimizer can
+maximizes the worst case - and it does so with a smooth equation an optimizer can
 handle. The problem is non-convex (it has more than one "hilltop"), so a single run
 can get stuck on a small hill; each design is therefore solved from several starting
 shapes (multi-start) and the best one is kept. Whole families of designs are traced
@@ -127,7 +127,7 @@ weights come out unit-free:
 
 ### 2.5 Manufacturing-tolerance robustness
 
-A real wing — field-built or 3D-printed — never matches the design exactly. Build
+A real wing - field-built or 3D-printed - never matches the design exactly. Build
 error is modeled as small random changes to the shape numbers (~0.5% chord RMS
 surface error). A design is optimized to hold its worst-case L/D across *both* the
 range of conditions *and* a fixed set of build errors, then tested
@@ -143,7 +143,7 @@ then filtered to physical bounds to throw out numbers from other airfoils printe
 on the same page. NeuralFoil (and a separately built headless XFoil) were then run
 at exactly the measured conditions and compared point by point to experiment. A
 geometry check confirmed that the Kulfan fit of the E387 adds only 0.15% RMS-chord
-error — far below the stand-in's error — so any gap we see is the stand-in's fault,
+error - far below the stand-in's error - so any gap we see is the stand-in's fault,
 not the shape description's.
 
 ---
@@ -161,7 +161,7 @@ Airfoil B gives up about 55% of A's headline peak L/D in exchange for a **5.4×
 higher worst-case** L/D. A is a razor-thin peak that falls apart at the edges of
 the range; B is a broad plateau that does decently everywhere.
 
-† See §3.4 — A's peak is quoted where NeuralFoil reports almost no confidence, so
+† See §3.4 - A's peak is quoted where NeuralFoil reports almost no confidence, so
 read it as an optimistic ceiling, not a real measured value.
 
 ### 3.2 Multi-objective trade-offs
@@ -185,7 +185,7 @@ stall margin and a quieter trailing edge.
 
 On paper the two designs look almost the same, but under realistic build error the
 manufacturing-robust design's reliable (5th-percentile) worst-case L/D is **more
-than twice** the nominal design's — for almost no as-designed cost.
+than twice** the nominal design's - for almost no as-designed cost.
 
 ### 3.4 The main result: checking NeuralFoil against experiment at low Re
 
@@ -198,18 +198,18 @@ than twice** the nominal design's — for almost no as-designed cost.
 
 Three findings:
 
-1. **NeuralFoil gets lift right (~5-8%) at low Re** — good news, and not shown
+1. **NeuralFoil gets lift right (~5-8%) at low Re** - good news, and not shown
    before in this range.
 2. **Drag is harder (~15%) and always low**, because both NeuralFoil and XFoil
    under-guess the separation-bubble drag that shows up near Re = 100k. You can see
    it directly as a "drag-bucket" gap in the C_D curves.
 3. **The model knows when it is wrong.** NeuralFoil's `analysis_confidence` goes
    down as its true error goes up. Think of a student taking a test who says "I'm
-   pretty sure" on some answers and "honestly, I'm guessing" on others — and it
+   pretty sure" on some answers and "honestly, I'm guessing" on others - and it
    turns out the "I'm guessing" answers are exactly the ones they get wrong.
    NeuralFoil behaves the same way: when it flags low confidence, it really is less
    reliable. That is the reason a high-confidence, robust design should be trusted
-   more than an aggressive, low-confidence one — and it explains why airfoil A's
+   more than an aggressive, low-confidence one - and it explains why airfoil A's
    peak L/D of 232.9, produced at confidence ≈ 0, should be read as a ceiling, not
    a real value. It is the model's way of saying "I'm guessing" about that 233.
 
@@ -236,12 +236,12 @@ confident. A single dial, `w_conf`, sets how strongly.
 | 8 | 34.9 | 0.98 | 0.94 |
 
 The result surprised me. With the dial off (`w_conf` = 0), the optimizer found a
-design sitting at confidence 0.14 — right where we measured the stand-in cannot be
+design sitting at confidence 0.14 - right where we measured the stand-in cannot be
 trusted. It looked fine on paper, but that "fine" is a number the model itself is
 unsure about. Turn the dial up just a little (`w_conf` = 1) and the design jumps to
 confidence 0.96, and its honestly-checked worst-case L/D actually *goes up*, from
 32 to 38. In other words, blindly trusting the stand-in did not even buy better
-performance — it bought a mirage. Only after you push the dial hard (`w_conf` = 4,
+performance - it bought a mirage. Only after you push the dial hard (`w_conf` = 4,
 8) do you start paying a small, real performance price for still-higher confidence.
 
 The takeaway: a light touch of confidence-awareness gives you a design whose
@@ -254,7 +254,7 @@ surrogate's own measured reliability back into the design loop this way.
 ## 4. Discussion
 
 The practical message is a rule for *when to trust the fast stand-in*. In the meat
-of the range — moderate angles, Re ≳ 200k — NeuralFoil is good to within a few
+of the range - moderate angles, Re ≳ 200k - NeuralFoil is good to within a few
 percent and is an excellent design tool. Near zero lift, near Re = 100k, and for
 aggressive high-lift shapes, it turns optimistic, and its own confidence score
 correctly drops in those spots. So a designer can watch the confidence score as a
@@ -283,7 +283,7 @@ well-behaved.
 - **Only two airfoils** could be both cleanly pulled from the source report *and*
   matched to a shape in the airfoil database (E387, SD2030). More would make the
   check stronger.
-- **Two-dimensional, steady analysis only** — no three-dimensional wing effects,
+- **Two-dimensional, steady analysis only** - no three-dimensional wing effects,
   no rotation, no unsteadiness.
 - **No physical test of the author's own optimized designs.** The genuinely new
   next step is to 3D-print the robust and nominal airfoils and test them in a wind
@@ -296,7 +296,7 @@ well-behaved.
 This work delivers a repeatable, honest, uncertainty-aware pipeline for
 low-Reynolds-number airfoil design, and closes a real gap by checking NeuralFoil
 against wind-tunnel data below Re = 500,000 for the first time. The stand-in turns
-out to be accurate on lift, a bit too optimistic on drag, and — usefully — aware of
+out to be accurate on lift, a bit too optimistic on drag, and - usefully - aware of
 its own weak spots. The natural next steps are (1) an uncertainty-aware optimizer
 that uses the measured confidence-error link as a trust-region constraint, and
 (2) a physical wind-tunnel test of 3D-printed robust-versus-nominal airfoils, which
@@ -306,11 +306,11 @@ would turn this validation study into an original experimental result.
 
 ## Acknowledgments
 
-The author designed and directed this study, defined its goals and scope, and
-reviewed and interpreted all results. Implementation work — coding, data extraction
-from source documents, and figure generation — was carried out with the assistance
-of AI-based software tools under the author's direction. All experimental data are
-from public-domain sources and are cited below.
+The author designed and directed this study: choosing the question, setting the
+goals and scope, and reviewing and interpreting every result. AI tools partially
+helped with the implementation work - coding, data extraction from source
+documents, and figure generation - under the author's direction. All experimental
+data are from public-domain sources and are cited below.
 
 ---
 

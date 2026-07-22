@@ -12,8 +12,8 @@ differentiable **NeuralFoil** surrogate (a neural emulator of XFoil).
 
 † All L/D values carry a measured surrogate uncertainty of **at least ±16%**, and
 the bias is **one-sided** (NeuralFoil under-predicts low-Re bubble drag, so true
-L/D ≤ shown). Airfoil A's peak sits where NeuralFoil reports **confidence ≈ 0** —
-below the range where the surrogate was validated — so 232.9 is an *optimistic
+L/D ≤ shown). Airfoil A's peak sits where NeuralFoil reports **confidence ≈ 0** -
+below the range where the surrogate was validated - so 232.9 is an *optimistic
 upper bound, not a value*. See the [experimental validation](#experimental-validation-against-wind-tunnel-data-e387_neuralfoil_validationpy)
 section and the uncertainty-annotated figures `18_LD_vs_AoA_uncertainty.png` /
 `19_tradeoff_uncertainty.png`.
@@ -26,23 +26,23 @@ B is a flat plateau that performs decently everywhere.
 
 ## Design choices
 
-1. **Geometry — Kulfan/CST (8 weights per surface + LE weight).** Smooth,
+1. **Geometry - Kulfan/CST (8 weights per surface + LE weight).** Smooth,
    low-dimensional, manufacturable, and analytically differentiable, so the
    shape feeds clean gradients to the optimizer.
-2. **Aero — NeuralFoil (`large`).** A differentiable XFoil surrogate. The
+2. **Aero - NeuralFoil (`large`).** A differentiable XFoil surrogate. The
    analytic ∂(CL,CD)/∂shape is what makes optimizing over a 25-point envelope
    tractable in seconds. Same fidelity used for optimization and evaluation so
    the numbers are self-consistent.
-3. **Optimizer — AeroSandbox `Opti` → IPOPT.** Gradient-based NLP with exact
+3. **Optimizer - AeroSandbox `Opti` → IPOPT.** Gradient-based NLP with exact
    auto-diff derivatives.
-4. **Robust formulation — epigraph max-min.** Introduce a scalar `g`, constrain
+4. **Robust formulation - epigraph max-min.** Introduce a scalar `g`, constrain
    `g ≤ L/D` at every (Re, AoA) grid point, and maximize `g`. This turns the
    non-smooth worst-case objective into a smooth NLP.
 5. **Re grid is log-spaced** (it spans a full decade); the optimizer uses a
    coarse 5×5 grid, evaluation uses a finer 11×9 grid to test generalization to
    unseen operating points.
-6. **Thickness band 9–13%** keeps both airfoils structurally viable and
-   comparable. (A drove to the 13% ceiling, B to the 9% floor — peak wants
+6. **Thickness band 9-13%** keeps both airfoils structurally viable and
+   comparable. (A drove to the 13% ceiling, B to the 9% floor - peak wants
    thick, robust wants thin.)
 7. **Multi-start + continuation.** The problem is non-convex. Each design is
    solved from several NACA seeds; the tradeoff family is solved by continuation
@@ -53,8 +53,8 @@ B is a flat plateau that performs decently everywhere.
 
 ## Caveat
 
-NeuralFoil's `analysis_confidence` is modest (~0.05–0.12) for these aggressive
-high-L/D low-Re sections — they sit near the edge of its training distribution.
+NeuralFoil's `analysis_confidence` is modest (~0.05-0.12) for these aggressive
+high-L/D low-Re sections - they sit near the edge of its training distribution.
 Treat absolute L/D values (especially A's ~233 peak) as surrogate estimates;
 the robust **A-vs-B comparison** is the reliable conclusion. We now back this
 with a direct experimental check (below): NeuralFoil's drag error vs wind tunnel
@@ -70,20 +70,20 @@ E387** and **SD2030** from the UIUC/NREL wind-tunnel database (Selig &
 McGranahan 2004, NREL/SR-500-34515), extracted with two independent parsers and
 kept only where both agree.
 
-| Quantity | NeuralFoil vs experiment (Re 100k–500k) |
+| Quantity | NeuralFoil vs experiment (Re 100k-500k) |
 |----------|------------------------------------------|
-| Lift CL | within **~5–8%** |
+| Lift CL | within **~5-8%** |
 | Drag CD | within **~15%** (under-predicts bubble drag at Re≈100k) |
 | `analysis_confidence` vs true error | **Pearson r ≈ −0.48** (model knows when it's wrong) |
-| Kulfan fit error (E387) | 0.15% RMS chord — 0.3× the manufacturing tolerance |
+| Kulfan fit error (E387) | 0.15% RMS chord - 0.3× the manufacturing tolerance |
 
 **Why this matters:** (1) it puts a real, measured error bar on every number the
 project produces; (2) the confidence/error anti-correlation is the mechanistic
 reason a high-confidence robust design is more trustworthy than an aggressive
-low-confidence one — turning the manufacturing-robustness story from a modeling
+low-confidence one - turning the manufacturing-robustness story from a modeling
 artifact into an empirically-grounded claim; (3) the CD figure shows the laminar
-separation bubble that *both* NeuralFoil and XFoil miss at low Re — the documented
-physics gap, observed firsthand. Figures: `12`–`17`; data in
+separation bubble that *both* NeuralFoil and XFoil miss at low Re - the documented
+physics gap, observed firsthand. Figures: `12`-`17`; data in
 `data/e387_experimental_NREL.csv`, `data/multifoil_neuralfoil_validation.csv`.
 
 ## Uncertainty-aware optimizer (`uncertainty_aware_design.py`)
@@ -91,7 +91,7 @@ physics gap, observed firsthand. Figures: `12`–`17`; data in
 The validation above measured *where* NeuralFoil can be trusted. This module feeds
 that back into the optimizer: alongside performance, it rewards designs that live
 where NeuralFoil is confident (a single dial, `w_conf`). The result is a genuine
-surprise — with the dial off, the optimizer lands on a design at confidence 0.14
+surprise - with the dial off, the optimizer lands on a design at confidence 0.14
 (right where the surrogate is unreliable); a small nudge (`w_conf=1`) moves it to
 confidence 0.96 **and raises** the honestly-evaluated worst-case L/D from 32 to 38.
 Blindly trusting the surrogate bought a mirage, not performance. Only past
@@ -112,7 +112,7 @@ to "community-friendly" (quiet + gentle-stall):
 | Efficiency | worst-case L/D over the envelope | maximize |
 | Safety | CLmax / stall AoA at Re=50k (lift retained at 12°) | maximize |
 | Structure | max thickness = spar depth (stiffness ∝ t³) | maximize |
-| Noise | trailing-edge δ*=θ·H (Brooks–Pope–Marcolini self-noise) | minimize |
+| Noise | trailing-edge δ*=θ·H (Brooks-Pope-Marcolini self-noise) | minimize |
 
 Results (three weight profiles):
 
@@ -122,7 +122,7 @@ Results (three weight profiles):
 | balanced | 33.9 | 10.0° | 10.4% | 11.9e-3 |
 | community | 17.8 | **11.5°** | **13.7%** | **11.1e-3** |
 
-**Finding:** structure and low-Re efficiency are in strong tension — forcing a
+**Finding:** structure and low-Re efficiency are in strong tension - forcing a
 13.7% spar costs ~54% of worst-case L/D. The "community" design buys a 3.5°
 stall margin (vs 1° for efficiency) and ~27% quieter TE for that price. The
 noise proxy uses NeuralFoil's boundary-layer output directly, so it is a real
@@ -152,16 +152,16 @@ optimizer never saw:
 
 **Finding:** the two designs are near-identical on paper, but under realistic
 build error the nominal design's reliable (5th-percentile) worst-case L/D
-collapses to 9.3, while the manufacturing-robust design holds 19.5 — **more than
+collapses to 9.3, while the manufacturing-robust design holds 19.5 - **more than
 2× more reliable when actually built**, for negligible as-designed cost.
 
 **Fidelity validation against true XFoil.** A headless XFoil 6.99 binary
 (compiled from source with a no-op X11 stub; see `THIRD_PARTY_XFOIL.md`) gives
 independent ground truth. NeuralFoil `large` (the optimization model) agrees
-with true XFoil to **~5–6%** of L/D, `xxlarge` to ~3–4%. That surrogate error is
+with true XFoil to **~5-6%** of L/D, `xxlarge` to ~3-4%. That surrogate error is
 far smaller than the manufacturing effect above, so the robustness conclusion is
 safe. (Note: the aggressive `B_nominal` shape only converged in XFoil for 5/10
-angles — an honest signal that the surrogate is optimistic where real viscous
+angles - an honest signal that the surrogate is optimistic where real viscous
 flow separates.) Figures: `8_manufacturing_robustness.png`,
 `9_fidelity_check.png`; data in `data/manufacturing_validation.csv`,
 `data/xfoil_validation.csv`, `data/fidelity_check.csv`.
@@ -169,21 +169,21 @@ flow separates.) Figures: `8_manufacturing_robustness.png`,
 ## Envelope-wide XFoil trust map (`xfoil_validate_envelope.py`)
 
 The 200k check was one slice. This sweeps true XFoil across the full Re envelope
-(50k–500k) and maps the NeuralFoil-vs-XFoil L/D error over every (Re, AoA) cell.
+(50k-500k) and maps the NeuralFoil-vs-XFoil L/D error over every (Re, AoA) cell.
 
 Two findings worth their own line:
 
 1. **Manufacturing robustness ⇒ numerical robustness.** `B_mfg` converges in
    XFoil at **all 45 (Re, AoA) points (9/9 per Re)**; the aggressive `B_nominal`
-   converges only **5/9 per Re** — its 5–8° band is separated flow XFoil can't
+   converges only **5/9 per Re** - its 5-8° band is separated flow XFoil can't
    solve at all (gray cells in `10_trust_map.png`). A design robust to build
    error is also one with attached, well-behaved flow.
 2. **The surrogate is trustworthy in the meat of the envelope.** NeuralFoil L/D
-   is within ~3–8% of true XFoil for α≳2° across all Re. Error grows at **low
-   lift (α≤1°)** — up to ~18–23%, because L/D is hypersensitive to small CL
-   errors there — and peaks around **Re=100k**. NeuralFoil's own
-   `analysis_confidence` tracks this (lower for `B_nominal`, 0.2–0.3, than
-   `B_mfg`, 0.5–0.65), so the model honestly flags its weak spots.
+   is within ~3-8% of true XFoil for α≳2° across all Re. Error grows at **low
+   lift (α≤1°)** - up to ~18-23%, because L/D is hypersensitive to small CL
+   errors there - and peaks around **Re=100k**. NeuralFoil's own
+   `analysis_confidence` tracks this (lower for `B_nominal`, 0.2-0.3, than
+   `B_mfg`, 0.5-0.65), so the model honestly flags its weak spots.
 
 Practical upshot: trust the surrogate for cruise/climb design points; re-check
 near-zero-lift and ~100k conditions, and any finalist as aggressive as
@@ -193,7 +193,7 @@ near-zero-lift and ~100k conditions, and any finalist as aggressive as
 ## The reusable tool (`airfoil_designer.py`)
 
 Everything above is wrapped into one config-driven tool so a new vehicle/mission
-is a **YAML change, not a code change** — the "useful to others" direction. A
+is a **YAML change, not a code change** - the "useful to others" direction. A
 student or NGO engineer points it at their own envelope and gets a robust,
 multi-objective, XFoil-validated section.
 
@@ -207,14 +207,14 @@ objective weights (efficiency / safety / structure / noise), manufacturing-
 tolerance robustness (on/off, error magnitude, ensemble size), geometry
 constraints, NeuralFoil fidelity, and multi-start seeds. The tool optimizes
 (multi-start), evaluates on a fine grid, writes CSV + figures, and runs an
-optional best-effort XFoil validation — all into `runs/<name>/`.
+optional best-effort XFoil validation - all into `runs/<name>/`.
 
 Two example missions show the dial producing genuinely different airfoils:
 
 | Mission | Objectives (priority) | Mfg-robust | Result |
 |---------|-----------------------|:----------:|--------|
 | `delivery_drone` | efficiency + **safety + quiet** (overflies people) | yes (~0.5% chord) | 10.3% thick, CLmax 1.98, worst-case L/D 41; **XFoil 9/9, gap 1.6 L/D** |
-| `small_turbine` | efficiency + **structure** (thick blade) | no (molded) | **13.9% thick**, worst-case L/D 59; XFoil convergence poor past 1.5° (aggressive section — honestly reported) |
+| `small_turbine` | efficiency + **structure** (thick blade) | no (molded) | **13.9% thick**, worst-case L/D 59; XFoil convergence poor past 1.5° (aggressive section - honestly reported) |
 
 Same code, opposite designs: the drone is thin/quiet/forgiving, the turbine is
 thick/efficient. The structure weight visibly drives section depth (10% vs 14%).
@@ -240,7 +240,7 @@ python manufacturing_robust.py      # build-tolerance robustness
 python xfoil_validate_envelope.py   # surrogate trust map vs true XFoil
 ```
 
-New to the project? Start with [`tutorial.ipynb`](tutorial.ipynb) — it designs an
+New to the project? Start with [`tutorial.ipynb`](tutorial.ipynb) - it designs an
 airfoil for a mission you specify in a few seconds and explains each step.
 True-XFoil validation is optional and needs an `xfoil` binary (see
 [THIRD_PARTY_XFOIL.md](THIRD_PARTY_XFOIL.md)); everything else runs with
