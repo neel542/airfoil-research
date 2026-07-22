@@ -28,7 +28,7 @@ FIGURE_INSERTS = [
          "bars are one-sided (true values trend downward at low Re). Airfoil A's "
          "peak near 233 is produced where NeuralFoil reports near-zero confidence."),
     ]),
-    ("not the shape description's", [
+    ("not a problem with how the shape was described", [
         ("12_e387_CL_polars.png",
          "Figure 3. Lift coefficient versus angle of attack for the Eppler E387: "
          "NeuralFoil, headless XFoil, and wind-tunnel measurement. Lift agrees to "
@@ -44,7 +44,7 @@ FIGURE_INSERTS = [
          "Figure 6. NeuralFoil's self-reported confidence versus its true error. "
          "The negative trend means the model can flag when it is unreliable."),
     ]),
-    ("no prior airfoil-optimization work feeds", [
+    ("fed a surrogate model's own measured", [
         ("20_trust_vs_performance.png",
          "Figure 7. The uncertainty-aware optimizer. Left: turning up the "
          "confidence dial moves the design from an untrustworthy corner "
