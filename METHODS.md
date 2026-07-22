@@ -19,7 +19,7 @@ Airfoils use the **Kulfan / Class-Shape-Transformation (CST)** parameterization
 (AeroSandbox `KulfanAirfoil`): 8 upper-surface weights, 8 lower-surface weights,
 a leading-edge modification weight, and a fixed trailing-edge thickness (0.25%
 chord). This basis is smooth, low-dimensional (17 design variables),
-manufacturable, and analytically differentiable — essential for gradient-based
+manufacturable, and analytically differentiable - essential for gradient-based
 optimization.
 
 ## 3. Aerodynamic model
@@ -45,8 +45,8 @@ log-spaced (it spans a decade).
 
 **Non-convexity.** The problem is non-convex, so each design is solved from
 multiple NACA seeds (multi-start) and the best objective is kept. Families of
-designs are traced by *continuation* — warm-starting each case from the previous
-solution — which keeps the Pareto front monotonic.
+designs are traced by *continuation* - warm-starting each case from the previous
+solution - which keeps the Pareto front monotonic.
 
 ## 5. Multi-objective formulation
 
@@ -58,7 +58,7 @@ of metrics normalized by reference scales (so weights are unit-free):
 | Efficiency | worst-case L/D (g) | range / endurance across the envelope |
 | Safety | CL at α = 12°, Re = 50k | lift retained near stall ⇒ later, gentler stall |
 | Structure | max thickness | spar depth; bending stiffness ∝ t³ |
-| Noise | TE displacement thickness δ\* = θ·H | Brooks–Pope–Marcolini TE self-noise ∝ δ\*_TE |
+| Noise | TE displacement thickness δ\* = θ·H | Brooks-Pope-Marcolini TE self-noise ∝ δ\*_TE |
 
 Sweeping the weights traces a design "dial" from pure efficiency to
 community-friendly (quiet, gentle-stall, structurally deep).
@@ -77,7 +77,7 @@ optimizer never saw.
 
 **Independent ground truth.** Finalists are re-analyzed in true **XFoil 6.99**
 (a headless binary built from source; see `THIRD_PARTY_XFOIL.md`). NeuralFoil
-agrees with XFoil to ~3–8% of L/D across most of the envelope. A *trust map* over
+agrees with XFoil to ~3-8% of L/D across most of the envelope. A *trust map* over
 (Re, α) localizes where the surrogate is reliable and where XFoil itself fails to
 converge (separated flow), flagging where finalists need higher-fidelity CFD or
 wind-tunnel testing. NeuralFoil's `analysis_confidence` is reported throughout
@@ -86,8 +86,8 @@ and tracks these weak spots.
 **Experimental validation against wind-tunnel data.** XFoil is not ground truth;
 it is itself a model. We therefore benchmark NeuralFoil against *measured* low-Re
 wind-tunnel polars from the UIUC/NREL database (Selig & McGranahan 2004,
-NREL/SR-500-34515) for the Eppler E387 and SD2030 — two geometrically distinct
-reference airfoils — at Re = 100k–500k. This addresses a real gap: the NeuralFoil
+NREL/SR-500-34515) for the Eppler E387 and SD2030 - two geometrically distinct
+reference airfoils - at Re = 100k-500k. This addresses a real gap: the NeuralFoil
 paper (Sharpe & Hansman 2025) validates against experiment only at Re = 1.8×10⁶,
 and no prior study benchmarks it below Re = 500k, the regime where these
 surrogates are most heavily used. Experimental values were extracted from the
@@ -95,17 +95,17 @@ report's text layer with two independent parsers and retained only where both
 agreed, then gated to physical bounds to reject other airfoils printed on the
 same page (see `data/*_experimental_NREL.csv`).
 
-*Result:* NeuralFoil predicts lift to **~5–8%** and drag to **~15%** of the
+*Result:* NeuralFoil predicts lift to **~5-8%** and drag to **~15%** of the
 measured values; drag is the harder quantity because of laminar-separation-bubble
 physics, which both NeuralFoil and XFoil under-predict at Re ≈ 100k (visible as a
 drag-bucket offset in `figures/13`). Critically, NeuralFoil's `analysis_confidence`
 **anti-correlates with its true error** (Pearson r ≈ −0.48): the surrogate is
-quantifiably aware of when it is less reliable — the mechanistic basis for trusting
+quantifiably aware of when it is less reliable - the mechanistic basis for trusting
 high-confidence robust designs over aggressive, low-confidence ones. The Kulfan
 reparameterization of E387 introduces only 0.15% RMS-chord geometry error (0.3× the
 manufacturing tolerance), so the measured discrepancy is the surrogate's, not the
 geometry basis. Scripts: `e387_neuralfoil_validation.py`; data in
-`data/multifoil_neuralfoil_validation.csv`; `figures/12–17`.
+`data/multifoil_neuralfoil_validation.csv`; `figures/12-17`.
 
 ## 8. Reproducibility
 
@@ -117,14 +117,14 @@ from a single spec.
 ## Key limitations
 
 - Absolute L/D values are surrogate estimates with an empirically measured error
-  band (§7: ~5–8% in CL, ~15% in CD vs wind tunnel at low Re); the *relative*
+  band (§7: ~5-8% in CL, ~15% in CD vs wind tunnel at low Re); the *relative*
   (A-vs-B, robust-vs-nominal) conclusions are the more reliable outputs. Because
   L/D = CL/CD, the ~15% drag error caps absolute-L/D accuracy at roughly the same
-  level — and the systematic low-Re bubble-drag *under*-prediction means true L/D
+  level - and the systematic low-Re bubble-drag *under*-prediction means true L/D
   is biased low relative to NeuralFoil, so very high quoted L/D (e.g. airfoil A's
   ~233) should be read as optimistic surrogate ceilings, not measured values.
 - Aggressive high-lift sections sit near NeuralFoil's training-distribution edge
-  and near XFoil's convergence limit — treat their absolute numbers with caution.
+  and near XFoil's convergence limit - treat their absolute numbers with caution.
 - 2-D sectional analysis only: no 3-D, rotational, or unsteady effects.
 - XFoil validation is steady, fully-turbulent-transition-modeled RANS-free panel
   + integral-BL; it is ground truth *relative to NeuralFoil*, not flight test.

@@ -126,6 +126,16 @@ df.to_csv(os.path.join(OUT, "data", "uncertainty_aware_sweep.csv"), index=False)
 print("  wrote data/uncertainty_aware_sweep.csv")
 print(df.round(3).to_string(index=False))
 
+# Save the two extreme geometries so figures can be rebuilt later without
+# re-running the optimization.
+for wc in (min(W_CONF), max(W_CONF)):
+    co = geoms[wc].coordinates
+    pd.DataFrame({"x": co[:, 0], "y": co[:, 1]}).to_csv(
+        os.path.join(OUT, "data", f"uncertainty_aware_wconf{wc:.0f}_coords.csv"),
+        index=False)
+print(f"  wrote data/uncertainty_aware_wconf{min(W_CONF):.0f}_coords.csv, "
+      f"uncertainty_aware_wconf{max(W_CONF):.0f}_coords.csv")
+
 # ─────────────────────────────────────────────────────────────────────────────
 # Figure: the trust-vs-performance trade
 # ─────────────────────────────────────────────────────────────────────────────
