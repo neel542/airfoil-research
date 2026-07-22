@@ -7,8 +7,16 @@ differentiable **NeuralFoil** surrogate (a neural emulator of XFoil).
 
 | Airfoil | Objective | Peak L/D | Worst-case L/D | Mean L/D | Max thickness |
 |---------|-----------|---------:|---------------:|---------:|--------------:|
-| **A** single-point | max L/D at Re=200k, AoA=4° | **232.9** | 7.1 | 86.6 | 13% |
+| **A** single-point | max L/D at Re=200k, AoA=4° | **232.9** † | 7.1 | 86.6 | 13% |
 | **B** robust       | max **worst-case** L/D over the envelope | 105.1 | **38.2** | 64.2 | 9% |
+
+† All L/D values carry a measured surrogate uncertainty of **at least ±16%**, and
+the bias is **one-sided** (NeuralFoil under-predicts low-Re bubble drag, so true
+L/D ≤ shown). Airfoil A's peak sits where NeuralFoil reports **confidence ≈ 0** —
+below the range where the surrogate was validated — so 232.9 is an *optimistic
+upper bound, not a value*. See the [experimental validation](#experimental-validation-against-wind-tunnel-data-e387_neuralfoil_validationpy)
+section and the uncertainty-annotated figures `18_LD_vs_AoA_uncertainty.png` /
+`19_tradeoff_uncertainty.png`.
 
 Operating envelope for the robust design: **Re ∈ [50k, 500k]**, **AoA ∈ [0°, 8°]**.
 
@@ -48,8 +56,35 @@ B is a flat plateau that performs decently everywhere.
 NeuralFoil's `analysis_confidence` is modest (~0.05–0.12) for these aggressive
 high-L/D low-Re sections — they sit near the edge of its training distribution.
 Treat absolute L/D values (especially A's ~233 peak) as surrogate estimates;
-the robust **A-vs-B comparison** is the reliable conclusion. Validate finalists
-in XFoil/RANS before committing.
+the robust **A-vs-B comparison** is the reliable conclusion. We now back this
+with a direct experimental check (below): NeuralFoil's drag error vs wind tunnel
+is ~15% at low Re and **biased low** (it under-predicts bubble drag), so a quoted
+L/D of 233 is an optimistic ceiling, not a measured value.
+
+## Experimental validation against wind-tunnel data (`e387_neuralfoil_validation.py`)
+
+The whole pipeline rests on NeuralFoil, yet NeuralFoil itself had **never been
+checked against experiment below Re = 500k** (its paper validates only at
+Re = 1.8×10⁶). We close that gap using measured low-Re polars for the **Eppler
+E387** and **SD2030** from the UIUC/NREL wind-tunnel database (Selig &
+McGranahan 2004, NREL/SR-500-34515), extracted with two independent parsers and
+kept only where both agree.
+
+| Quantity | NeuralFoil vs experiment (Re 100k–500k) |
+|----------|------------------------------------------|
+| Lift CL | within **~5–8%** |
+| Drag CD | within **~15%** (under-predicts bubble drag at Re≈100k) |
+| `analysis_confidence` vs true error | **Pearson r ≈ −0.48** (model knows when it's wrong) |
+| Kulfan fit error (E387) | 0.15% RMS chord — 0.3× the manufacturing tolerance |
+
+**Why this matters:** (1) it puts a real, measured error bar on every number the
+project produces; (2) the confidence/error anti-correlation is the mechanistic
+reason a high-confidence robust design is more trustworthy than an aggressive
+low-confidence one — turning the manufacturing-robustness story from a modeling
+artifact into an empirically-grounded claim; (3) the CD figure shows the laminar
+separation bubble that *both* NeuralFoil and XFoil miss at low Re — the documented
+physics gap, observed firsthand. Figures: `12`–`17`; data in
+`data/e387_experimental_NREL.csv`, `data/multifoil_neuralfoil_validation.csv`.
 
 ## Multi-objective extension (`multiobjective.py`)
 
