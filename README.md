@@ -86,6 +86,20 @@ separation bubble that *both* NeuralFoil and XFoil miss at low Re — the docume
 physics gap, observed firsthand. Figures: `12`–`17`; data in
 `data/e387_experimental_NREL.csv`, `data/multifoil_neuralfoil_validation.csv`.
 
+## Uncertainty-aware optimizer (`uncertainty_aware_design.py`)
+
+The validation above measured *where* NeuralFoil can be trusted. This module feeds
+that back into the optimizer: alongside performance, it rewards designs that live
+where NeuralFoil is confident (a single dial, `w_conf`). The result is a genuine
+surprise — with the dial off, the optimizer lands on a design at confidence 0.14
+(right where the surrogate is unreliable); a small nudge (`w_conf=1`) moves it to
+confidence 0.96 **and raises** the honestly-evaluated worst-case L/D from 32 to 38.
+Blindly trusting the surrogate bought a mirage, not performance. Only past
+`w_conf≈2` do you pay a small real price for still-higher confidence. No prior
+airfoil-optimization work appears to feed a surrogate's own measured reliability
+back into the design loop this way. Figure: `20_trust_vs_performance.png`; data in
+`data/uncertainty_aware_sweep.csv`.
+
 ## Multi-objective extension (`multiobjective.py`)
 
 L/D alone is a thin objective for an aircraft that flies over people, gets built

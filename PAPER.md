@@ -28,7 +28,9 @@ within about 15%, with drag always guessed a little low because of the separatio
 bubble. The useful surprise: NeuralFoil's own confidence score goes *down* when its
 error goes up (Pearson r ≈ −0.48), so the model can basically warn you when it is
 unreliable. That gives every number the pipeline produces a real, physics-based
-error bar.
+error bar. Finally, this paper puts that finding to work: an uncertainty-aware
+optimizer that rewards trustworthy designs, which turns out to steer away from
+high-scoring "mirage" shapes that the model itself does not believe.
 
 ---
 
@@ -75,6 +77,9 @@ where it gets used the most.** That is the gap this paper closes.
 4. **The first experimental check of NeuralFoil below Re = 500,000**, giving a
    measured error bar and showing that its confidence score predicts its own
    reliability.
+5. **An uncertainty-aware optimizer** that feeds the measured confidence-error link
+   back into the design loop, steering away from high-scoring but untrustworthy
+   "mirage" designs.
 
 ---
 
@@ -97,9 +102,14 @@ optimization over a 25-point grid of conditions from hours into seconds.
 ### 2.3 Robust optimization: the epigraph max-min
 
 To get the best *worst-case* lift-to-drag ratio (L/D) across the range, the jagged
-"worst case" is rewritten in a smooth way: add a variable *g*, require *g ≤ L/D* at
-every operating point, and then maximize *g*. The problem is non-convex, so a
-single run can get stuck; each design is therefore solved from several starting
+"worst case" is rewritten in a smooth way. Here is the trick in plain terms: imagine
+you want to raise the score of your *weakest* subject in school. You do not average
+all your subjects; you push up the lowest one. In math, you add a variable *g* that
+must stay at or below the L/D at *every* operating point, and then you push *g* as
+high as it will go. Since *g* can never exceed the worst point, maximizing *g*
+maximizes the worst case — and it does so with a smooth equation an optimizer can
+handle. The problem is non-convex (it has more than one "hilltop"), so a single run
+can get stuck on a small hill; each design is therefore solved from several starting
 shapes (multi-start) and the best one is kept. Whole families of designs are traced
 by warm-starting each from the previous one (continuation).
 
@@ -194,15 +204,50 @@ Three findings:
    under-guess the separation-bubble drag that shows up near Re = 100k. You can see
    it directly as a "drag-bucket" gap in the C_D curves.
 3. **The model knows when it is wrong.** NeuralFoil's `analysis_confidence` goes
-   down as its true error goes up. That is the reason a high-confidence, robust
-   design should be trusted more than an aggressive, low-confidence one — and it
-   explains why airfoil A's peak L/D of 232.9, produced at confidence ≈ 0, should
-   be read as a ceiling, not a real value.
+   down as its true error goes up. Think of a student taking a test who says "I'm
+   pretty sure" on some answers and "honestly, I'm guessing" on others — and it
+   turns out the "I'm guessing" answers are exactly the ones they get wrong.
+   NeuralFoil behaves the same way: when it flags low confidence, it really is less
+   reliable. That is the reason a high-confidence, robust design should be trusted
+   more than an aggressive, low-confidence one — and it explains why airfoil A's
+   peak L/D of 232.9, produced at confidence ≈ 0, should be read as a ceiling, not
+   a real value. It is the model's way of saying "I'm guessing" about that 233.
 
 Since L/D = C_L/C_D, the ~15% drag error means every L/D value carries an error
 floor of about ±16%, and the bias only points one way (the true L/D is likely at or
 below what the model predicts at low Re). Every headline figure is re-plotted with
 this measured uncertainty band.
+
+### 3.5 Putting the finding to work: an uncertainty-aware optimizer
+
+Here is the part I am most proud of, because it uses the measurement above to
+*change how the design is done*. Normally an optimizer chases the highest predicted
+L/D and trusts the stand-in completely. But we just learned the stand-in is least
+trustworthy exactly where its confidence is low. So I added a second goal to the
+optimizer: alongside performance, reward designs that live where NeuralFoil is
+confident. A single dial, `w_conf`, sets how strongly.
+
+| `w_conf` | Worst-case L/D | Mean confidence | Lowest confidence |
+|---------:|---------------:|----------------:|------------------:|
+| 0 (trust blindly) | 32.1 | 0.14 | 0.02 |
+| 1 | **37.7** | 0.96 | 0.90 |
+| 2 | 37.4 | 0.96 | 0.92 |
+| 4 | 36.6 | 0.97 | 0.93 |
+| 8 | 34.9 | 0.98 | 0.94 |
+
+The result surprised me. With the dial off (`w_conf` = 0), the optimizer found a
+design sitting at confidence 0.14 — right where we measured the stand-in cannot be
+trusted. It looked fine on paper, but that "fine" is a number the model itself is
+unsure about. Turn the dial up just a little (`w_conf` = 1) and the design jumps to
+confidence 0.96, and its honestly-checked worst-case L/D actually *goes up*, from
+32 to 38. In other words, blindly trusting the stand-in did not even buy better
+performance — it bought a mirage. Only after you push the dial hard (`w_conf` = 4,
+8) do you start paying a small, real performance price for still-higher confidence.
+
+The takeaway: a light touch of confidence-awareness gives you a design whose
+predicted performance you can actually believe, often for free. As far as I can
+tell from the literature search, no prior airfoil-optimization work feeds a
+surrogate's own measured reliability back into the design loop this way.
 
 ---
 
@@ -225,10 +270,13 @@ well-behaved.
 
 ## 5. Limitations (stated honestly)
 
-- **This is a validation and framework study, not a discovery.** The
-  parameterization, the stand-in, and the optimization method were all made by
-  others; the contribution is putting them together, making them robust, and —
-  newly — checking the stand-in against experiment at low Re.
+- **This is mostly a validation and framework study.** The parameterization, the
+  stand-in, and the base optimization method were all made by others; much of the
+  contribution is putting them together and making them robust. The two genuinely
+  new pieces are (a) checking the stand-in against experiment at low Re, and (b) the
+  uncertainty-aware optimizer that uses that measured reliability inside the design
+  loop. Both still lean on the same surrogate, so they need higher-fidelity or
+  physical confirmation before the specific shapes are trusted.
 - **Absolute L/D values are estimates** with a measured ±16% floor and a one-sided
   low-Re bias. The conclusions to trust are the *relative* ones (robust-vs-peak,
   robust-vs-nominal).
