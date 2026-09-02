@@ -31,7 +31,7 @@ import pandas as pd
 import aerosandbox as asb
 import aerosandbox.numpy as anp
 
-OUT = "/Users/neelmadhav/Airfoil research"
+OUT = os.path.dirname(os.path.abspath(__file__))
 os.makedirs(os.path.join(OUT, "figures"), exist_ok=True)
 os.makedirs(os.path.join(OUT, "data"), exist_ok=True)
 
@@ -126,6 +126,8 @@ def solve_best(robust_to_mfg, extra_seeds=()):
             continue
         if g > best:
             best_af, best = af, g
+    if best_af is None:
+        raise RuntimeError(f"robust_to_mfg={robust_to_mfg}: every seed failed to converge")
     return best_af
 
 

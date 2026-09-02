@@ -16,7 +16,7 @@ import numpy as np
 import pandas as pd
 import aerosandbox as asb
 
-OUT = "/Users/neelmadhav/Airfoil research"
+OUT = os.path.dirname(os.path.abspath(__file__))
 XFOIL = os.path.join(OUT, ".venv", "bin", "xfoil")
 RE_GRID = np.array([50e3, 100e3, 200e3, 350e3, 500e3])
 ALPHAS = np.arange(0, 8.5, 1.0)

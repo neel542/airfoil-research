@@ -28,7 +28,7 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
-OUT = "/Users/neelmadhav/Airfoil research"
+OUT = os.path.dirname(os.path.abspath(__file__))
 FIG = os.path.join(OUT, "figures")
 EM  = json.load(open(os.path.join(OUT, "data", "error_model.json")))
 BAND = EM["LD_band_pct"] / 100.0

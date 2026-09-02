@@ -60,7 +60,7 @@ import numpy as np
 import pandas as pd
 import aerosandbox as asb
 
-OUT   = "/Users/neelmadhav/Airfoil research"
+OUT = os.path.dirname(os.path.abspath(__file__))
 XFOIL = os.path.join(OUT, ".venv", "bin", "xfoil")
 SKIP_XFOIL = not os.path.exists(XFOIL)
 if SKIP_XFOIL:

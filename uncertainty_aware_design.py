@@ -31,7 +31,7 @@ import pandas as pd
 import aerosandbox as asb
 import aerosandbox.numpy as anp
 
-OUT = "/Users/neelmadhav/Airfoil research"
+OUT = os.path.dirname(os.path.abspath(__file__))
 os.makedirs(os.path.join(OUT, "figures"), exist_ok=True)
 os.makedirs(os.path.join(OUT, "data"), exist_ok=True)
 
@@ -89,6 +89,8 @@ def best_over_seeds(w_conf):
         score = g / S_LD + w_conf * mc
         if best is None or score > best[0]:
             best = (score, af, g, mc)
+    if best is None:
+        raise RuntimeError(f"w_conf={w_conf}: every seed failed to converge")
     return best[1], best[2], best[3]
 
 
