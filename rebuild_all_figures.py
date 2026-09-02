@@ -464,8 +464,10 @@ co_hi = pd.read_csv(os.path.join(DATA, f"uncertainty_aware_wconf{wc_hi:.0f}_coor
 
 fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(13, 5))
 ax1.plot(sweep.mean_conf, sweep.worst_LD, "-o", color=C_A, lw=2.2, ms=8)
+# w = 0.5 and w = 1 land on almost the same point; stagger their labels.
+_off = {0.5: (8, 9), 1.0: (8, -13)}
 for _, r in sweep.iterrows():
-    ax1.annotate(f"w={r.w_conf:g}", (r.mean_conf, r.worst_LD), xytext=(6, 5),
+    ax1.annotate(f"w={r.w_conf:g}", (r.mean_conf, r.worst_LD), xytext=_off.get(r.w_conf, (6, 5)),
                  textcoords="offset points", fontsize=9)
 ax1.set_xlabel("Mean NeuralFoil confidence (how much you can trust the number)")
 ax1.set_ylabel("Worst-case L/D (predicted performance)")
@@ -474,7 +476,7 @@ clean(ax1)
 
 ax2.plot(co_lo.x, co_lo.y, color=C_B, lw=2.2, label=f"w_conf={wc_lo:.0f} (trust blindly)")
 ax2.plot(co_hi.x, co_hi.y, color="#1a9850", lw=2.2, label=f"w_conf={wc_hi:.0f} (trust-aware)")
-ax2.set_aspect("equal"); clean(ax2); ax2.legend(fontsize=9)
+ax2.set_aspect("equal"); ax2.set_ylim(-0.12, 0.14); clean(ax2); ax2.legend(fontsize=9, loc="lower right")
 ax2.set_title("Blind vs trust-aware optimal shapes", fontsize=10.5)
 ax2.set_xlabel("x / c")
 
