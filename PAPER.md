@@ -344,12 +344,18 @@ this validation study into a fully original experimental result.
 
 ---
 
-## Acknowledgments
+## Author Contributions
 
 The author designed and directed this study: choosing the question, setting its
-goals and scope, and reviewing and interpreting every result. AI tools
-partially helped with coding and with figure generation, under the author's
-direction. All experimental data used are from public sources and are cited
+goals and scope, and reviewing and interpreting every result. AI tools were used
+for parts of the code implementation and figure generation, under the author's
+direction.
+
+---
+
+## Acknowledgments
+
+All experimental data used in this work are from public sources and are cited
 below.
 
 ---
