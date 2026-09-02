@@ -83,7 +83,7 @@ for ax, Re in zip(axes, PLOT_RE):
 axes[0].set_ylabel("L / D")
 axes[0].legend(fontsize=8.5, framealpha=0.9, loc="upper left")
 fig.suptitle(
-    "Airfoil A vs B — L/D with measured uncertainty band (±16% from wind-tunnel validation)\n"
+    "Airfoil A vs B: L/D with measured uncertainty band (±16% from wind-tunnel validation)\n"
     "Shaded = validated band; hatched = NeuralFoil confidence below validated range "
     "(band is a LOWER bound, true L/D trends to lower edge)", fontsize=10)
 fig.tight_layout()
@@ -116,14 +116,14 @@ for x, y, l in zip(peak, worst, lam):
 # Mark A and B
 ax.scatter([peak[lam == 1.0][0]], [worst[lam == 1.0][0]], s=240,
            facecolors="none", edgecolors=COL[A], linewidths=2.2, zorder=4,
-           label="A (conf≈0 — unvalidated)")
+           label="A (conf≈0, unvalidated)")
 ax.scatter([peak[lam == 0.0][0]], [worst[lam == 0.0][0]], s=240,
            facecolors="none", edgecolors=COL[B], linewidths=2.2, zorder=4,
            label="B (robust)")
 ax.set_xlabel("Peak L/D  (surrogate, optimistic ceiling)")
 ax.set_ylabel("Worst-case L/D over envelope")
 ax.set_title("Peak-vs-robustness tradeoff with measured uncertainty\n"
-             "A's peak (~233) sits where NeuralFoil reports ~zero confidence — "
+             "A's peak (~233) sits where NeuralFoil reports ~zero confidence; "
              "treat as an upper bound, not a value", fontsize=10)
 ax.grid(alpha=0.25); ax.legend(fontsize=8.5, loc="center right")
 fig.tight_layout()

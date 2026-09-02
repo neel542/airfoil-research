@@ -16,7 +16,7 @@ watch the optimizer trade a little predicted performance for a lot of
 trustworthiness.
 
 Why this matters: a design with a huge predicted L/D but near-zero confidence
-(like airfoil A, ~233 at confidence ~0) is a mirage — the number is exactly where
+(like airfoil A, ~233 at confidence ~0) is a mirage: the number is exactly where
 the surrogate is least believable. A confidence-aware optimizer steers away from
 those mirages toward designs whose predicted performance you can actually trust.
 
@@ -167,7 +167,7 @@ ax2.set_title("Blind vs trust-aware optimal shapes", fontsize=10)
 ax2.set_xlabel("x / c")
 
 fig.suptitle("Uncertainty-aware airfoil optimization: using the MEASURED "
-             "confidence–error link inside the design loop", fontsize=11)
+             "confidence-error link inside the design loop", fontsize=11)
 fig.tight_layout()
 fig.savefig(os.path.join(OUT, "figures", "20_trust_vs_performance.png"), dpi=160)
 print("  wrote figures/20_trust_vs_performance.png")
