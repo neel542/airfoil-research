@@ -105,7 +105,7 @@ print(f"  {af_base.coordinates.shape[0]} pts | max thickness "
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Geometry-fidelity check: how faithfully does the Kulfan/CST basis reconstruct
-# the real E387 surface?  NeuralFoil never sees the original coordinates — it
+# the real E387 surface?  NeuralFoil never sees the original coordinates; it
 # sees the Kulfan fit.  A poor fit would silently contaminate the
 # NeuralFoil-vs-experiment error attribution (it would be charged to the
 # surrogate, not the geometry).  Quantify the fit error in coordinate space and
@@ -236,7 +236,7 @@ for Re in sorted(df.Re.unique()):
 # into COEFFICIENT space so it is directly comparable to the NeuralFoil error.
 # Run true XFoil on the ORIGINAL E387 coords and on the Kulfan reconstruction at
 # the same conditions; the CL/CD gap between them is the aero error attributable
-# purely to the Kulfan fit (same solver, same panels — geometry is the only
+# purely to the Kulfan fit (same solver, same panels; geometry is the only
 # variable). If that gap is a non-trivial fraction of NeuralFoil's measured error
 # vs experiment, part of the apparent surrogate error is really geometry error.
 # ─────────────────────────────────────────────────────────────────────────────
@@ -279,13 +279,13 @@ if np.isfinite(fit_dCL):
     print(f"                 |ΔCD| {fit_dCD:.1%} vs NeuralFoil |ΔCD| {nf_dCD:.1%} "
           f"-> {fracCD:.0%} of the NF CD error")
     print("  VERDICT: " + (
-        "NON-TRIVIAL — Kulfan fit explains a meaningful share of the apparent\n"
+        "NON-TRIVIAL: Kulfan fit explains a meaningful share of the apparent\n"
         "           NeuralFoil error; documented as a caveat (see docstring / METHODS.md)."
         if geom_caveat else
-        "negligible — Kulfan fit is a small fraction of the NeuralFoil error;\n"
+        "negligible: Kulfan fit is a small fraction of the NeuralFoil error;\n"
         "           NF-vs-experiment attribution is not materially contaminated."))
 else:
-    print("  (XFoil unavailable — coefficient-space attribution skipped; "
+    print("  (XFoil unavailable, so coefficient-space attribution skipped; "
           "coordinate-space fit error is well within manufacturing tolerance.)")
 
 
@@ -356,7 +356,7 @@ for i in range(grid.shape[0]):
         if not np.isnan(v):
             ax.text(j, i, f"{v:+.0f}", ha="center", va="center", fontsize=8,
                     color="white" if abs(v) > vmax * 0.6 else "black")
-ax.set_title("NeuralFoil (large) $C_L$ error vs experiment — Eppler E387\n"
+ax.set_title("NeuralFoil (large) $C_L$ error vs experiment: Eppler E387\n"
              "red = NF over-predicts lift, blue = under-predicts", fontsize=9)
 fig.tight_layout()
 fig.savefig(os.path.join(FIG, "15_e387_error_heatmap.png"), dpi=160)
@@ -380,7 +380,7 @@ for ax, model in zip(axes, ["large", "xxlarge"]):
     ax.set_xlabel("NeuralFoil analysis_confidence")
     ax.set_ylabel("|ΔCL / WT CL|  [%]")
     ax.set_title(f"NeuralFoil {model}"); ax.grid(alpha=0.25); ax.legend(fontsize=9)
-fig.suptitle("Does analysis_confidence predict real error? — Eppler E387 vs experiment\n"
+fig.suptitle("Does analysis_confidence predict real error? Eppler E387 vs experiment\n"
              "negative slope = the model knows when it is unreliable", fontsize=9)
 fig.tight_layout()
 fig.savefig(os.path.join(FIG, "16_e387_confidence_error.png"), dpi=160)
@@ -391,7 +391,7 @@ print("  wrote figures/16_e387_confidence_error.png")
 # Final interpretation
 # ─────────────────────────────────────────────────────────────────────────────
 print("\n" + "=" * 70)
-print("KEY RESULTS — NeuralFoil vs real experiment, Re 100k-500k (E387)")
+print("KEY RESULTS: NeuralFoil vs real experiment, Re 100k-500k (E387)")
 print("=" * 70)
 for model in ["large", "xxlarge"]:
     s = df[(df.model == model) & (df.WT_CL.abs() > 0.1)]
