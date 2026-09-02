@@ -323,8 +323,9 @@ percent) and puts the stall about 1 degree early, within 1.5 degrees in the
 typical case. Past the stall its lift error nearly doubles (0.08 to 0.15) and
 its confidence drops from 0.89 to 0.52, so the warning light works there
 too. Its pitching-moment coefficient is rougher: off by 0.018 on average
-against typical values near 0.08. The high-lift and thick shapes are again
-the outliers, by 0.15 to 0.17 in maximum lift. One thing no steady model can
+against typical values near 0.08. The outliers are the S1223, USNPS4, SD7080
+and PT40, each over-predicted by 0.15 to 0.17 in maximum lift. One thing no
+steady model can
 reproduce is stall hysteresis, the gap between the lift on the way up and on
 the way down; it is small in the typical run (0.05) but large at the lowest
 Reynolds numbers and on the high-lift shapes, where the two curves can
@@ -361,10 +362,10 @@ Section 3.4 showed that NeuralFoil's confidence score is a reliable warning
 about its drag error, and drag is what carries the L/D error. This section
 puts that warning inside the optimizer. Alongside the worst-case L/D, the
 optimizer is given a second reward for landing where NeuralFoil is confident,
-controlled by one dial, `w_conf`. Everything else (the 5-by-5 optimization
-grid, the three starting shapes, the thickness limits) is the same as for the
-robust airfoil B in section 3.1, and each dial setting is also started from
-the previous one.
+controlled by one dial, `w_conf`. The optimization grid (5 by 5) and the three
+starting shapes are the same as for the robust airfoil B in section 3.1, the
+thickness range is slightly wider (8 to 16 percent instead of 9 to 13), and
+each dial setting is also started from the previous one.
 
 | `w_conf` | Worst-case L/D | Mean confidence | Lowest confidence | Drag error expected at that confidence (section 3.4) |
 |---:|---:|---:|---:|---:|
@@ -375,8 +376,9 @@ the previous one.
 | 4 | 36.7 | 0.97 | 0.93 | about 9% |
 | 8 | 35.2 | 0.98 | 0.94 | about 9% |
 
-With the dial off, the optimizer finds the same design as airfoil B: a
-predicted worst-case L/D of 38.5, at a mean confidence of 0.16. Section 3.4
+With the dial off, the optimizer finds essentially airfoil B again: a
+predicted worst-case L/D of 38.5 (B: 38.2) at a mean confidence of 0.16 (B:
+0.16). Section 3.4
 says that at that confidence NeuralFoil's drag is wrong by about a third
 on average, so the 38.5 is a number the model itself does not stand behind.
 The optimizer went there because, as far as the surrogate can tell, there is
@@ -442,9 +444,8 @@ region costs almost nothing in predicted performance.
   manufacturing-aware beating nominal, not the raw numbers themselves.
 - **The benchmark covers 55 airfoils from four of the five UIUC volumes**, in
   their plain configuration only; flapped and gurney-flap variants, Volume 5
-  and the SoarTech collection are not included. Two
-  airfoils had to be left out because the 17-number shape description could
-  not reproduce them. The wind-tunnel models themselves differ from their
+  and the SoarTech collection are not included. Two airfoils had to be left
+  out because the 17-number shape description could not reproduce them. The wind-tunnel models themselves differ from their
   design shapes by a few hundredths to a few tenths of a percent of chord,
   which sets a floor on how well any prediction can agree. Part of every
   reported error is the shape description itself (section 2.6), so the
@@ -471,9 +472,9 @@ inputs reproduce trip-strip measurements. Feeding that warning back into the
 optimizer moves designs out of the surrogate's least reliable region for
 about 2 percent of predicted performance. The most valuable next steps are
 (1) extending the benchmark to Volume 5 and to flapped configurations, and
-(2) an actual physical wind-tunnel test of 3D-printed
-robust-versus-peak-tuned wings, which would turn this validation study into a
-fully original experimental result.
+(2) an actual physical wind-tunnel test of 3D-printed robust-versus-peak-tuned
+wings, which would turn this validation study into a fully original
+experimental result.
 
 ---
 
