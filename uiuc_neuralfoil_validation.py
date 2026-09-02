@@ -97,7 +97,7 @@ fit.to_csv(os.path.join(DATA, "uiuc_kulfan_fit.csv"), index=False)
 # ─────────────────────────────────────────────────────────────────────────────
 print("\nRunning NeuralFoil at every measured condition ...")
 rows = []
-for (file, Re), g in exp.groupby(["file", "Re"]):
+for (vol, file, Re), g in exp.groupby(["volume", "file", "Re"]):
     g = g.sort_values("alpha")
     name, cfg = g.asb_name.iloc[0], g.config.iloc[0]
     if name not in geoms:
@@ -124,7 +124,7 @@ df["dCL"] = df.NF_CL - df.WT_CL
 df["err_CL"] = df.dCL / (df.WT_CL.abs() + 1e-6)
 df["err_CD"] = (df.NF_CD - df.WT_CD) / df.WT_CD
 df["Re_bin"] = pd.cut(df.Re, [0, 80e3, 150e3, 250e3, 400e3, 600e3],
-                      labels=["40-60k", "100k", "200k", "300-350k", "460-500k"])
+                      labels=["40-60k", "100k", "200k", "300-400k", "400-500k"])
 df["fit_ok"] = df.asb_name.isin(OK)
 df.to_csv(os.path.join(DATA, "uiuc_neuralfoil_validation.csv"), index=False)
 print(f"  wrote data/uiuc_neuralfoil_validation.csv ({len(df)} rows)")
@@ -190,10 +190,12 @@ print("\nTripped runs (large): NeuralFoil free vs forced transition, and the cle
 print(tripped[["asb_name", "volume", "NF_mode", "n", "mean_abs_dCL", "mean_abs_err_CD",
                "mean_err_CD", "mean_conf"]].round(3).to_string(index=False))
 v4 = trip[trip.volume == "vol4"]
-for mode in ("free", "forced"):
-    s = summarise(v4[v4.NF_mode == mode])
-    print(f"  Vol 4 tripped, all three airfoils, {mode:>6}: mean|dCD/CD| = {s.mean_abs_err_CD:.1%}"
-          f"  bias {s.mean_err_CD:+.1%}   mean|dCL| = {s.mean_abs_dCL:.3f}")
+both = trip[np.isfinite(trip.xtr_upper) & np.isfinite(trip.xtr_lower) & trip.asb_name.isin(OK)]
+for lab, d in [("Vol 4 tripped, three airfoils", v4), ("all both-surface trips, benchmark airfoils", both)]:
+    for mode in ("free", "forced"):
+        s = summarise(d[d.NF_mode == mode])
+        print(f"  {lab}, {mode:>6}: n={int(s.n)} airfoils={d.asb_name.nunique()} mean|dCD/CD| = {s.mean_abs_err_CD:.1%}"
+              f"  bias {s.mean_err_CD:+.1%}   mean|dCL| = {s.mean_abs_dCL:.3f}")
 
 
 # ─────────────────────────────────────────────────────────────────────────────

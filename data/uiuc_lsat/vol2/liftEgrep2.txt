@@ -1,0 +1,1 @@
+egrep -e "LFT|lft|CL|AG|AB|CF|FS|JG|PG" LIFT02.TXT > liftFiles2.txt

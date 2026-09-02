@@ -41,8 +41,8 @@ FIGURE_INSERTS = [
     ]),
     ("be read as optimistic", [
         ("17_multifoil_parity.png",
-         "Figure 5. NeuralFoil versus wind tunnel for all 1,408 clean benchmark "
-         "points on 20 airfoils, coloured by Reynolds number. Lift scatters within "
+         "Figure 5. NeuralFoil versus wind tunnel for all 4,428 clean benchmark "
+         "points on 55 airfoils, coloured by Reynolds number. Lift scatters within "
          "about 0.05 for most points; drag within about 20%."),
         ("21_uiuc_error_by_airfoil.png",
          "Figure 6. Mean drag and lift error by airfoil, clean runs. Grey bars are "
@@ -59,7 +59,7 @@ FIGURE_INSERTS = [
     ("differ by 0.5", [
         ("24_uiuc_stall_parity.png",
          "Figure 8. Maximum lift and the angle it occurs at, NeuralFoil versus wind "
-         "tunnel, for the 107 clean lift sweeps that passed through stall."),
+         "tunnel, for the 298 clean lift sweeps that passed through stall."),
         ("25_uiuc_lift_curves.png",
          "Figure 9. Three lift curves through stall. Triangles: increasing angle; "
          "open circles: decreasing angle (the gap is stall hysteresis); line: "
@@ -69,8 +69,8 @@ FIGURE_INSERTS = [
     ("It is the basis for", [
         ("22_uiuc_confidence_calibration.png",
          "Figure 10. What NeuralFoil's confidence score tracks. Left: lift error is "
-         "flat across confidence bins. Middle: drag error falls steadily from 37% "
-         "to 10% as confidence rises. Right: the same relationship at the airfoil "
+         "flat across confidence bins. Middle: drag error falls steadily from 32% "
+         "to 9% as confidence rises. Right: the same relationship at the airfoil "
          "level."),
     ]),
     ("the two extremes are shown in the figure", [

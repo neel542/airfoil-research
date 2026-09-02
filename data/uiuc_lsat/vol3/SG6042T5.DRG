@@ -1,0 +1,50 @@
+Airfoil: SG6042
+Builder: M. Allen
+Comment: Re = 300,000: clean & plain trip @ x/c = 35% (h = 0.006", 0.012", 0.018", 0.024")
+
+Number of Reynolds #'s:
+5
+
+Average Reynolds #:
+298038
+Number of angles of attack:
+2
+ alpha  /   Cl   /  Cd   /  Spanwise Cd's >>>
+  4.15    0.913   0.0103  0.0104   0.0106  0.0103   0.0098
+  4.65    0.962   0.0106  0.0106   0.0109  0.0106   0.0103
+Tabulated from data in file pg02687.dat & reduced using program C06.01
+
+Average Reynolds #:
+298582
+Number of angles of attack:
+2
+ alpha  /   Cl   /  Cd   /  Spanwise Cd's >>>
+  4.18    0.912   0.0101  0.0099   0.0102  0.0104   0.0097
+  4.65    0.957   0.0107  0.0106   0.0109  0.0108   0.0104
+Tabulated from data in file pg02690.dat & reduced using program C06.01
+
+Average Reynolds #:
+297125
+Number of angles of attack:
+1
+ alpha  /   Cl   /  Cd   /  Spanwise Cd's >>>
+  4.18    0.904   0.0105  0.0105   0.0109  0.0103   0.0103
+Tabulated from data in file pg02718.dat & reduced using program C06.01
+
+Average Reynolds #:
+296406
+Number of angles of attack:
+1
+ alpha  /   Cl   /  Cd   /  Spanwise Cd's >>>
+  4.12    0.885   0.0114  0.0111   0.0117  0.0113   0.0112
+Tabulated from data in file pg02717.dat & reduced using program C06.01
+
+Average Reynolds #:
+297588
+Number of angles of attack:
+1
+ alpha  /   Cl   /  Cd   /  Spanwise Cd's >>>
+  4.17    0.882   0.0121  0.0120   0.0125  0.0120   0.0118
+Tabulated from data in file pg02716.dat & reduced using program C06.01
+
+File sg6042t5.drg created using program C06.01 on Mon Feb 02 15:11:43 1998

@@ -1,0 +1,406 @@
+7037EF1.DRG
+Tabulated from data in file cl02323.dat & reduced using program C06.01
+Tabulated from data in file cl02315.dat & reduced using program C06.01
+Tabulated from data in file cl02313.dat & reduced using program C06.01
+File 7037ef1.drg created using program C06.01 on Mon Feb 02 15:11:43 1998
+7037EF2.DRG
+Tabulated from data in file cl02307.dat & reduced using program C06.01
+Tabulated from data in file cl02309.dat & reduced using program C06.01
+Tabulated from data in file cl02311.dat & reduced using program C06.01
+File 7037ef2.drg created using program C06.01 on Mon Feb 02 15:11:43 1998
+7037EF3.DRG
+Tabulated from data in file cl02325.dat & reduced using program C06.01
+Tabulated from data in file cl02327.dat & reduced using program C06.01
+Tabulated from data in file cl02329.dat & reduced using program C06.01
+File 7037ef3.drg created using program C06.01 on Mon Feb 02 15:11:43 1998
+7037EF4.DRG
+Tabulated from data in file ag02368.dat & reduced using program C06.01
+Tabulated from data in file cl02370.dat & reduced using program C06.01
+Tabulated from data in file cl02372.dat & reduced using program C06.01
+File 7037ef4.drg created using program C06.01 on Mon Feb 02 15:11:43 1998
+A18T.DRG
+Tabulated from data in file pg02559.dat & reduced using program C06.01
+Tabulated from data in file pg02561.dat & reduced using program C06.01
+Tabulated from data in file pg02563.dat & reduced using program C06.01
+Tabulated from data in file pg02564.dat & reduced using program C06.01
+File a18t.drg created using program C06.01 on Mon Feb 02 15:11:43 1998
+AVISTAR.DRG
+Tabulated from data in file CL01118.DAT & reduced using program Q05.01D
+Tabulated from data in file CL01120.DAT & reduced using program Q05.01D
+Tabulated from data in file CL01122.DAT & reduced using program Q05.01D
+Tabulated from data in file CL01124.DAT & reduced using program Q05.01D
+File AVISTAR.DRG created on 09-12-1997 at 13:39:49 using program FORMAT
+BW3.DRG
+Tabulated from data in file PG01723.DAT & reduced using program Q05.01D
+Tabulated from data in file PG01515.DAT & reduced using program Q05.01D
+Tabulated from data in file PG01517.DAT & reduced using program Q05.01D
+Tabulated from data in file PG01519.DAT & reduced using program Q05.01D
+Tabulated from data in file PG01521.DAT & reduced using program Q05.01D
+File BW3.DRG created on 09-12-1997 at 13:39:49 using program FORMAT
+BW3T.DRG
+Tabulated from data in file PG01773.DAT & reduced using program Q05.01D
+Tabulated from data in file PG01775.DAT & reduced using program Q05.01D
+Tabulated from data in file PG01777.DAT & reduced using program Q05.01D
+Tabulated from data in file PG01779.DAT & reduced using program Q05.01D
+Tabulated from data in file PG01780.DAT & reduced using program Q05.01D
+File BW3T.DRG created on 09-12-1997 at 13:39:49 using program FORMAT
+CLARKYB.DRG
+Tabulated from data in file PG01709.DAT & reduced using program Q05.01D
+Tabulated from data in file PG01710.DAT & reduced using program Q05.01D
+Tabulated from data in file PG01712.DAT & reduced using program Q05.01D
+Tabulated from data in file PG01713.DAT & reduced using program Q05.01D
+Tabulated from data in file PG01715.DAT & reduced using program Q05.01D
+Tabulated from data in file PG01717.DAT & reduced using program Q05.01D
+Tabulated from data in file PG01719.DAT & reduced using program Q05.01D
+File CLARKYB.DRG created on 09-12-1997 at 13:39:49 using program FORMAT
+CLARKYBT.DRG
+Tabulated from data in file PG01752.DAT & reduced using program Q05.01D
+Tabulated from data in file PG01753.DAT & reduced using program Q05.01D
+Tabulated from data in file PG01755.DAT & reduced using program Q05.01D
+Tabulated from data in file PG01757.DAT & reduced using program Q05.01D
+Tabulated from data in file PG01759.DAT & reduced using program Q05.01D
+File CLARKYBT.DRG created on 09-12-1997 at 13:39:49 using program FORMAT
+DH4009.DRG
+Tabulated from data in file CL01082.DAT & reduced using program Q05.01D
+Tabulated from data in file CL01084.DAT & reduced using program Q05.01D
+Tabulated from data in file CL01086.DAT & reduced using program Q05.01D
+Tabulated from data in file CL01088.DAT & reduced using program Q05.01D
+Tabulated from data in file CL02072.DAT & reduced using program Q05.01D
+File DH4009.DRG created on 09-12-1997 at 13:39:49 using program FORMAT
+E231.DRG
+Tabulated from data in file CL01252.DAT & reduced using program Q05.01D
+Tabulated from data in file CL01256.DAT & reduced using program Q05.01D
+Tabulated from data in file CL01254.DAT & reduced using program Q05.01D
+Tabulated from data in file CL01255.DAT & reduced using program Q05.01D
+Tabulated from data in file CL01258.DAT & reduced using program Q05.01D
+Tabulated from data in file CL01260.DAT & reduced using program Q05.01D
+Tabulated from data in file CL01262.DAT & reduced using program Q05.01D
+File E231.DRG created on 09-12-1997 at 13:39:49 using program FORMAT
+E374B.DRG
+Tabulated from data in file CL01013.DAT & reduced using program Q05.01D
+Tabulated from data in file CL01015.DAT & reduced using program Q05.01D
+Tabulated from data in file CL01017.DAT & reduced using program Q05.01D
+Tabulated from data in file CL00983.DAT & reduced using program Q05.01D
+File E374B.DRG created on 09-12-1997 at 13:39:49 using program FORMAT
+E387D.DRG
+File e387d.drg created using program C06.01 on Mon Feb 02 15:11:43 1998
+E472.DRG
+Tabulated from data in file CL01074.DAT & reduced using program Q05.01D
+Tabulated from data in file CL01076.DAT & reduced using program Q05.01D
+Tabulated from data in file CL01857.DAT & reduced using program Q05.01D
+Tabulated from data in file CL01078.DAT & reduced using program Q05.01D
+Tabulated from data in file CL01858.DAT & reduced using program Q05.01D
+Tabulated from data in file CL01080.DAT & reduced using program Q05.01D
+Tabulated from data in file CL01859.DAT & reduced using program Q05.01D
+Tabulated from data in file CL01856.DAT & reduced using program Q05.01D
+File E472.DRG created on 09-12-1997 at 13:39:49 using program FORMAT
+ESA.DRG
+Tabulated from data in file AB01091.DAT & reduced using program Q05.01D
+Tabulated from data in file AB01093.DAT & reduced using program Q05.01D
+Tabulated from data in file AB01095.DAT & reduced using program Q05.01D
+Tabulated from data in file AB01097.DAT & reduced using program Q05.01D
+Tabulated from data in file CL01107.DAT & reduced using program Q05.01D
+File ESA.DRG created on 09-12-1997 at 13:39:49 using program FORMAT
+FALCON.DRG
+Tabulated from data in file CL01424.DAT & reduced using program Q05.01D
+Tabulated from data in file CL01451.DAT & reduced using program Q05.01D
+Tabulated from data in file CL01426.DAT & reduced using program Q05.01D
+Tabulated from data in file CL01427.DAT & reduced using program Q05.01D
+Tabulated from data in file CL01447.DAT & reduced using program Q05.01D
+Tabulated from data in file CL01450.DAT & reduced using program Q05.01D
+File FALCON.DRG created on 09-12-1997 at 13:39:49 using program FORMAT
+GOE417A.DRG
+Tabulated from data in file PG01725.DAT & reduced using program Q05.01D
+Tabulated from data in file PG01126.DAT & reduced using program Q05.01D
+Tabulated from data in file CL01128.DAT & reduced using program Q05.01D
+Tabulated from data in file CL01130.DAT & reduced using program Q05.01D
+Tabulated from data in file CL01132.DAT & reduced using program Q05.01D
+File GOE417A.DRG created on 09-12-1997 at 13:39:49 using program FORMAT
+LRN1007B.DRG
+Tabulated from data in file AB01697.DAT & reduced using program Q05.01D
+Tabulated from data in file AB01365.DAT & reduced using program Q05.01D
+Tabulated from data in file AB01698.DAT & reduced using program Q05.01D
+Tabulated from data in file AB01700.DAT & reduced using program Q05.01D
+Tabulated from data in file AB01363.DAT & reduced using program Q05.01D
+File LRN1007B.DRG created on 09-12-1997 at 13:39:49 using program FORMAT
+PT40A.DRG
+Tabulated from data in file CL01021.DAT & reduced using program Q05.01D
+Tabulated from data in file CL01023.DAT & reduced using program Q05.01D
+Tabulated from data in file CL01025.DAT & reduced using program Q05.01D
+Tabulated from data in file AB01027.DAT & reduced using program Q05.01D
+File PT40A.DRG created on 09-12-1997 at 13:39:49 using program FORMAT
+PT40B.DRG
+Tabulated from data in file CL01066.DAT & reduced using program Q05.01D
+Tabulated from data in file CL01068.DAT & reduced using program Q05.01D
+Tabulated from data in file CL01070.DAT & reduced using program Q05.01D
+Tabulated from data in file CL01072.DAT & reduced using program Q05.01D
+File PT40B.DRG created on 09-12-1997 at 13:39:49 using program FORMAT
+RG14.DRG
+Tabulated from data in file AB01058.DAT & reduced using program Q05.01D
+Tabulated from data in file AB01060.DAT & reduced using program Q05.01D
+Tabulated from data in file AB01062.DAT & reduced using program Q05.01D
+Tabulated from data in file CL01064.DAT & reduced using program Q05.01D
+File RG14.DRG created on 09-12-1997 at 13:39:49 using program FORMAT
+RG15CF2.DRG
+Tabulated from data in file cl02374.dat & reduced using program C06.01
+Tabulated from data in file cl02376.dat & reduced using program C06.01
+Tabulated from data in file cl02378.dat & reduced using program C06.01
+Tabulated from data in file pg02380.dat & reduced using program C06.01
+File rg15cf2.drg created using program C06.01 on Mon Feb 02 15:11:43 1998
+S6063.DRG
+Tabulated from data in file CL01689.DAT & reduced using program Q05.01D
+Tabulated from data in file AB01691.DAT & reduced using program Q05.01D
+Tabulated from data in file AB01693.DAT & reduced using program Q05.01D
+Tabulated from data in file AB01695.DAT & reduced using program Q05.01D
+File S6063.DRG created on 09-12-1997 at 13:39:49 using program FORMAT
+S7012B0T.DRG
+Tabulated from data in file PG01782.DAT & reduced using program Q05.01D
+Tabulated from data in file PG01784.DAT & reduced using program Q05.01D
+Tabulated from data in file PG01785.DAT & reduced using program Q05.01D
+Tabulated from data in file PG01787.DAT & reduced using program Q05.01D
+File S7012B0T.DRG created on 09-12-1997 at 13:39:49 using program FORMAT
+S7012BF2.DRG
+Tabulated from data in file cl02259.dat & reduced using program C06.01
+Tabulated from data in file cl02261.dat & reduced using program C06.01
+Tabulated from data in file cl02263.dat & reduced using program C06.01
+File s7012bf2.drg created using program C06.01 on Mon Feb 02 15:11:43 1998
+S7075A0.DRG
+Tabulated from data in file CL01318.DAT & reduced using program Q05.01D
+Tabulated from data in file CL01320.DAT & reduced using program Q05.01D
+Tabulated from data in file CL01322.DAT & reduced using program Q05.01D
+Tabulated from data in file CL01324.DAT & reduced using program Q05.01D
+File S7075A0.DRG created on 09-12-1997 at 13:39:49 using program FORMAT
+S7075A0T.DRG
+Tabulated from data in file CL01810.DAT & reduced using program Q05.01D
+Tabulated from data in file CL01812.DAT & reduced using program Q05.01D
+File S7075A0T.DRG created on 09-12-1997 at 13:39:49 using program FORMAT
+S7075B0.DRG
+Tabulated from data in file CL01112.DAT & reduced using program Q05.01D
+Tabulated from data in file CL01114.DAT & reduced using program Q05.01D
+Tabulated from data in file CL01116.DAT & reduced using program Q05.01D
+File S7075B0.DRG created on 09-12-1997 at 13:39:49 using program FORMAT
+S8036.DRG
+Tabulated from data in file CL01029.DAT & reduced using program Q05.01D
+Tabulated from data in file CL01038.DAT & reduced using program Q05.01D
+Tabulated from data in file CL01031.DAT & reduced using program Q05.01D
+Tabulated from data in file CL01033.DAT & reduced using program Q05.01D
+Tabulated from data in file CL01034.DAT & reduced using program Q05.01D
+Tabulated from data in file CL01035.DAT & reduced using program Q05.01D
+Tabulated from data in file CL01037.DAT & reduced using program Q05.01D
+Tabulated from data in file CL01771.DAT & reduced using program Q05.01D
+File S8036.DRG created on 09-12-1997 at 13:39:49 using program FORMAT
+S8037.DRG
+Tabulated from data in file CL01040.DAT & reduced using program Q05.01D
+Tabulated from data in file CL01042.DAT & reduced using program Q05.01D
+Tabulated from data in file CL01044.DAT & reduced using program Q05.01D
+Tabulated from data in file CL01046.DAT & reduced using program Q05.01D
+Tabulated from data in file CL01789.DAT & reduced using program Q05.01D
+File S8037.DRG created on 09-12-1997 at 13:39:49 using program FORMAT
+S8052.DRG
+Tabulated from data in file CL01413.DAT & reduced using program Q05.01D
+Tabulated from data in file CL01414.DAT & reduced using program Q05.01D
+Tabulated from data in file CL01416.DAT & reduced using program Q05.01D
+Tabulated from data in file CL01417.DAT & reduced using program Q05.01D
+Tabulated from data in file CL01420.DAT & reduced using program Q05.01D
+Tabulated from data in file CL01422.DAT & reduced using program Q05.01D
+Tabulated from data in file CL01769.DAT & reduced using program Q05.01D
+File S8052.DRG created on 09-12-1997 at 13:39:50 using program FORMAT
+SA7035.DRG
+Tabulated from data in file ag02576.dat & reduced using program C06.01
+Tabulated from data in file ag02578.dat & reduced using program C06.01
+Tabulated from data in file ag02580.dat & reduced using program C06.01
+Tabulated from data in file ag02582.dat & reduced using program C06.01
+File sa7035.drg created using program C06.01 on Mon Feb 02 15:11:43 1998
+SA7036A.DRG
+Tabulated from data in file ag02629.dat & reduced using program C06.01
+Tabulated from data in file ag02635.dat & reduced using program C06.01
+Tabulated from data in file ag02631.dat & reduced using program C06.01
+Tabulated from data in file ag02633.dat & reduced using program C06.01
+File sa7036a.drg created using program C06.01 on Mon Feb 02 15:11:43 1998
+SA7036B.DRG
+Tabulated from data in file ag02699.dat & reduced using program C06.01
+Tabulated from data in file ag02701.dat & reduced using program C06.01
+Tabulated from data in file ag02703.dat & reduced using program C06.01
+Tabulated from data in file ag02705.dat & reduced using program C06.01
+File sa7036b.drg created using program C06.01 on Mon Feb 02 15:11:43 1998
+SA7038.DRG
+Tabulated from data in file ag02645.dat & reduced using program C06.01
+Tabulated from data in file ag02647.dat & reduced using program C06.01
+Tabulated from data in file ag02657.dat & reduced using program C06.01
+Tabulated from data in file ag02658.dat & reduced using program C06.01
+File sa7038.drg created using program C06.01 on Mon Feb 02 15:11:43 1998
+SD7032T.DRG
+Tabulated from data in file pg02566.dat & reduced using program C06.01
+Tabulated from data in file pg02568.dat & reduced using program C06.01
+Tabulated from data in file pg02570.dat & reduced using program C06.01
+File sd7032t.drg created using program C06.01 on Mon Feb 02 15:11:43 1998
+SD7037BT.DRG
+Tabulated from data in file pg02640.dat & reduced using program C06.01
+Tabulated from data in file pg02642.dat & reduced using program C06.01
+File sd7037bt.drg created using program C06.01 on Mon Feb 02 15:11:43 1998
+SD7037D.DRG
+Tabulated from data in file AB01100.DAT & reduced using program Q05.01D
+Tabulated from data in file AB01102.DAT & reduced using program Q05.01D
+Tabulated from data in file PG01104.DAT & reduced using program Q05.01D
+Tabulated from data in file PG01106.DAT & reduced using program Q05.01D
+File SD7037D.DRG created on 09-12-1997 at 13:39:50 using program FORMAT
+SD7037D2.DRG
+Tabulated from data in file CL02018.DAT & reduced using program Q05.01D
+File SD7037D2.DRG created on 09-12-1997 at 13:39:50 using program FORMAT
+SD7062B.DRG
+Tabulated from data in file PG01721.DAT & reduced using program Q05.01D
+Tabulated from data in file CF01155.DAT & reduced using program Q05.01D
+Tabulated from data in file PG01163.DAT & reduced using program Q05.01D
+Tabulated from data in file PG01157.DAT & reduced using program Q05.01D
+Tabulated from data in file PG01158.DAT & reduced using program Q05.01D
+Tabulated from data in file PG01160.DAT & reduced using program Q05.01D
+Tabulated from data in file PG01162.DAT & reduced using program Q05.01D
+File SD7062B.DRG created on 09-12-1997 at 13:39:50 using program FORMAT
+SD7062BT.DRG
+Tabulated from data in file PG01744.DAT & reduced using program Q05.01D
+Tabulated from data in file PG01746.DAT & reduced using program Q05.01D
+Tabulated from data in file PG01748.DAT & reduced using program Q05.01D
+Tabulated from data in file PG01750.DAT & reduced using program Q05.01D
+File SD7062BT.DRG created on 09-12-1997 at 13:39:50 using program FORMAT
+SD7080.DRG
+Tabulated from data in file ag02588.dat & reduced using program C06.01
+Tabulated from data in file ag02590.dat & reduced using program C06.01
+Tabulated from data in file ag02592.dat & reduced using program C06.01
+Tabulated from data in file ag02594.dat & reduced using program C06.01
+File sd7080.drg created using program C06.01 on Mon Feb 02 15:11:43 1998
+SG6040.DRG
+Tabulated from data in file pg02399.dat & reduced using program C06.01
+Tabulated from data in file pg02400.dat & reduced using program C06.01
+Tabulated from data in file cf02402.dat & reduced using program C06.01
+Tabulated from data in file cf02403.dat & reduced using program C06.01
+Tabulated from data in file cf02405.dat & reduced using program C06.01
+Tabulated from data in file cf02406.dat & reduced using program C06.01
+Tabulated from data in file cf02408.dat & reduced using program C06.01
+Tabulated from data in file cf02413.dat & reduced using program C06.01
+File sg6040.drg created using program C06.01 on Mon Feb 02 15:11:43 1998
+SG6040T.DRG
+Tabulated from data in file pg02505.dat & reduced using program C06.01
+Tabulated from data in file pg02506.dat & reduced using program C06.01
+Tabulated from data in file pg02510.dat & reduced using program C06.01
+Tabulated from data in file cf02513.dat & reduced using program C06.01
+File sg6040t.drg created using program C06.01 on Mon Feb 02 15:11:43 1998
+SG6041.DRG
+Tabulated from data in file pg02496.dat & reduced using program C06.01
+Tabulated from data in file ag02333.dat & reduced using program C06.01
+Tabulated from data in file ag02335.dat & reduced using program C06.01
+Tabulated from data in file ag02337.dat & reduced using program C06.01
+Tabulated from data in file ag02340.dat & reduced using program C06.01
+File sg6041.drg created using program C06.01 on Mon Feb 02 15:11:43 1998
+SG6041T.DRG
+Tabulated from data in file pg02528.dat & reduced using program C06.01
+Tabulated from data in file pg02531.dat & reduced using program C06.01
+Tabulated from data in file pg02534.dat & reduced using program C06.01
+File sg6041t.drg created using program C06.01 on Mon Feb 02 15:11:43 1998
+SG6042.DRG
+Tabulated from data in file ag02342.dat & reduced using program C06.01
+Tabulated from data in file ag02343.dat & reduced using program C06.01
+Tabulated from data in file cl02345.dat & reduced using program C06.01
+Tabulated from data in file cl02347.dat & reduced using program C06.01
+Tabulated from data in file cl02349.dat & reduced using program C06.01
+Tabulated from data in file cl02351.dat & reduced using program C06.01
+Tabulated from data in file cl02352.dat & reduced using program C06.01
+File sg6042.drg created using program C06.01 on Mon Feb 02 15:11:43 1998
+SG6042T.DRG
+Tabulated from data in file pg02549.dat & reduced using program C06.01
+Tabulated from data in file pg02552.dat & reduced using program C06.01
+Tabulated from data in file pg02553.dat & reduced using program C06.01
+Tabulated from data in file pg02556.dat & reduced using program C06.01
+Tabulated from data in file pg02557.dat & reduced using program C06.01
+File sg6042t.drg created using program C06.01 on Mon Feb 02 15:11:43 1998
+SG6042T2.DRG
+Tabulated from data in file cl02347.dat & reduced using program C06.01
+Tabulated from data in file pg02649.dat & reduced using program C06.01
+Tabulated from data in file pg02651.dat & reduced using program C06.01
+Tabulated from data in file pg02653.dat & reduced using program C06.01
+Tabulated from data in file pg02655.dat & reduced using program C06.01
+Tabulated from data in file pg02552.dat & reduced using program C06.01
+Tabulated from data in file pg02553.dat & reduced using program C06.01
+File sg6042t2.drg created using program C06.01 on Mon Feb 02 15:11:43 1998
+SG6042T3.DRG
+Tabulated from data in file pg02695.dat & reduced using program C06.01
+File sg6042t3.drg created using program C06.01 on Mon Feb 02 15:11:43 1998
+SG6042T4.DRG
+Tabulated from data in file pg02687.dat & reduced using program C06.01
+Tabulated from data in file pg02693.dat & reduced using program C06.01
+Tabulated from data in file pg02692.dat & reduced using program C06.01
+Tabulated from data in file pg02691.dat & reduced using program C06.01
+Tabulated from data in file pg02690.dat & reduced using program C06.01
+Tabulated from data in file pg02689.dat & reduced using program C06.01
+Tabulated from data in file pg02688.dat & reduced using program C06.01
+File sg6042t4.drg created using program C06.01 on Mon Feb 02 15:11:43 1998
+SG6042T5.DRG
+Tabulated from data in file pg02687.dat & reduced using program C06.01
+Tabulated from data in file pg02690.dat & reduced using program C06.01
+Tabulated from data in file pg02718.dat & reduced using program C06.01
+Tabulated from data in file pg02717.dat & reduced using program C06.01
+Tabulated from data in file pg02716.dat & reduced using program C06.01
+File sg6042t5.drg created using program C06.01 on Mon Feb 02 15:11:43 1998
+SG6043.DRG
+Tabulated from data in file pg02385.dat & reduced using program C06.01
+Tabulated from data in file pg02500.dat & reduced using program C06.01
+Tabulated from data in file pg02387.dat & reduced using program C06.01
+Tabulated from data in file pg02388.dat & reduced using program C06.01
+Tabulated from data in file pg02390.dat & reduced using program C06.01
+Tabulated from data in file pg02391.dat & reduced using program C06.01
+Tabulated from data in file pg02393.dat & reduced using program C06.01
+Tabulated from data in file pg02394.dat & reduced using program C06.01
+Tabulated from data in file pg02397.dat & reduced using program C06.01
+File sg6043.drg created using program C06.01 on Mon Feb 02 15:11:43 1998
+SG6043T.DRG
+Tabulated from data in file pg02537.dat & reduced using program C06.01
+Tabulated from data in file pg02540.dat & reduced using program C06.01
+Tabulated from data in file pg02541.dat & reduced using program C06.01
+Tabulated from data in file pg02545.dat & reduced using program C06.01
+Tabulated from data in file pg02546.dat & reduced using program C06.01
+File sg6043t.drg created using program C06.01 on Mon Feb 02 15:11:43 1998
+SG6043T2.DRG
+Tabulated from data in file pg02680.dat & reduced using program C06.01
+Tabulated from data in file pg02675.dat & reduced using program C06.01
+Tabulated from data in file pg02676.dat & reduced using program C06.01
+Tabulated from data in file pg02677.dat & reduced using program C06.01
+Tabulated from data in file pg02678.dat & reduced using program C06.01
+Tabulated from data in file pg02679.dat & reduced using program C06.01
+File sg6043t2.drg created using program C06.01 on Mon Feb 02 15:11:43 1998
+SG6043T3.DRG
+Tabulated from data in file pg02681.dat & reduced using program C06.01
+Tabulated from data in file pg02686.dat & reduced using program C06.01
+Tabulated from data in file pg02685.dat & reduced using program C06.01
+Tabulated from data in file pg02684.dat & reduced using program C06.01
+Tabulated from data in file pg02683.dat & reduced using program C06.01
+Tabulated from data in file pg02682.dat & reduced using program C06.01
+File sg6043t3.drg created using program C06.01 on Mon Feb 02 15:11:43 1998
+TRNR60.DRG
+Tabulated from data in file CL01048.DAT & reduced using program Q05.01D
+Tabulated from data in file CL01050.DAT & reduced using program Q05.01D
+Tabulated from data in file CL01053.DAT & reduced using program Q05.01D
+Tabulated from data in file CL01052.DAT & reduced using program Q05.01D
+Tabulated from data in file AB01055.DAT & reduced using program Q05.01D
+Tabulated from data in file AB01056.DAT & reduced using program Q05.01D
+Tabulated from data in file CL02074.DAT & reduced using program Q05.01D
+File TRNR60.DRG created on 09-12-1997 at 13:39:50 using program FORMAT
+ULTIMATE.DRG
+Tabulated from data in file AB01671.DAT & reduced using program Q05.01D
+Tabulated from data in file AB01672.DAT & reduced using program Q05.01D
+Tabulated from data in file AB01674.DAT & reduced using program Q05.01D
+Tabulated from data in file CL01676.DAT & reduced using program Q05.01D
+Tabulated from data in file CL01678.DAT & reduced using program Q05.01D
+Tabulated from data in file CL01760.DAT & reduced using program Q05.01D
+File ULTIMATE.DRG created on 09-12-1997 at 13:39:50 using program FORMAT
+US1000.DRG
+Tabulated from data in file CL01680.DAT & reduced using program Q05.01D
+Tabulated from data in file CL01682.DAT & reduced using program Q05.01D
+Tabulated from data in file CL01684.DAT & reduced using program Q05.01D
+Tabulated from data in file CL01686.DAT & reduced using program Q05.01D
+Tabulated from data in file CL01861.DAT & reduced using program Q05.01D
+File US1000.DRG created on 09-12-1997 at 13:39:50 using program FORMAT
+USNPS4.DRG
+Tabulated from data in file PG01166.DAT & reduced using program Q05.01D
+Tabulated from data in file PG01507.DAT & reduced using program Q05.01D
+Tabulated from data in file PG01511.DAT & reduced using program Q05.01D
+Tabulated from data in file PG01513.DAT & reduced using program Q05.01D
+File USNPS4.DRG created on 09-12-1997 at 13:39:50 using program FORMAT

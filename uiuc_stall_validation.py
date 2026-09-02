@@ -47,7 +47,7 @@ for name in sorted(lf.asb_name.unique()):
 print(f"{len(lf)} lift points, {lf.file.nunique()} files, {len(geoms)} airfoils")
 
 rows, pts = [], []
-for (file, Re), g in lf.groupby(["file", "Re"]):
+for (vol, file, Re), g in lf.groupby(["volume", "file", "Re"]):
     name, cfg = g.asb_name.iloc[0], g.config.iloc[0]
     if name not in geoms:
         continue
@@ -107,7 +107,7 @@ for (file, Re), g in lf.groupby(["file", "Re"]):
 
 st = pd.DataFrame(rows)
 st["Re_bin"] = pd.cut(st.Re, [0, 45e3, 80e3, 150e3, 250e3, 400e3, 600e3],
-                      labels=["30k", "40-60k", "100k", "200k", "300-350k", "460-500k"])
+                      labels=["30k", "40-60k", "100k", "200k", "300-400k", "400-500k"])
 st.to_csv(os.path.join(DATA, "uiuc_stall_validation.csv"), index=False)
 pd.DataFrame(pts).to_csv(os.path.join(DATA, "uiuc_lift_validation.csv"), index=False)
 print(f"  wrote data/uiuc_stall_validation.csv ({len(st)} lift runs) and uiuc_lift_validation.csv ({len(pts)} points)")
