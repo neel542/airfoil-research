@@ -91,34 +91,37 @@ and tracks these weak spots.
 **Experimental benchmark against wind-tunnel data.** XFoil is not ground truth;
 it is itself a model. We therefore benchmark NeuralFoil against *measured*
 low-Re polars from the UIUC Low-Speed Airfoil Tests archive (Selig et al. 1995,
-Vol. 1; Selig & McGranahan 2004, NREL/SR-500-34515), using the archive's
-official plain-text tables rather than the report PDFs. Every airfoil in those
-volumes with design geometry in the AeroSandbox database is included: 22
-airfoils, 1,763 points, Re = 40k-500k, with clean and boundary-layer-tripped
-runs kept separate (`uiuc_lsat_parse.py`). This addresses a real gap: the
-NeuralFoil paper (Sharpe & Hansman 2025) validates against experiment only at
-Re = 1.8×10⁶. Each airfoil is refit in the 17-parameter Kulfan basis; the two
-whose fit error exceeds the 0.5%-chord manufacturing sigma (A18, BE50) are
-excluded from the statistics. Clean runs are compared with free-transition
-NeuralFoil (n_crit = 9); tripped runs with transition forced at the header trip
-locations (`xtr_upper`, `xtr_lower`) and, for contrast, free. The E387 is also
-run in headless XFoil at the same conditions.
+1996; Lyon et al. 1998; Selig & McGranahan 2004), using the archive's official
+plain-text tables rather than the report PDFs. Every airfoil in Vols 1-4 with
+design geometry in the AeroSandbox database is included in its plain
+configuration: 57 airfoils, 5,441 drag-run and 21,462 lift-run points,
+Re = 30k-500k, with clean and boundary-layer-tripped runs kept separate and
+files that mix several trip heights excluded (`uiuc_lsat_parse.py`). This
+addresses a real gap: the NeuralFoil paper (Sharpe & Hansman 2025) validates
+against experiment only at Re = 1.8×10⁶. Each airfoil is refit in the
+17-parameter Kulfan basis; the two whose fit error exceeds the 0.5%-chord
+manufacturing sigma (A18, BE50) are excluded from the statistics. Clean runs
+are compared with free-transition NeuralFoil (n_crit = 9); tripped runs with
+transition forced at the header trip locations (`xtr_upper`, `xtr_lower`) and,
+for contrast, free. The E387 is also run in headless XFoil at the same
+conditions.
 
-*Result (20 airfoils, 1,408 clean points, NeuralFoil `large`):* mean absolute
-lift error 0.078 (0.058 below 5% camber, 0.143 above); drag error 13% mean,
-8% median, degrading to 22% / 16% at Re = 60k where drag is over-predicted by
-~20%; L/D typically 16% off and over-predicted by 14% on average. With
-transition forced at the trip, the 19% drag under-prediction on tripped runs
-falls to 2%. `analysis_confidence` is a calibrated indicator of **drag** error
-(37% below 0.5, 10% above 0.95; r = −0.46, same sign in every Re band) and
-carries no information about lift error (r = +0.07). For the E387 alone, lift
-is within ~5% from Re = 200k up (11% at 100k) and drag within ~12% (22% at
-100k, the laminar-bubble regime that XFoil also misses). On the 107 clean lift
-sweeps that pass through stall, CLmax is over-predicted by 0.07 (~6%) and the
-stall angle placed within ~2°; post-stall CL error doubles while confidence
-halves (`uiuc_stall_validation.py`). Scripts:
-`uiuc_neuralfoil_validation.py`, `e387_neuralfoil_validation.py`; data
-`data/uiuc_*.csv`; `figures/12-17, 21-23`.
+*Result (55 airfoils, 4,428 clean drag-run points, NeuralFoil `large`):* mean
+absolute lift error 0.072 (0.066 below 5% camber, 0.113 above); drag error 12%
+mean, 8% median, degrading to 22% / 15% at Re = 60k where drag is
+over-predicted by ~13%; L/D typically 15% off and over-predicted by 15% on
+average. With transition forced at the trip, the drag under-prediction on 885
+tripped runs falls from 15% to 6% (19% to 2% on the precisely documented 2004
+runs). `analysis_confidence` is a calibrated indicator of **drag** error (32%
+below 0.5, 9% above 0.95; r = −0.43, same sign in every Re band; airfoil-level
+rank correlation −0.65) and carries no information about lift error (r = 0.00).
+For the E387 alone, lift is within ~5% from Re = 200k up (11% at 100k) and
+drag within ~12% (22% at 100k, the laminar-bubble regime that XFoil also
+misses). On the 298 clean lift sweeps that pass through stall, CLmax is
+over-predicted by 0.06 (~6%) and the stall angle placed within ~1.5°;
+post-stall CL error nearly doubles while confidence halves
+(`uiuc_stall_validation.py`). Scripts: `uiuc_neuralfoil_validation.py`,
+`e387_neuralfoil_validation.py`; data `data/uiuc_*.csv`; `figures/12-17, 21-25`.
 
 ## 8. Reproducibility
 
@@ -130,7 +133,7 @@ from a single spec.
 ## Key limitations
 
 - Absolute L/D values are surrogate estimates with an empirically measured error
-  band (§7: 16% typical, 22% mean, over-predicted by 14% on average across 20
+  band (§7: 15% typical, 21% mean, over-predicted by 15% on average across 55
   airfoils); the *relative* (A-vs-B, robust-vs-nominal) conclusions are the
   more reliable outputs. Very high quoted L/D (e.g. airfoil A's ~233, at
   confidence ≈ 0) should be read as an optimistic surrogate ceiling, not a

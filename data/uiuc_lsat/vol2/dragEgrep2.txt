@@ -1,0 +1,1 @@
+egrep -e "DRG|drg|CL|AG|AB|CF|FS|JG|PG" DRAG02.TXT > dragFiles2.txt

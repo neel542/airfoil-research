@@ -1,0 +1,1 @@
+egrep -e "DRG|drg|\.dat|\.DAT" DRAG03.TXT > dragFiles3.txt

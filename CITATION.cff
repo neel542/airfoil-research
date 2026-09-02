@@ -6,8 +6,9 @@ abstract: >-
   airfoil optimization at low Reynolds number, using AeroSandbox and the
   differentiable NeuralFoil surrogate, with manufacturing-tolerance robustness
   and independent XFoil validation. Includes a benchmark of NeuralFoil against
-  1,763 measured wind-tunnel points on 22 airfoils (Re 40k-500k, clean and
-  boundary-layer-tripped) from the UIUC Low-Speed Airfoil Tests archive, and an
+  5,400 drag-run and 21,000 lift-run wind-tunnel points on 57 airfoils
+  (Re 30k-500k; clean, tripped and through stall) from the UIUC Low-Speed
+  Airfoil Tests archive, and an
   uncertainty-aware optimizer that uses the surrogate's measured reliability
   inside the design loop.
 type: software
@@ -26,7 +27,7 @@ keywords:
   - wind-tunnel validation
   - surrogate model
 license: MIT
-version: "1.1.0"
+version: "1.2.0"
 date-released: "2026-09-02"
 references:
   - type: software

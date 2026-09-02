@@ -1,0 +1,283 @@
+7037B.LFT
+Tabulated from data in file CL00797.DAT & reduced using program Q02.00L
+Tabulated from data in file CL00799.DAT & reduced using program Q02.00L
+Tabulated from data in file CL00801.DAT & reduced using program Q02.00L
+Tabulated from data in file CL00803.DAT & reduced using program Q02.00L
+File 7037b.lft created on 09-12-1997 at 13:46:18 using program FORMAT
+7037BF10.LFT
+Tabulated from data in file CL00814.DAT & reduced using program Q02.00L
+Tabulated from data in file CL00816.DAT & reduced using program Q02.00L
+Tabulated from data in file AG00818.DAT & reduced using program Q02.00L
+Tabulated from data in file CL00821.DAT & reduced using program Q02.00L
+File 7037bf10.lft created on 09-12-1997 at 13:46:19 using program FORMAT
+7037BF5.LFT
+Tabulated from data in file CL00805.DAT & reduced using program Q02.00L
+Tabulated from data in file CL00807.DAT & reduced using program Q02.00L
+Tabulated from data in file CL00809.DAT & reduced using program Q02.00L
+Tabulated from data in file CL00811.DAT & reduced using program Q02.00L
+File 7037bf5.lft created on 09-12-1997 at 13:46:18 using program FORMAT
+7037C.LFT
+Tabulated from data in file CL00623.DAT & reduced using program Q02.00L
+Tabulated from data in file CL00625.DAT & reduced using program Q02.00L
+Tabulated from data in file CL00627.DAT & reduced using program Q02.00L
+Tabulated from data in file CL00629.DAT & reduced using program Q02.00L
+File 7037c.lft created on 09-12-1997 at 13:46:19 using program FORMAT
+7037CBF4.LFT
+Tabulated from data in file AG00906.DAT & reduced using program Q02.00L
+File 7037cbf4.lft created on 09-12-1997 at 13:46:19 using program FORMAT
+7075AT1.LFT
+Tabulated from data in file CL00699.DAT & reduced using program Q02.00L
+Tabulated from data in file CL00701.DAT & reduced using program Q02.00L
+Tabulated from data in file CL00704.DAT & reduced using program Q02.00L
+File 7075at1.lft created on 09-12-1997 at 13:46:18 using program FORMAT
+7075AT2.LFT
+Tabulated from data in file CL00706.DAT & reduced using program Q02.00L
+Tabulated from data in file CL00708.DAT & reduced using program Q02.00L
+Tabulated from data in file CL00710.DAT & reduced using program Q02.00L
+Tabulated from data in file CL00712.DAT & reduced using program Q02.00L
+File 7075at2.lft created on 09-12-1997 at 13:46:18 using program FORMAT
+7075AT3.LFT
+Tabulated from data in file CL00716.DAT & reduced using program Q02.00L
+Tabulated from data in file CL00718.DAT & reduced using program Q02.00L
+Tabulated from data in file CL00720.DAT & reduced using program Q02.00L
+File 7075at3.lft created on 09-12-1997 at 13:46:18 using program FORMAT
+7075ATF1.LFT
+Tabulated from data in file CL00743.DAT & reduced using program Q02.00L
+Tabulated from data in file CL00745.DAT & reduced using program Q02.00L
+Tabulated from data in file CL00747.DAT & reduced using program Q02.00L
+Tabulated from data in file CL00749.DAT & reduced using program Q02.00L
+File 7075atf1.lft created on 09-12-1997 at 13:46:18 using program FORMAT
+7075ATF5.LFT
+Tabulated from data in file CL00735.DAT & reduced using program Q02.00L
+Tabulated from data in file CL00737.DAT & reduced using program Q02.00L
+Tabulated from data in file CL00739.DAT & reduced using program Q02.00L
+Tabulated from data in file CL00741.DAT & reduced using program Q02.00L
+File 7075atf5.lft created on 09-12-1997 at 13:46:18 using program FORMAT
+7075BT2.LFT
+Tabulated from data in file CL00936.DAT & reduced using program Q02.00L
+Tabulated from data in file CL00938.DAT & reduced using program Q02.00L
+Tabulated from data in file CL00940.DAT & reduced using program Q02.00L
+Tabulated from data in file CL00942.DAT & reduced using program Q02.00L
+File 7075bt2.lft created on 09-12-1997 at 13:46:18 using program FORMAT
+CR001.LFT
+Tabulated from data in file CL00657.DAT & reduced using program Q02.00L
+Tabulated from data in file CL00659.DAT & reduced using program Q02.00L
+Tabulated from data in file CL00661.DAT & reduced using program Q02.00L
+Tabulated from data in file CL00663.DAT & reduced using program Q02.00L
+File cr001.lft created on 09-12-1997 at 13:46:17 using program FORMAT
+DAVIS3R.LFT
+Tabulated from data in file CL00751.DAT & reduced using program Q02.00L
+Tabulated from data in file CL00753.DAT & reduced using program Q02.00L
+Tabulated from data in file CL00755.DAT & reduced using program Q02.00L
+Tabulated from data in file CL00871.DAT & reduced using program Q02.00L
+Tabulated from data in file CL00873.DAT & reduced using program Q02.00L
+File davis3r.lft created on 09-12-1997 at 13:46:17 using program FORMAT
+DU86.LFT
+Tabulated from data in file CL00789.DAT & reduced using program Q02.00L
+Tabulated from data in file CL00791.DAT & reduced using program Q02.00L
+Tabulated from data in file CL00793.DAT & reduced using program Q02.00L
+Tabulated from data in file CL00795.DAT & reduced using program Q02.00L
+File du86.lft created on 09-12-1997 at 13:46:17 using program FORMAT
+E374B.LFT
+Tabulated from data in file CL00615.DAT & reduced using program Q02.00L
+Tabulated from data in file CL00617.DAT & reduced using program Q02.00L
+Tabulated from data in file CL00619.DAT & reduced using program Q02.00L
+Tabulated from data in file CL00621.DAT & reduced using program Q02.00L
+File e374b.lft created on 09-12-1997 at 13:46:17 using program FORMAT
+E423.LFT
+Tabulated from data in file AG00843.DAT & reduced using program Q02.00L
+Tabulated from data in file AG00845.DAT & reduced using program Q02.00L
+Tabulated from data in file CL00847.DAT & reduced using program Q02.00L
+Tabulated from data in file CL00849.DAT & reduced using program Q02.00L
+File e423.lft created on 09-12-1997 at 13:46:17 using program FORMAT
+LD79.LFT
+Tabulated from data in file FS00944.DAT & reduced using program Q02.00L
+Tabulated from data in file FS00946.DAT & reduced using program Q02.00L
+Tabulated from data in file FS00950.DAT & reduced using program Q02.00L
+Tabulated from data in file FS00948.DAT & reduced using program Q02.00L
+File ld79.lft created on 09-12-1997 at 13:46:17 using program FORMAT
+M06GF1.LFT
+Tabulated from data in file PG00914.DAT & reduced using program Q02.00L
+Tabulated from data in file PG00917.DAT & reduced using program Q02.00L
+File m06gf1.lft created on 09-12-1997 at 13:46:17 using program FORMAT
+M665.LFT
+Tabulated from data in file CF00757.DAT & reduced using program Q02.00L
+Tabulated from data in file CF00759.DAT & reduced using program Q02.00L
+Tabulated from data in file CL00761.DAT & reduced using program Q02.00L
+Tabulated from data in file CL00763.DAT & reduced using program Q02.00L
+File m665.lft created on 09-12-1997 at 13:46:18 using program FORMAT
+M685.LFT
+Tabulated from data in file CL00665.DAT & reduced using program Q02.00L
+Tabulated from data in file CL00714.DAT & reduced using program Q02.00L
+Tabulated from data in file CL00722.DAT & reduced using program Q02.00L
+Tabulated from data in file CL00724.DAT & reduced using program Q02.00L
+File m685.lft created on 09-12-1997 at 13:46:18 using program FORMAT
+MA409GF4.LFT
+Tabulated from data in file CL00920.DAT & reduced using program Q02.00L
+Tabulated from data in file CL00922.DAT & reduced using program Q02.00L
+Tabulated from data in file CL00924.DAT & reduced using program Q02.00L
+Tabulated from data in file CL00926.DAT & reduced using program Q02.00L
+File ma409gf4.lft created on 09-12-1997 at 13:46:18 using program FORMAT
+MH32.LFT
+Tabulated from data in file JG00631.DAT & reduced using program Q02.00L
+Tabulated from data in file CL00633.DAT & reduced using program Q02.00L
+Tabulated from data in file CL00635.DAT & reduced using program Q02.00L
+Tabulated from data in file CL00637.DAT & reduced using program Q02.00L
+File mh32.lft created on 09-12-1997 at 13:46:18 using program FORMAT
+N23012_1.LFT
+Tabulated from data in file CL00681.DAT & reduced using program Q02.00L
+Tabulated from data in file AB00685.DAT & reduced using program Q02.00L
+Tabulated from data in file CL00682.DAT & reduced using program Q02.00L
+File n23012_1.lft created on 09-12-1997 at 13:46:19 using program FORMAT
+N23012_2.LFT
+Tabulated from data in file CL00678.DAT & reduced using program Q02.00L
+Tabulated from data in file CL00679.DAT & reduced using program Q02.00L
+Tabulated from data in file CL00684.DAT & reduced using program Q02.00L
+Tabulated from data in file CL00683.DAT & reduced using program Q02.00L
+File n23012_2.lft created on 09-12-1997 at 13:46:19 using program FORMAT
+N23012_3.LFT
+Tabulated from data in file AB00692.DAT & reduced using program Q02.00L
+Tabulated from data in file AB00691.DAT & reduced using program Q02.00L
+Tabulated from data in file AB00690.DAT & reduced using program Q02.00L
+Tabulated from data in file AB00689.DAT & reduced using program Q02.00L
+File n23012_3.lft created on 09-12-1997 at 13:46:19 using program FORMAT
+N23012_4.LFT
+Tabulated from data in file AB00688.DAT & reduced using program Q02.00L
+Tabulated from data in file AB00686.DAT & reduced using program Q02.00L
+File n23012_4.lft created on 09-12-1997 at 13:46:19 using program FORMAT
+N23012_5.LFT
+Tabulated from data in file AB00667.DAT & reduced using program Q02.00L
+File n23012_5.lft created on 09-12-1997 at 13:46:19 using program FORMAT
+NACA2414.LFT
+Tabulated from data in file CL00773.DAT & reduced using program Q02.00L
+Tabulated from data in file CL00775.DAT & reduced using program Q02.00L
+Tabulated from data in file CL00777.DAT & reduced using program Q02.00L
+Tabulated from data in file CL00779.DAT & reduced using program Q02.00L
+File naca2414.lft created on 09-12-1997 at 13:46:18 using program FORMAT
+NACA2415.LFT
+Tabulated from data in file CL00781.DAT & reduced using program Q02.00L
+Tabulated from data in file CL00783.DAT & reduced using program Q02.00L
+Tabulated from data in file CL00785.DAT & reduced using program Q02.00L
+Tabulated from data in file CL00787.DAT & reduced using program Q02.00L
+File naca2415.lft created on 09-12-1997 at 13:46:18 using program FORMAT
+PMCI9.LFT
+Tabulated from data in file CL00978.DAT & reduced using program Q02.00L
+Tabulated from data in file CL00979.DAT & reduced using program Q02.00L
+File pmci9.lft created on 09-12-1997 at 13:46:19 using program FORMAT
+RG15C.LFT
+Tabulated from data in file AG00883.DAT & reduced using program Q02.00L
+Tabulated from data in file AG00885.DAT & reduced using program Q02.00L
+Tabulated from data in file AG00887.DAT & reduced using program Q02.00L
+Tabulated from data in file AG00889.DAT & reduced using program Q02.00L
+File rg15c.lft created on 09-12-1997 at 13:46:18 using program FORMAT
+RG15CF0.LFT
+Tabulated from data in file FS00928.DAT & reduced using program Q02.00L
+Tabulated from data in file FS00930.DAT & reduced using program Q02.00L
+Tabulated from data in file FS00932.DAT & reduced using program Q02.00L
+Tabulated from data in file FS00934.DAT & reduced using program Q02.00L
+File rg15cf0.lft created on 09-12-1997 at 13:46:18 using program FORMAT
+RG15CF10.LFT
+Tabulated from data in file CL00964.DAT & reduced using program Q02.00L
+Tabulated from data in file CL00966.DAT & reduced using program Q02.00L
+Tabulated from data in file CL00968.DAT & reduced using program Q02.00L
+Tabulated from data in file CL00962.DAT & reduced using program Q02.00L
+File rg15cf10.lft created on 09-12-1997 at 13:46:18 using program FORMAT
+RG15CF5.LFT
+Tabulated from data in file CL00952.DAT & reduced using program Q02.00L
+Tabulated from data in file CL00955.DAT & reduced using program Q02.00L
+Tabulated from data in file CL00957.DAT & reduced using program Q02.00L
+Tabulated from data in file CL00960.DAT & reduced using program Q02.00L
+File rg15cf5.lft created on 09-12-1997 at 13:46:18 using program FORMAT
+S1223.LFT
+Tabulated from data in file CL00697.DAT & reduced using program Q02.00L
+Tabulated from data in file CL00698.DAT & reduced using program Q02.00L
+File s1223.lft created on 09-12-1997 at 13:46:18 using program FORMAT
+S1223GF4.LFT
+Tabulated from data in file PG00912.DAT & reduced using program Q02.00L
+File s1223gf4.lft created on 09-12-1997 at 13:46:18 using program FORMAT
+S1223M_1.LFT
+Tabulated from data in file CL00677.DAT & reduced using program Q02.00L
+Tabulated from data in file AB00676.DAT & reduced using program Q02.00L
+Tabulated from data in file AB00675.DAT & reduced using program Q02.00L
+Tabulated from data in file AB00671.DAT & reduced using program Q02.00L
+File s1223m_1.lft created on 09-12-1997 at 13:46:19 using program FORMAT
+S1223M_2.LFT
+Tabulated from data in file AB00671.DAT & reduced using program Q02.00L
+Tabulated from data in file AB00673.DAT & reduced using program Q02.00L
+Tabulated from data in file AB00672.DAT & reduced using program Q02.00L
+Tabulated from data in file AB00674.DAT & reduced using program Q02.00L
+File s1223m_2.lft created on 09-12-1997 at 13:46:19 using program FORMAT
+S1223RTL.LFT
+Tabulated from data in file CL00970.DAT & reduced using program Q02.00L
+Tabulated from data in file CL00971.DAT & reduced using program Q02.00L
+Tabulated from data in file CL00972.DAT & reduced using program Q02.00L
+Tabulated from data in file CL00973.DAT & reduced using program Q02.00L
+Tabulated from data in file CL00974.DAT & reduced using program Q02.00L
+File s1223rtl.lft created on 09-12-1997 at 13:46:18 using program FORMAT
+S4083A.LFT
+Tabulated from data in file CL00647.DAT & reduced using program Q02.00L
+Tabulated from data in file CL00649.DAT & reduced using program Q02.00L
+Tabulated from data in file CL00652.DAT & reduced using program Q02.00L
+Tabulated from data in file CL00655.DAT & reduced using program Q02.00L
+File s4083a.lft created on 09-12-1997 at 13:46:18 using program FORMAT
+S4083B.LFT
+Tabulated from data in file CL00639.DAT & reduced using program Q02.00L
+Tabulated from data in file CL00641.DAT & reduced using program Q02.00L
+Tabulated from data in file CL00643.DAT & reduced using program Q02.00L
+Tabulated from data in file CL00645.DAT & reduced using program Q02.00L
+File s4083b.lft created on 09-12-1997 at 13:46:18 using program FORMAT
+S5010.LFT
+Tabulated from data in file CL00765.DAT & reduced using program Q02.00L
+Tabulated from data in file AG00767.DAT & reduced using program Q02.00L
+Tabulated from data in file CL00769.DAT & reduced using program Q02.00L
+Tabulated from data in file CL00771.DAT & reduced using program Q02.00L
+File s5010.lft created on 09-12-1997 at 13:46:18 using program FORMAT
+S7012B.LFT
+Tabulated from data in file CL00824.DAT & reduced using program Q02.00L
+Tabulated from data in file CL00837.DAT & reduced using program Q02.00L
+Tabulated from data in file CF00839.DAT & reduced using program Q02.00L
+Tabulated from data in file CF00841.DAT & reduced using program Q02.00L
+File s7012b.lft created on 09-12-1997 at 13:46:18 using program FORMAT
+S7012BF5.LFT
+Tabulated from data in file CL00855.DAT & reduced using program Q02.00L
+Tabulated from data in file CL00857.DAT & reduced using program Q02.00L
+Tabulated from data in file CL00859.DAT & reduced using program Q02.00L
+Tabulated from data in file CL00861.DAT & reduced using program Q02.00L
+File s7012bf5.lft created on 09-12-1997 at 13:46:18 using program FORMAT
+S7012F10.LFT
+Tabulated from data in file CL00869.DAT & reduced using program Q02.00L
+File s7012f10.lft created on 09-12-1997 at 13:46:18 using program FORMAT
+S7055GF1.LFT
+Tabulated from data in file AG00908.DAT & reduced using program Q02.00L
+Tabulated from data in file AG00910.DAT & reduced using program Q02.00L
+File s7055gf1.lft created on 09-12-1997 at 13:46:18 using program FORMAT
+S7055GF4.LFT
+Tabulated from data in file PG00891.DAT & reduced using program Q02.00L
+Tabulated from data in file PG00893.DAT & reduced using program Q02.00L
+Tabulated from data in file PG00896.DAT & reduced using program Q02.00L
+Tabulated from data in file PG00898.DAT & reduced using program Q02.00L
+File s7055gf4.lft created on 09-12-1997 at 13:46:18 using program FORMAT
+S8025.LFT
+Tabulated from data in file CF00875.DAT & reduced using program Q02.00L
+Tabulated from data in file CF00877.DAT & reduced using program Q02.00L
+Tabulated from data in file CF00879.DAT & reduced using program Q02.00L
+Tabulated from data in file AG00881.DAT & reduced using program Q02.00L
+File s8025.lft created on 09-12-1997 at 13:46:18 using program FORMAT
+S822.LFT
+Tabulated from data in file CL00728.DAT & reduced using program Q02.00L
+File s822.lft created on 09-12-1997 at 13:46:18 using program FORMAT
+S822T1.LFT
+Tabulated from data in file PG00826.DAT & reduced using program Q02.00L
+Tabulated from data in file PG00828.DAT & reduced using program Q02.00L
+Tabulated from data in file PG00830.DAT & reduced using program Q02.00L
+Tabulated from data in file PG00853.DAT & reduced using program Q02.00L
+File s822t1.lft created on 09-12-1997 at 13:46:18 using program FORMAT
+S822T2.LFT
+Tabulated from data in file CL00731.DAT & reduced using program Q02.00L
+File s822t2.lft created on 09-12-1997 at 13:46:18 using program FORMAT
+S823T.LFT
+Tabulated from data in file CL00729.DAT & reduced using program Q02.00L
+Tabulated from data in file PG00833.DAT & reduced using program Q02.00L
+Tabulated from data in file PG00835.DAT & reduced using program Q02.00L
+Tabulated from data in file PG00734.DAT & reduced using program Q02.00L
+File s823t.lft created on 09-12-1997 at 13:46:18 using program FORMAT

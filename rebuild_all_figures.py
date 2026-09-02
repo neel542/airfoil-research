@@ -491,7 +491,7 @@ from scipy import stats as _stats
 ba = pd.read_csv(os.path.join(DATA, "uiuc_validation_by_airfoil.csv")).sort_values("mean_abs_err_CD")
 
 # (21) Error by airfoil
-fig, axes = plt.subplots(1, 2, figsize=(13, 6.5), sharey=True)
+fig, axes = plt.subplots(1, 2, figsize=(13, 0.26 * len(ba) + 1.5), sharey=True)
 y = np.arange(len(ba))
 bar_c = [C_NF_L if ok else "#bbbbbb" for ok in ba.fit_ok]
 axes[0].barh(y, ba.mean_abs_err_CD * 100, color=bar_c, alpha=0.85)
@@ -520,7 +520,8 @@ for ax in axes[:2]:
 ax = axes[2]
 bo = ba[ba.fit_ok]
 ax.scatter(bo.mean_conf, bo.mean_abs_err_CD * 100, s=55, color=C_A, edgecolors="k", linewidths=0.5)
-for _, r in bo.iterrows():
+_lab = pd.concat([bo.nlargest(6, "mean_abs_err_CD"), bo.nsmallest(3, "mean_abs_err_CD"), bo.nsmallest(3, "mean_conf")])
+for _, r in _lab.drop_duplicates("asb_name").iterrows():
     ax.annotate(r.asb_name, (r.mean_conf, r.mean_abs_err_CD * 100), fontsize=7.5,
                 xytext=(4, 3), textcoords="offset points")
 rho = _stats.spearmanr(bo.mean_conf, bo.mean_abs_err_CD).correlation
@@ -579,16 +580,16 @@ fig.colorbar(sc, ax=axes.ravel().tolist(), label="log$_{10}$(Re)", fraction=0.02
 save(fig, "24_uiuc_stall_parity.png", "NeuralFoil vs wind tunnel through stall (clean runs)")
 
 # (25) Example lift curves: up-sweep, down-sweep, NeuralFoil
-cases = [("e387_c_lft.txt", 100064, "E387, Re = 100k"), ("SD7003.LFT", None, "SD7003, Re = 200k"),
-         ("S1223.LFT", None, "S1223, Re = 200k")]
+cases = [("vol4", "e387_c_lft.txt", 100064, "E387, Re = 100k"), ("vol1", "SD7003.LFT", None, "SD7003, Re = 200k"),
+         ("vol1", "S1223.LFT", None, "S1223, Re = 200k")]
 fig, axes = plt.subplots(1, 3, figsize=(15.5, 4.8))
-for ax, (file, Re, title) in zip(axes, cases):
-    d = lfx[lfx.file == file]
+for ax, (vol, file, Re, title) in zip(axes, cases):
+    d = lfx[(lfx.volume == vol) & (lfx.file == file)]
     if Re is None:
         Re = min(d.Re.unique(), key=lambda r: abs(r - 200e3))
     d = d[d.Re == Re]
     up, dn = d[d.sweep == "up"], d[d.sweep == "down"]
-    p = lv[(lv.file == file) & (lv.Re == Re)].sort_values("alpha")
+    p = lv[(lv.volume == vol) & (lv.file == file) & (lv.Re == Re)].sort_values("alpha")
     ax.scatter(up.alpha, up.CL, marker="^", s=30, color=C_WT, label="wind tunnel, increasing alpha", zorder=4)
     ax.scatter(dn.alpha, dn.CL, marker="o", s=26, facecolors="none", edgecolors=C_WT, label="wind tunnel, decreasing alpha", zorder=4)
     ax.plot(p.alpha, p.NF_CL, "-", color=C_NF_L, lw=2, label="NeuralFoil large")

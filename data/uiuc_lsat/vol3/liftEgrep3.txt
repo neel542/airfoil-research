@@ -1,0 +1,1 @@
+egrep -e "LFT|lft|\.dat|\.DAT" LIFT03.TXT > liftFiles3.txt

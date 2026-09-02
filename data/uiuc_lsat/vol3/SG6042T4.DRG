@@ -1,0 +1,71 @@
+Airfoil: SG6042
+Builder: M. Allen
+Comment: Re = 300,000: clean & plain trip (h = 0.006") @ x/c = 5%, 15%, 25%, 35%, 45%  
+
+Number of Reynolds #'s:
+7
+
+Average Reynolds #:
+298038
+Number of angles of attack:
+2
+ alpha  /   Cl   /  Cd   /  Spanwise Cd's >>>
+  4.15    0.913   0.0103  0.0104   0.0106  0.0103   0.0098
+  4.65    0.962   0.0106  0.0106   0.0109  0.0106   0.0103
+Tabulated from data in file pg02687.dat & reduced using program C06.01
+
+Average Reynolds #:
+298744
+Number of angles of attack:
+2
+ alpha  /   Cl   /  Cd   /  Spanwise Cd's >>>
+  4.22    0.903   0.0109  0.0108   0.0114  0.0109   0.0105
+  4.64    0.938   0.0117  0.0116   0.0121  0.0118   0.0115
+Tabulated from data in file pg02693.dat & reduced using program C06.01
+
+Average Reynolds #:
+298687
+Number of angles of attack:
+2
+ alpha  /   Cl   /  Cd   /  Spanwise Cd's >>>
+  4.14    0.898   0.0107  0.0104   0.0111  0.0108   0.0108
+  4.65    0.945   0.0114  0.0113   0.0116  0.0112   0.0113
+Tabulated from data in file pg02692.dat & reduced using program C06.01
+
+Average Reynolds #:
+298864
+Number of angles of attack:
+2
+ alpha  /   Cl   /  Cd   /  Spanwise Cd's >>>
+  4.13    0.905   0.0103  0.0100   0.0108  0.0102   0.0101
+  4.67    0.958   0.0109  0.0108   0.0111  0.0109   0.0106
+Tabulated from data in file pg02691.dat & reduced using program C06.01
+
+Average Reynolds #:
+298582
+Number of angles of attack:
+2
+ alpha  /   Cl   /  Cd   /  Spanwise Cd's >>>
+  4.18    0.912   0.0101  0.0099   0.0102  0.0104   0.0097
+  4.65    0.957   0.0107  0.0106   0.0109  0.0108   0.0104
+Tabulated from data in file pg02690.dat & reduced using program C06.01
+
+Average Reynolds #:
+298660
+Number of angles of attack:
+2
+ alpha  /   Cl   /  Cd   /  Spanwise Cd's >>>
+  4.16    0.914   0.0102  0.0100   0.0103  0.0106   0.0098
+  4.64    0.959   0.0107  0.0107   0.0109  0.0108   0.0104
+Tabulated from data in file pg02689.dat & reduced using program C06.01
+
+Average Reynolds #:
+298876
+Number of angles of attack:
+2
+ alpha  /   Cl   /  Cd   /  Spanwise Cd's >>>
+  4.18    0.910   0.0101  0.0101   0.0102  0.0103   0.0097
+  4.66    0.957   0.0106  0.0105   0.0110  0.0105   0.0103
+Tabulated from data in file pg02688.dat & reduced using program C06.01
+
+File sg6042t4.drg created using program C06.01 on Mon Feb 02 15:11:43 1998

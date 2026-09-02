@@ -10,12 +10,12 @@ differentiable **NeuralFoil** surrogate (a neural emulator of XFoil).
 | **A** single-point | max L/D at Re=200k, AoA=4° | **232.9** † | 7.1 | 86.6 | 13% |
 | **B** robust       | max **worst-case** L/D over the envelope | 105.1 | **38.2** | 64.2 | 9% |
 
-† Every L/D here is a surrogate estimate. Against 1,400 wind-tunnel points on
-20 airfoils (below), NeuralFoil's L/D is typically **16% off** and **14% too
+† Every L/D here is a surrogate estimate. Against 4,400 wind-tunnel points on
+55 airfoils (below), NeuralFoil's L/D is typically **15% off** and **15% too
 high on average**, so true L/D ≤ shown. Airfoil A's peak sits where NeuralFoil
 reports **confidence ≈ 0**, below the range where its drag was validated, so
 232.9 is an *optimistic upper bound, not a value*. See the
-[wind-tunnel benchmark](#wind-tunnel-benchmark-20-airfoils) section and the
+[wind-tunnel benchmark](#wind-tunnel-benchmark-55-airfoils) section and the
 uncertainty-annotated figures `18_LD_vs_AoA_uncertainty.png` /
 `19_tradeoff_uncertainty.png`.
 
@@ -57,70 +57,75 @@ B is a flat plateau that performs decently everywhere.
 NeuralFoil's `analysis_confidence` is low for these aggressive high-L/D low-Re
 sections (0.00 for A, ~0.16 for B); they sit outside its validated range. The
 benchmark below shows that confidence is a reliable warning about **drag**
-error (10% when confidence > 0.95, 37% when < 0.5) but not about lift. Treat
+error (9% when confidence > 0.95, 32% when < 0.5) but not about lift. Treat
 absolute L/D values (especially A's ~233 peak) as optimistic surrogate
 ceilings; the robust **A-vs-B comparison** is the reliable conclusion.
 
-## Wind-tunnel benchmark: 20 airfoils
+## Wind-tunnel benchmark: 55 airfoils
 
-(`uiuc_lsat_parse.py`, `uiuc_neuralfoil_validation.py`, `e387_neuralfoil_validation.py`)
+(`uiuc_lsat_parse.py`, `uiuc_neuralfoil_validation.py`, `uiuc_stall_validation.py`, `e387_neuralfoil_validation.py`)
 
 The whole pipeline rests on NeuralFoil, yet NeuralFoil had only been checked
 against experiment at Re = 1.8×10⁶ (its paper's one validation case). This
 benchmark checks it against the official plain-text polars of the UIUC
-Low-Speed Airfoil Tests archive (Selig et al. 1995, Vol. 1; Selig & McGranahan
-2004, NREL/SR-500-34515): every airfoil in those volumes with geometry in the
-AeroSandbox database, **22 airfoils, 30 files, 1,763 measured points,
-Re 40k-500k**, clean and boundary-layer-tripped runs kept separate. Two
+Low-Speed Airfoil Tests archive (Selig et al. 1995, 1996; Lyon et al. 1998;
+Selig & McGranahan 2004): every airfoil in Vols 1-4 with geometry in the
+AeroSandbox database, in its plain configuration (no flaps / gurney flaps):
+**57 airfoils, 91 files, 5,441 drag-run points and 21,462 lift-run points,
+Re 30k-500k**, clean and boundary-layer-tripped runs kept separate. Two
 airfoils (A18, BE50) are excluded from the statistics because the 17-parameter
-Kulfan basis cannot reproduce them to within 0.5% chord; the other 20 fit to
-0.01-0.18% (E387: 0.15%). Even 0.15% matters: XFoil on the true E387 versus its
+Kulfan basis cannot reproduce them to within 0.5% chord; the other 55 fit to
+0.01-0.2% (E387: 0.15%). Even 0.15% matters: XFoil on the true E387 versus its
 Kulfan fit differs by ~3% in CL and 4-7% in CD, about half / a third of
 NeuralFoil's E387 error, so the errors below are pipeline errors (Kulfan fit +
 network) and an upper bound on the network alone.
 
-**Clean runs, NeuralFoil `large`, 20 airfoils, 1,408 points:**
+**Clean runs, NeuralFoil `large`, 55 airfoils, 4,428 points:**
 
 | Re | n | mean ΔCL | drag error, mean / median | drag bias | confidence |
 |---:|---:|---:|---:|---:|---:|
-| 60k | 174 | 0.066 | 22% / 16% | +20% | 0.93 |
-| 100k | 329 | 0.093 | 15% / 11% | +1% | 0.92 |
-| 200k | 468 | 0.080 | 10% / 7% | +1% | 0.92 |
-| 300-350k | 357 | 0.075 | 11% / 7% | −2% | 0.92 |
-| 460-500k | 80 | 0.043 | 12% / 7% | −8% | 0.89 |
-| **all** | **1,408** | **0.078** | **13% / 8%** | **+2%** | **0.92** |
+| 60k | 565 | 0.084 | 22% / 15% | +13% | 0.92 |
+| 100k | 1,105 | 0.085 | 14% / 10% | +2% | 0.91 |
+| 200k | 1,183 | 0.071 | 10% / 7% | 0% | 0.91 |
+| 300-400k | 1,187 | 0.061 | 10% / 7% | −4% | 0.91 |
+| 400-500k | 388 | 0.049 | 9% / 7% | −7% | 0.95 |
+| **all** | **4,428** | **0.072** | **12% / 8%** | **0%** | **0.91** |
 
-- **Drag** is good from Re = 100k up (median 7-11%) and degrades below it
-  (over-predicted by ~20% at 60k). `xxlarge` is no better than `large`.
-- **Lift** error is concentrated in high-camber shapes: 0.058 for the 16
-  airfoils under 5% camber, 0.143 for FX 63-137, NACA 6409, S1210, S1223.
-- **L/D** (CL > 0.2, 1,033 points): typically 16% off, 22% on average, and
-  **over-predicted by 14%** (24% at Re ≈ 100k). This is the band drawn on every
+- **Drag** is good from Re = 100k up (median 7-10%) and degrades below it
+  (over-predicted by ~13% at 60k). `xxlarge` is no better than `large`.
+- **Lift** error is concentrated in high-camber shapes: 0.066 for the 45
+  airfoils under 5% camber, 0.113 for the ten above (S1223, S1210, FX 63-137,
+  NACA 6409, E423, GOE 417a, BW3, LRN1007, SG6043, USNPS4).
+- **L/D** (CL > 0.2, 3,151 points): typically 15% off, 21% on average, and
+  **over-predicted by 15%** (20% at Re ≈ 100k). This is the band drawn on every
   L/D figure (`data/error_model.json`).
-- **Trip strips.** Against the 247 tripped runs (E387, SD2030, FX 63-137;
-  zigzag trip at 2%/5% chord), NeuralFoil with free transition under-predicts
-  drag by 19%; with transition forced at the trip location (`xtr_upper`,
-  `xtr_lower`) the bias is 2% and lift error halves. The transition inputs
-  work, which had not been checked against experiment before.
-- **Through stall** (`uiuc_stall_validation.py`, 107 clean lift sweeps past
-  CLmax, Re 30k-500k): CLmax over-predicted by 0.07 (~6%); stall angle within
-  ~2° (NeuralFoil ~1° early); past stall the CL error doubles while confidence
-  halves (0.89 → 0.48); CM off by 0.024 (~25% of typical). Measured hysteresis
-  is 0.04 typical but >0.5 in the worst tenth. Figures `24`-`25`; data
-  `data/uiuc_stall_validation.csv`.
+- **Trip strips.** Against 885 tripped runs on 15 airfoils (zigzag trip at
+  2%/5% chord, both surfaces), NeuralFoil with free transition under-predicts
+  drag by 15%; with transition forced at the trip location (`xtr_upper`,
+  `xtr_lower`) the bias is 6% (on the precisely documented 2004 runs: 19% → 2%)
+  and lift error falls. The transition inputs work, which had not been checked
+  against experiment before.
+- **Through stall** (`uiuc_stall_validation.py`, 298 clean lift sweeps past
+  CLmax, Re 30k-500k): CLmax over-predicted by 0.06 (~6%); stall angle within
+  ~1.5° (NeuralFoil ~1° early); past stall the CL error nearly doubles while
+  confidence drops 0.89 → 0.52; CM off by 0.018 (~20% of typical). Measured
+  hysteresis is 0.05 typical but >0.4 in the worst tenth. Figures `24`-`25`;
+  data `data/uiuc_stall_validation.csv`.
 - **What `analysis_confidence` tracks: drag, not lift.** Drag error falls
-  monotonically from 37% (confidence < 0.5) to 10% (> 0.95); r = −0.46, same
-  sign in every Re band. Lift error is flat across confidence (r = +0.07). An
-  earlier version of this project reported r ≈ −0.48 between confidence and
-  *relative* lift error on the E387 alone; that was driven by near-zero-lift
-  points and does not hold in absolute terms or on the wider benchmark.
+  monotonically from 32% (confidence < 0.5) to 9% (> 0.95); r = −0.43, same
+  sign in every Re band, and rank correlation −0.65 at the airfoil level. Lift
+  error is flat across confidence (r = 0.00). An earlier version of this
+  project reported r ≈ −0.48 between confidence and *relative* lift error on
+  the E387 alone; that was driven by near-zero-lift points and does not hold in
+  absolute terms or on the wider benchmark.
 - **E387 in detail** (`e387_neuralfoil_validation.py`, with headless XFoil at
   the same conditions): lift within ~5% from Re = 200k up and 11% at 100k;
   drag ~12% from 200k up and 22% at 100k, where both NeuralFoil and XFoil miss
   the laminar-separation-bubble drag (figure 13).
 
-Figures: `12`-`17`, `21`-`23`; data in `data/uiuc_experimental.csv`,
-`data/uiuc_neuralfoil_validation.csv` and the `data/uiuc_validation_*.csv`
+Figures: `12`-`17`, `21`-`25`; data in `data/uiuc_experimental.csv`,
+`data/uiuc_experimental_lift.csv`, `data/uiuc_neuralfoil_validation.csv`,
+`data/uiuc_stall_validation.csv` and the `data/uiuc_validation_*.csv`
 summaries; raw source files in `data/uiuc_lsat/`.
 
 ## Uncertainty-aware optimizer (`uncertainty_aware_design.py`)
@@ -132,12 +137,12 @@ dial, `w_conf`), on the same 5×5 grid, seeds and continuation as the pipeline.
 
 | `w_conf` | worst-case L/D | mean confidence | drag error expected at that confidence |
 |---:|---:|---:|---:|
-| 0 (blind) | 38.5 | 0.16 | ~37% |
-| 0.5 | 37.7 | 0.96 | ~10% |
-| 1 | 37.7 | 0.96 | ~10% |
-| 2 | 37.5 | 0.96 | ~10% |
-| 4 | 36.7 | 0.97 | ~10% |
-| 8 | 35.2 | 0.98 | ~10% |
+| 0 (blind) | 38.5 | 0.16 | ~32% |
+| 0.5 | 37.7 | 0.96 | ~9% |
+| 1 | 37.7 | 0.96 | ~9% |
+| 2 | 37.5 | 0.96 | ~9% |
+| 4 | 36.7 | 0.97 | ~9% |
+| 8 | 35.2 | 0.98 | ~9% |
 
 With the dial off the optimizer lands, like airfoil B, at confidence 0.16: a
 predicted 38.5 that the surrogate's own drag record says is wrong by a third on
@@ -310,7 +315,7 @@ data/
   airfoil_B_kulfan.csv / airfoil_B_coords.csv
   grid_evaluation.csv      # CL, CD, CM, L/D, confidence for A & B over 11×9 grid
   tradeoff_family.csv      # peak/worst/mean L/D + Pareto flag for each λ
-  uiuc_lsat/               # raw UIUC wind-tunnel files (Vol 1, Vol 4), as downloaded
+  uiuc_lsat/               # raw UIUC wind-tunnel files (Vols 1-4), as downloaded
   uiuc_experimental.csv    # all 1,763 measured points in one table
   uiuc_neuralfoil_validation.csv + uiuc_validation_*.csv   # benchmark, point-by-point + summaries
   uiuc_experimental_lift.csv / uiuc_stall_validation.csv   # lift runs through stall
