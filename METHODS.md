@@ -48,6 +48,11 @@ multiple NACA seeds (multi-start) and the best objective is kept. Families of
 designs are traced by *continuation* - warm-starting each case from the previous
 solution - which keeps the Pareto front monotonic.
 
+**Confidence-aware objective.** For the uncertainty-aware sweep the objective
+is g / S_LD + w_conf · mean(analysis_confidence) over the optimization grid,
+with the same grid, seeds and continuation as the base problem, so w_conf = 0
+reproduces the robust design exactly.
+
 ## 5. Multi-objective formulation
 
 Four physically grounded, differentiable objectives, combined as a weighted sum
@@ -83,29 +88,34 @@ converge (separated flow), flagging where finalists need higher-fidelity CFD or
 wind-tunnel testing. NeuralFoil's `analysis_confidence` is reported throughout
 and tracks these weak spots.
 
-**Experimental validation against wind-tunnel data.** XFoil is not ground truth;
-it is itself a model. We therefore benchmark NeuralFoil against *measured* low-Re
-wind-tunnel polars from the UIUC/NREL database (Selig & McGranahan 2004,
-NREL/SR-500-34515) for the Eppler E387 and SD2030 - two geometrically distinct
-reference airfoils - at Re = 100k-500k. This addresses a real gap: the NeuralFoil
-paper (Sharpe & Hansman 2025) validates against experiment only at Re = 1.8×10⁶,
-and no prior study benchmarks it below Re = 500k, the regime where these
-surrogates are most heavily used. Experimental values were extracted from the
-report's text layer with two independent parsers and retained only where both
-agreed, then gated to physical bounds to reject other airfoils printed on the
-same page (see `data/*_experimental_NREL.csv`).
+**Experimental benchmark against wind-tunnel data.** XFoil is not ground truth;
+it is itself a model. We therefore benchmark NeuralFoil against *measured*
+low-Re polars from the UIUC Low-Speed Airfoil Tests archive (Selig et al. 1995,
+Vol. 1; Selig & McGranahan 2004, NREL/SR-500-34515), using the archive's
+official plain-text tables rather than the report PDFs. Every airfoil in those
+volumes with design geometry in the AeroSandbox database is included: 22
+airfoils, 1,763 points, Re = 40k-500k, with clean and boundary-layer-tripped
+runs kept separate (`uiuc_lsat_parse.py`). This addresses a real gap: the
+NeuralFoil paper (Sharpe & Hansman 2025) validates against experiment only at
+Re = 1.8×10⁶. Each airfoil is refit in the 17-parameter Kulfan basis; the two
+whose fit error exceeds the 0.5%-chord manufacturing sigma (A18, BE50) are
+excluded from the statistics. Clean runs are compared with free-transition
+NeuralFoil (n_crit = 9); tripped runs with transition forced at the header trip
+locations (`xtr_upper`, `xtr_lower`) and, for contrast, free. The E387 is also
+run in headless XFoil at the same conditions.
 
-*Result:* NeuralFoil predicts lift to **~5-8%** and drag to **~15%** of the
-measured values; drag is the harder quantity because of laminar-separation-bubble
-physics, which both NeuralFoil and XFoil under-predict at Re ≈ 100k (visible as a
-drag-bucket offset in `figures/13`). Critically, NeuralFoil's `analysis_confidence`
-**anti-correlates with its true error** (Pearson r ≈ −0.48): the surrogate is
-quantifiably aware of when it is less reliable - the mechanistic basis for trusting
-high-confidence robust designs over aggressive, low-confidence ones. The Kulfan
-reparameterization of E387 introduces only 0.15% RMS-chord geometry error (0.3× the
-manufacturing tolerance), so the measured discrepancy is the surrogate's, not the
-geometry basis. Scripts: `e387_neuralfoil_validation.py`; data in
-`data/multifoil_neuralfoil_validation.csv`; `figures/12-17`.
+*Result (20 airfoils, 1,408 clean points, NeuralFoil `large`):* mean absolute
+lift error 0.078 (0.058 below 5% camber, 0.143 above); drag error 13% mean,
+8% median, degrading to 22% / 16% at Re = 60k where drag is over-predicted by
+~20%; L/D typically 16% off and over-predicted by 14% on average. With
+transition forced at the trip, the 19% drag under-prediction on tripped runs
+falls to 2%. `analysis_confidence` is a calibrated indicator of **drag** error
+(37% below 0.5, 10% above 0.95; r = −0.46, same sign in every Re band) and
+carries no information about lift error (r = +0.07). For the E387 alone, lift
+is within ~5% from Re = 200k up (11% at 100k) and drag within ~12% (22% at
+100k, the laminar-bubble regime that XFoil also misses). Scripts:
+`uiuc_neuralfoil_validation.py`, `e387_neuralfoil_validation.py`; data
+`data/uiuc_*.csv`; `figures/12-17, 21-23`.
 
 ## 8. Reproducibility
 
@@ -117,12 +127,11 @@ from a single spec.
 ## Key limitations
 
 - Absolute L/D values are surrogate estimates with an empirically measured error
-  band (§7: ~5-8% in CL, ~15% in CD vs wind tunnel at low Re); the *relative*
-  (A-vs-B, robust-vs-nominal) conclusions are the more reliable outputs. Because
-  L/D = CL/CD, the ~15% drag error caps absolute-L/D accuracy at roughly the same
-  level - and the systematic low-Re bubble-drag *under*-prediction means true L/D
-  is biased low relative to NeuralFoil, so very high quoted L/D (e.g. airfoil A's
-  ~233) should be read as optimistic surrogate ceilings, not measured values.
+  band (§7: 16% typical, 22% mean, over-predicted by 14% on average across 20
+  airfoils); the *relative* (A-vs-B, robust-vs-nominal) conclusions are the
+  more reliable outputs. Very high quoted L/D (e.g. airfoil A's ~233, at
+  confidence ≈ 0) should be read as an optimistic surrogate ceiling, not a
+  measured value.
 - Aggressive high-lift sections sit near NeuralFoil's training-distribution edge
   and near XFoil's convergence limit - treat their absolute numbers with caution.
 - 2-D sectional analysis only: no 3-D, rotational, or unsteady effects.

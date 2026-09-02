@@ -14,23 +14,26 @@ data below Re = 500k. Yet that is precisely the regime where the underlying
 physics (laminar separation bubbles) is hardest and where these surrogates are
 most heavily *used* for UAV / small-turbine design. We close that gap.
 
-DATA SOURCE  (real, cross-validated, public-domain)
----------------------------------------------------
-Eppler E387 measured lift/drag polars from:
+DATA SOURCE  (official, public, machine-readable)
+------------------------------------------------
+Eppler E387 (E) measured lift/drag polars, CLEAN configuration, from the UIUC
+Low-Speed Airfoil Tests archive, which publishes the tabulated data of
 
   Selig, M.S. and McGranahan, B.D. (2004). "Wind Tunnel Aerodynamic Tests of
-  Six Airfoils for Use on Small Wind Turbines." NREL/SR-500-34515, Appendix B
-  (Tabulated Polar Data), p.114. UIUC low-turbulence subsonic wind tunnel.
+  Six Airfoils for Use on Small Wind Turbines." NREL/SR-500-34515.
 
-The E387 is the most-replicated low-Re reference airfoil in the literature;
-the UIUC data agree with the NASA Langley LTPT (McGhee et al. 1988, TM-4062)
-to within ~5% for CL at Re >= 100k. Values were extracted programmatically
-from the report's text layer with TWO independent parsers (reading-order flow
-and x-coordinate column clustering) and kept only where both agreed, then
-gated to physical E387 bounds (CL0 in [0.30,0.45], CLmax in [1.1,1.35]) to
-reject the other airfoils printed on the same page. See
-data/e387_experimental_NREL.csv. Runs 199,800 / 199,879 and 100,029 / 100,062
-are independent repeat tests at the same nominal Re (experimental scatter).
+as plain ASCII (data/uiuc_lsat/vol4/e387_c_drg.txt), parsed by
+uiuc_lsat_parse.py into data/e387_experimental_NREL.csv. Six Reynolds
+numbers: 100k, 200k, 300k, 350k, 460k, 500k. The E387 is the most-replicated
+low-Re reference airfoil in the literature; the UIUC data agree with the NASA
+Langley LTPT (McGhee et al. 1988, TM-4062) to within ~5% in CL at Re >= 100k.
+
+The archive keeps the boundary-layer-trip runs in a separate file
+(e387_tf_drg.txt, zigzag trip type F at 2% / 5% chord). Those are compared
+against NeuralFoil run with forced transition in uiuc_neuralfoil_validation.py,
+not here. An earlier version of this dataset, scraped from the report PDF,
+mixed three tripped runs (Re 100,062, 199,800, 500,060) in with the clean
+ones and mislabelled them as repeat tests; see git history.
 
 WHAT THIS SCRIPT DOES
 ---------------------
@@ -73,7 +76,7 @@ EXP_CSV = os.path.join(OUT, "data", "e387_experimental_NREL.csv")
 SOURCE_TAG = "Wind tunnel: UIUC / NREL-SR-500-34515 (Selig & McGranahan 2004)"
 
 # Nominal Re bins to show as the three polar panels.
-PLOT_RE_NOM = [100, 200, 460]
+PLOT_RE_NOM = [100, 200, 500]
 COLORS = {"NF_large":   "#1f77b4", "NF_xxlarge": "#ff7f0e",
           "XFoil":      "#2ca02c", "WT":          "#d62728"}
 
@@ -150,7 +153,7 @@ def run_xfoil_polar(coords, Re, a_lo, a_hi):
                 + ["PACC", "", "QUIT"])
         try:
             subprocess.run([XFOIL], input="\n".join(cmds) + "\n",
-                           capture_output=True, text=True, timeout=300, cwd=d)
+                           capture_output=True, text=True, timeout=900, cwd=d)
         except Exception as e:
             print(f"    xfoil failed: {e}")
             return pd.DataFrame()

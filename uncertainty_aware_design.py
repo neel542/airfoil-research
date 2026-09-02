@@ -36,16 +36,21 @@ os.makedirs(os.path.join(OUT, "figures"), exist_ok=True)
 os.makedirs(os.path.join(OUT, "data"), exist_ok=True)
 
 MODEL = "large"
-RE_OPT  = np.geomspace(50e3, 500e3, 3)   # coarse grid: sweep does many solves
-AOA_OPT = np.linspace(0.0, 8.0, 3)
-RE_EVAL  = np.geomspace(50e3, 500e3, 6)
-AOA_EVAL = np.linspace(0.0, 8.0, 5)
+# Same optimizer grid, evaluation grid and seeds as airfoil_pipeline.py, so the
+# w_conf = 0 baseline is the same properly converged max-min design as airfoil
+# B rather than a coarse-grid local optimum. (An earlier 3x3-grid, two-seed
+# version of this sweep landed at worst-case L/D 32 for w_conf = 0 and made the
+# confidence term look like a free performance gain. It was not; B reaches 38.)
+RE_OPT  = np.geomspace(50e3, 500e3, 5)
+AOA_OPT = np.linspace(0.0, 8.0, 5)
+RE_EVAL  = np.geomspace(50e3, 500e3, 11)
+AOA_EVAL = np.linspace(0.0, 8.0, 9)
 
 THK_MIN, THK_MAX, TE = 0.08, 0.16, 0.0025
-SEEDS = ["naca4412", "naca6412"]
+SEEDS = ["naca2412", "naca4412", "naca6412"]
 
 # The dial: how much we reward the surrogate being confident (trustworthy).
-W_CONF = [0.0, 1.0, 2.0, 4.0, 8.0]
+W_CONF = [0.0, 0.5, 1.0, 2.0, 4.0, 8.0]
 S_LD = 40.0   # reference L/D so the two objective terms are comparable
 
 
@@ -79,9 +84,9 @@ def solve_one(w_conf, seed):
     return sol(af), float(sol(g)), float(sol(mean_conf))
 
 
-def best_over_seeds(w_conf):
+def best_over_seeds(w_conf, extra_seeds=()):
     best = None
-    for seed in SEEDS:
+    for seed in list(SEEDS) + list(extra_seeds):
         try:
             af, g, mc = solve_one(w_conf, seed)
         except Exception:
@@ -108,13 +113,30 @@ def evaluate(af):
                 min_conf=float(cfs.min()), thk=float(af.max_thickness()))
 
 
+def _from_coords(path):
+    co = pd.read_csv(path)[["x", "y"]].to_numpy()
+    return asb.Airfoil(coordinates=co).to_kulfan_airfoil()
+
+
+# Warm starts for the baseline: the pipeline's robust airfoil B and the
+# multi-objective efficiency design optimize this same objective at w_conf = 0.
+extra0 = []
+for p in ("airfoil_B_coords.csv", "multiobj_efficiency_coords.csv"):
+    try:
+        extra0.append(_from_coords(os.path.join(OUT, "data", p)))
+    except Exception:
+        pass
+
 print("Uncertainty-aware design sweep (this runs several optimizations) ...")
 rows, geoms = [], {}
 prev = None
 for wc in W_CONF:
-    af, _, _ = best_over_seeds(wc)
-    # warm-start-style continuity: not required, but keep the best geometry
+    extra = list(extra0) if wc == 0.0 else []
+    if prev is not None:
+        extra.append(prev)       # continuation: warm-start from the previous dial setting
+    af, _, _ = best_over_seeds(wc, extra_seeds=extra)
     geoms[wc] = af
+    prev = af
     m = evaluate(af)
     m["w_conf"] = wc
     rows.append(m)

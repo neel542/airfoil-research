@@ -10,12 +10,13 @@ differentiable **NeuralFoil** surrogate (a neural emulator of XFoil).
 | **A** single-point | max L/D at Re=200k, AoA=4° | **232.9** † | 7.1 | 86.6 | 13% |
 | **B** robust       | max **worst-case** L/D over the envelope | 105.1 | **38.2** | 64.2 | 9% |
 
-† All L/D values carry a measured surrogate uncertainty of **at least ±16%**, and
-the bias is **one-sided** (NeuralFoil under-predicts low-Re bubble drag, so true
-L/D ≤ shown). Airfoil A's peak sits where NeuralFoil reports **confidence ≈ 0** -
-below the range where the surrogate was validated - so 232.9 is an *optimistic
-upper bound, not a value*. See the [experimental validation](#experimental-validation-against-wind-tunnel-data-e387_neuralfoil_validationpy)
-section and the uncertainty-annotated figures `18_LD_vs_AoA_uncertainty.png` /
+† Every L/D here is a surrogate estimate. Against 1,400 wind-tunnel points on
+20 airfoils (below), NeuralFoil's L/D is typically **16% off** and **14% too
+high on average**, so true L/D ≤ shown. Airfoil A's peak sits where NeuralFoil
+reports **confidence ≈ 0**, below the range where its drag was validated, so
+232.9 is an *optimistic upper bound, not a value*. See the
+[wind-tunnel benchmark](#wind-tunnel-benchmark-20-airfoils) section and the
+uncertainty-annotated figures `18_LD_vs_AoA_uncertainty.png` /
 `19_tradeoff_uncertainty.png`.
 
 Operating envelope for the robust design: **Re ∈ [50k, 500k]**, **AoA ∈ [0°, 8°]**.
@@ -53,52 +54,92 @@ B is a flat plateau that performs decently everywhere.
 
 ## Caveat
 
-NeuralFoil's `analysis_confidence` is modest (~0.05-0.12) for these aggressive
-high-L/D low-Re sections - they sit near the edge of its training distribution.
-Treat absolute L/D values (especially A's ~233 peak) as surrogate estimates;
-the robust **A-vs-B comparison** is the reliable conclusion. We now back this
-with a direct experimental check (below): NeuralFoil's drag error vs wind tunnel
-is ~15% at low Re and **biased low** (it under-predicts bubble drag), so a quoted
-L/D of 233 is an optimistic ceiling, not a measured value.
+NeuralFoil's `analysis_confidence` is low for these aggressive high-L/D low-Re
+sections (0.00 for A, ~0.16 for B); they sit outside its validated range. The
+benchmark below shows that confidence is a reliable warning about **drag**
+error (10% when confidence > 0.95, 37% when < 0.5) but not about lift. Treat
+absolute L/D values (especially A's ~233 peak) as optimistic surrogate
+ceilings; the robust **A-vs-B comparison** is the reliable conclusion.
 
-## Experimental validation against wind-tunnel data (`e387_neuralfoil_validation.py`)
+## Wind-tunnel benchmark: 20 airfoils
 
-The whole pipeline rests on NeuralFoil, yet NeuralFoil itself had **never been
-checked against experiment below Re = 500k** (its paper validates only at
-Re = 1.8×10⁶). We close that gap using measured low-Re polars for the **Eppler
-E387** and **SD2030** from the UIUC/NREL wind-tunnel database (Selig &
-McGranahan 2004, NREL/SR-500-34515), extracted with two independent parsers and
-kept only where both agree.
+(`uiuc_lsat_parse.py`, `uiuc_neuralfoil_validation.py`, `e387_neuralfoil_validation.py`)
 
-| Quantity | NeuralFoil vs experiment (Re 100k-500k) |
-|----------|------------------------------------------|
-| Lift CL | within **~5-8%** |
-| Drag CD | within **~15%** (under-predicts bubble drag at Re≈100k) |
-| `analysis_confidence` vs true error | **Pearson r ≈ −0.48** (model knows when it's wrong) |
-| Kulfan fit error (E387) | 0.15% RMS chord - 0.3× the manufacturing tolerance |
+The whole pipeline rests on NeuralFoil, yet NeuralFoil had only been checked
+against experiment at Re = 1.8×10⁶ (its paper's one validation case). This
+benchmark checks it against the official plain-text polars of the UIUC
+Low-Speed Airfoil Tests archive (Selig et al. 1995, Vol. 1; Selig & McGranahan
+2004, NREL/SR-500-34515): every airfoil in those volumes with geometry in the
+AeroSandbox database, **22 airfoils, 30 files, 1,763 measured points,
+Re 40k-500k**, clean and boundary-layer-tripped runs kept separate. Two
+airfoils (A18, BE50) are excluded from the statistics because the 17-parameter
+Kulfan basis cannot reproduce them to within 0.5% chord; the other 20 fit to
+0.01-0.18% (E387: 0.15%).
 
-**Why this matters:** (1) it puts a real, measured error bar on every number the
-project produces; (2) the confidence/error anti-correlation is the mechanistic
-reason a high-confidence robust design is more trustworthy than an aggressive
-low-confidence one - turning the manufacturing-robustness story from a modeling
-artifact into an empirically-grounded claim; (3) the CD figure shows the laminar
-separation bubble that *both* NeuralFoil and XFoil miss at low Re - the documented
-physics gap, observed firsthand. Figures: `12`-`17`; data in
-`data/e387_experimental_NREL.csv`, `data/multifoil_neuralfoil_validation.csv`.
+**Clean runs, NeuralFoil `large`, 20 airfoils, 1,408 points:**
+
+| Re | n | mean ΔCL | drag error, mean / median | drag bias | confidence |
+|---:|---:|---:|---:|---:|---:|
+| 60k | 174 | 0.066 | 22% / 16% | +20% | 0.93 |
+| 100k | 329 | 0.093 | 15% / 11% | +1% | 0.92 |
+| 200k | 468 | 0.080 | 10% / 7% | +1% | 0.92 |
+| 300-350k | 357 | 0.075 | 11% / 7% | −2% | 0.92 |
+| 460-500k | 80 | 0.043 | 12% / 7% | −8% | 0.89 |
+| **all** | **1,408** | **0.078** | **13% / 8%** | **+2%** | **0.92** |
+
+- **Drag** is good from Re = 100k up (median 7-11%) and degrades below it
+  (over-predicted by ~20% at 60k). `xxlarge` is no better than `large`.
+- **Lift** error is concentrated in high-camber shapes: 0.058 for the 16
+  airfoils under 5% camber, 0.143 for FX 63-137, NACA 6409, S1210, S1223.
+- **L/D** (CL > 0.2, 1,033 points): typically 16% off, 22% on average, and
+  **over-predicted by 14%** (24% at Re ≈ 100k). This is the band drawn on every
+  L/D figure (`data/error_model.json`).
+- **Trip strips.** Against the 247 tripped runs (E387, SD2030, FX 63-137;
+  zigzag trip at 2%/5% chord), NeuralFoil with free transition under-predicts
+  drag by 19%; with transition forced at the trip location (`xtr_upper`,
+  `xtr_lower`) the bias is 2% and lift error halves. The transition inputs
+  work, which had not been checked against experiment before.
+- **What `analysis_confidence` tracks: drag, not lift.** Drag error falls
+  monotonically from 37% (confidence < 0.5) to 10% (> 0.95); r = −0.46, same
+  sign in every Re band. Lift error is flat across confidence (r = +0.07). An
+  earlier version of this project reported r ≈ −0.48 between confidence and
+  *relative* lift error on the E387 alone; that was driven by near-zero-lift
+  points and does not hold in absolute terms or on the wider benchmark.
+- **E387 in detail** (`e387_neuralfoil_validation.py`, with headless XFoil at
+  the same conditions): lift within ~5% from Re = 200k up and 11% at 100k;
+  drag ~12% from 200k up and 22% at 100k, where both NeuralFoil and XFoil miss
+  the laminar-separation-bubble drag (figure 13).
+
+Figures: `12`-`17`, `21`-`23`; data in `data/uiuc_experimental.csv`,
+`data/uiuc_neuralfoil_validation.csv` and the `data/uiuc_validation_*.csv`
+summaries; raw source files in `data/uiuc_lsat/`.
 
 ## Uncertainty-aware optimizer (`uncertainty_aware_design.py`)
 
-The validation above measured *where* NeuralFoil can be trusted. This module feeds
-that back into the optimizer: alongside performance, it rewards designs that live
-where NeuralFoil is confident (a single dial, `w_conf`). The result is a genuine
-surprise - with the dial off, the optimizer lands on a design at confidence 0.14
-(right where the surrogate is unreliable); a small nudge (`w_conf=1`) moves it to
-confidence 0.96 **and raises** the honestly-evaluated worst-case L/D from 32 to 38.
-Blindly trusting the surrogate bought a mirage, not performance. Only past
-`w_conf≈2` do you pay a small real price for still-higher confidence. No prior
-airfoil-optimization work appears to feed a surrogate's own measured reliability
-back into the design loop this way. Figure: `20_trust_vs_performance.png`; data in
-`data/uncertainty_aware_sweep.csv`.
+The benchmark above showed that NeuralFoil's confidence is a reliable warning
+about its drag error. This module feeds that back into the optimizer: alongside
+worst-case L/D, it rewards designs that live where NeuralFoil is confident (one
+dial, `w_conf`), on the same 5×5 grid, seeds and continuation as the pipeline.
+
+| `w_conf` | worst-case L/D | mean confidence | drag error expected at that confidence |
+|---:|---:|---:|---:|
+| 0 (blind) | 38.5 | 0.16 | ~37% |
+| 0.5 | 37.7 | 0.96 | ~10% |
+| 1 | 37.7 | 0.96 | ~10% |
+| 2 | 37.5 | 0.96 | ~10% |
+| 4 | 36.7 | 0.97 | ~10% |
+| 8 | 35.2 | 0.98 | ~10% |
+
+With the dial off the optimizer lands, like airfoil B, at confidence 0.16: a
+predicted 38.5 that the surrogate's own drag record says is wrong by a third on
+average. There is a family of near-equal designs inside and outside the
+validated region and nothing breaks the tie. `w_conf = 0.5` breaks it: the
+design moves to confidence 0.96 for a 2% drop in predicted worst-case L/D.
+(An earlier version of this sweep, on a coarser 3×3 grid, found a poorer
+baseline at 32 and made the confidence term look like a free performance gain;
+it is not, it costs ~2%.) No prior airfoil-optimization work appears to feed a
+surrogate's own measured reliability back into the design loop this way.
+Figure: `20_trust_vs_performance.png`; data in `data/uncertainty_aware_sweep.csv`.
 
 ## Multi-objective extension (`multiobjective.py`)
 
@@ -238,6 +279,11 @@ python airfoil_pipeline.py          # single-point vs robust + tradeoff
 python multiobjective.py            # efficiency / safety / structure / noise
 python manufacturing_robust.py      # build-tolerance robustness
 python xfoil_validate_envelope.py   # surrogate trust map vs true XFoil
+python uiuc_lsat_parse.py           # official UIUC wind-tunnel files -> one table
+python uiuc_neuralfoil_validation.py  # 20-airfoil benchmark of NeuralFoil
+python e387_neuralfoil_validation.py  # E387 in detail, with XFoil
+python uncertainty_aware_design.py  # confidence-aware optimizer sweep
+python rebuild_all_figures.py       # every figure, from the saved CSVs
 ```
 
 New to the project? Start with [`tutorial.ipynb`](tutorial.ipynb) - it designs an
@@ -254,9 +300,18 @@ data/
   airfoil_B_kulfan.csv / airfoil_B_coords.csv
   grid_evaluation.csv      # CL, CD, CM, L/D, confidence for A & B over 11×9 grid
   tradeoff_family.csv      # peak/worst/mean L/D + Pareto flag for each λ
+  uiuc_lsat/               # raw UIUC wind-tunnel files (Vol 1, Vol 4), as downloaded
+  uiuc_experimental.csv    # all 1,763 measured points in one table
+  uiuc_neuralfoil_validation.csv + uiuc_validation_*.csv   # benchmark, point-by-point + summaries
+  e387_experimental_NREL.csv / e387_neuralfoil_validation.csv   # E387 detail (+ XFoil)
+  uncertainty_aware_sweep.csv
 figures/
   1_shapes.png             # overlaid optimized shapes
   2_LD_vs_AoA.png          # L/D vs AoA at Re = 50k / 200k / 500k
   3_LD_heatmap.png         # L/D over the (Re, AoA) envelope: A, B, and B−A
   4_tradeoff.png           # peak-vs-robustness Pareto frontier
+  12-16_e387_*.png         # E387: NeuralFoil vs XFoil vs experiment
+  17_multifoil_parity.png  # 20-airfoil lift / drag parity
+  20_trust_vs_performance.png
+  21-23_uiuc_*.png         # error by airfoil, confidence calibration, tripped runs
 ```
