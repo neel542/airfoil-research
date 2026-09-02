@@ -40,9 +40,9 @@ WHAT THIS SCRIPT DOES
 For each measured (Re, alpha): run NeuralFoil (large + xxlarge) and headless
 XFoil at the SAME condition, then compare both to the wind tunnel. Quantify:
   - NeuralFoil CL / CD error vs experiment, by Re;
-  - whether NeuralFoil's self-reported analysis_confidence anti-correlates with
-    its true error (the mechanistic basis for trusting robust, high-confidence
-    designs more than aggressive, low-confidence ones);
+  - how NeuralFoil's self-reported analysis_confidence relates to its true
+    error (the 20-airfoil benchmark in uiuc_neuralfoil_validation.py shows it
+    tracks drag error, not lift error);
   - where XFoil itself diverges from experiment (the surrogate cannot be more
     right than the data it was trained to emulate).
 
@@ -137,38 +137,49 @@ print(f"  Kulfan fit fidelity: RMS {geom_rms_pct:.3f}% chord, "
 # ─────────────────────────────────────────────────────────────────────────────
 # Headless XFoil viscous polar (warm-started from 0 deg in fine steps)
 # ─────────────────────────────────────────────────────────────────────────────
-def run_xfoil_polar(coords, Re, a_lo, a_hi):
-    af = asb.Airfoil(coordinates=coords).repanel(n_points_per_side=80)
-    with tempfile.TemporaryDirectory() as d:
-        with open(os.path.join(d, "af.dat"), "w") as f:
-            f.write("design\n")
-            for x, y in af.coordinates:
-                f.write(f"{x:.6f} {y:.6f}\n")
-        a_sweep = np.arange(min(a_lo, 0.0), a_hi + 0.25, 0.5)
-        cmds = (["PLOP", "G F", "",
-                 "LOAD af.dat", "PANE",
-                 "OPER", f"VISC {Re:.0f}", "ITER 300",
-                 "PACC", "polar.txt", ""]
-                + [f"ALFA {a:.2f}" for a in a_sweep]
-                + ["PACC", "", "QUIT"])
-        try:
-            subprocess.run([XFOIL], input="\n".join(cmds) + "\n",
-                           capture_output=True, text=True, timeout=900, cwd=d)
-        except Exception as e:
-            print(f"    xfoil failed: {e}")
-            return pd.DataFrame()
-        pol = os.path.join(d, "polar.txt")
-        if not os.path.exists(pol):
-            return pd.DataFrame()
-        rows = []
-        for line in open(pol):
+def _xfoil_sweep(d, Re, alphas, tag):
+    """One viscous sweep in a fresh XFoil process; returns [(alpha, CL, CD)]."""
+    pol = f"polar_{tag}.txt"
+    cmds = (["PLOP", "G F", "",
+             "LOAD af.dat", "PANE",
+             "OPER", f"VISC {Re:.0f}", "ITER 300",
+             "PACC", pol, ""]
+            + [f"ALFA {a:.2f}" for a in alphas]
+            + ["PACC", "", "QUIT"])
+    try:
+        subprocess.run([XFOIL], input="\n".join(cmds) + "\n",
+                       capture_output=True, text=True, timeout=600, cwd=d)
+    except Exception as e:
+        print(f"    xfoil {tag} sweep: {type(e).__name__} (keeping converged points)")
+    rows = []
+    path = os.path.join(d, pol)
+    if os.path.exists(path):
+        for line in open(path):
             p = line.split()
             if len(p) >= 5:
                 try:
                     rows.append((float(p[0]), float(p[1]), float(p[2])))
                 except ValueError:
                     pass
-        return pd.DataFrame(rows, columns=["alpha", "CL", "CD"])
+    return rows
+
+
+def run_xfoil_polar(coords, Re, a_lo, a_hi):
+    """Two viscous sweeps that both start at 0 deg, one climbing to a_hi and
+    one descending to a_lo, each warm-starting from its neighbour in a fresh
+    XFoil process. A single sweep that starts at the most negative angle
+    tends to fail there at these Reynolds numbers and never recover."""
+    af = asb.Airfoil(coordinates=coords).repanel(n_points_per_side=80)
+    with tempfile.TemporaryDirectory() as d:
+        with open(os.path.join(d, "af.dat"), "w") as f:
+            f.write("design\n")
+            for x, y in af.coordinates:
+                f.write(f"{x:.6f} {y:.6f}\n")
+        rows = _xfoil_sweep(d, Re, np.arange(0.0, a_hi + 0.25, 0.5), "up")
+        if a_lo < 0:
+            rows += _xfoil_sweep(d, Re, np.arange(-0.5, a_lo - 0.25, -0.5), "down")
+    return (pd.DataFrame(rows, columns=["alpha", "CL", "CD"])
+            .sort_values("alpha").drop_duplicates("alpha").reset_index(drop=True))
 
 
 def xfoil_at(xf, alpha):
@@ -407,6 +418,9 @@ for model in ["large", "xxlarge"]:
           f"   mean|ΔCD/CD| = {hi.err_CD.abs().mean():.1%}"
           f"   conf = {hi.NF_conf.mean():.3f}")
 sL = df[(df.model == "large") & (df.WT_CL.abs() > 0.1)]
-print(f"\nConfidence-error correlation (large): "
-      f"Pearson r = {np.corrcoef(sL.NF_conf, sL.err_CL.abs())[0,1]:+.2f}")
+print("\nConfidence vs error (large); on the 20-airfoil benchmark confidence tracks drag, not lift:")
+print(f"  r(conf, |dCD/CD|) = {np.corrcoef(sL.NF_conf, sL.err_CD.abs())[0,1]:+.2f}   "
+      f"r(conf, |dCL|) = {np.corrcoef(sL.NF_conf, (sL.NF_CL - sL.WT_CL).abs())[0,1]:+.2f}   "
+      f"r(conf, |dCL/CL|) = {np.corrcoef(sL.NF_conf, sL.err_CL.abs())[0,1]:+.2f} "
+      "(the last is inflated by near-zero-lift points)")
 print("=" * 70)

@@ -74,7 +74,10 @@ AeroSandbox database, **22 airfoils, 30 files, 1,763 measured points,
 Re 40k-500k**, clean and boundary-layer-tripped runs kept separate. Two
 airfoils (A18, BE50) are excluded from the statistics because the 17-parameter
 Kulfan basis cannot reproduce them to within 0.5% chord; the other 20 fit to
-0.01-0.18% (E387: 0.15%).
+0.01-0.18% (E387: 0.15%). Even 0.15% matters: XFoil on the true E387 versus its
+Kulfan fit differs by ~3% in CL and 4-7% in CD, about half / a third of
+NeuralFoil's E387 error, so the errors below are pipeline errors (Kulfan fit +
+network) and an upper bound on the network alone.
 
 **Clean runs, NeuralFoil `large`, 20 airfoils, 1,408 points:**
 

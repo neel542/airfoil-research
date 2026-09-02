@@ -179,6 +179,13 @@ elsewhere in this project; the two that do not (A18 and BE50, at 0.9 to 1.3
 percent) are reported but left out of the benchmark statistics, because their
 disagreement with experiment cannot be separated from the shape error. The
 E387, the most-tested low-Re reference airfoil, is reproduced to 0.15 percent.
+Even that small a change matters aerodynamically: XFoil run on the true E387
+coordinates and on the 17-number version gives lift coefficients about 3
+percent apart and drag coefficients 4 to 7 percent apart, which is roughly
+half of the E387 lift error and a third of the drag error reported in section
+3.4. The errors reported there are therefore what a designer using this
+pipeline actually experiences, and an upper bound on the neural network's own
+error.
 
 NeuralFoil (the `large` model, with the bigger `xxlarge` as a check) was run
 at every measured condition. For clean runs it was run with free transition.
@@ -412,7 +419,9 @@ region costs almost nothing in predicted performance.
   airfoils had to be left out because the 17-number shape description could
   not reproduce them. The wind-tunnel models themselves differ from their
   design shapes by a few hundredths to a few tenths of a percent of chord,
-  which sets a floor on how well any prediction can agree.
+  which sets a floor on how well any prediction can agree. Part of every
+  reported error is the shape description itself (section 2.6), so the
+  numbers are pipeline errors, not pure network errors.
 - **The "expected drag error" attached to the optimized designs is a
   population statistic**, not a measurement of those designs.
 - **This is two-dimensional, steady analysis only.** It does not model a full
