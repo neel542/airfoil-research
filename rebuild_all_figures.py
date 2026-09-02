@@ -297,7 +297,7 @@ save(fig, "11_envelope_polars.png", "B_mfg: surrogate vs true XFoil across Re")
 # ═════════════════════════════════════════════════════════════════════════
 exp = pd.read_csv(os.path.join(DATA, "e387_experimental_NREL.csv"))
 val12 = pd.read_csv(os.path.join(DATA, "e387_neuralfoil_validation.csv"))
-PLOT_RE_NOM = [100, 200, 460]
+PLOT_RE_NOM = [100, 200, 500]
 
 def _panels(value_fn, ylabel, fname, title, logy=False):
     fig, axes = plt.subplots(1, 3, figsize=(14, 4.5), sharey=True)
@@ -352,50 +352,51 @@ save(fig, "15_e387_error_heatmap.png",
      "NeuralFoil (large) $C_L$ error vs experiment -- Eppler E387\n"
      "red = over-predicts lift, blue = under-predicts")
 
-# (16) Confidence vs error
+# (16) Confidence vs error, E387. Absolute CL error, so near-zero-lift points
+# do not inflate the picture, and the alpha >= 0 correlation shown alongside
+# the all-points one, because the two differ a lot.
 fig, axes = plt.subplots(1, 2, figsize=(12, 5))
 for ax, model in zip(axes, ["large", "xxlarge"]):
     s = val12[(val12.model == model) & (val12.WT_CL.abs() > 0.1)].copy()
-    s["ae"] = s.err_CL.abs() * 100
-    sc = ax.scatter(s.NF_conf, s.ae, c=np.log10(s.Re), cmap="viridis_r", s=44,
-                    alpha=0.85, edgecolors="none")
-    plt.colorbar(sc, ax=ax, label="log$_{10}$(Re)")
-    m, b = np.polyfit(s.NF_conf, s.ae, 1)
-    xr = np.linspace(s.NF_conf.min(), s.NF_conf.max(), 60)
-    ax.plot(xr, m * xr + b, "--", color="#b2182b", lw=1.8, label=f"slope {m:+.0f} %/unit")
-    r = np.corrcoef(s.NF_conf, s.ae)[0, 1]
-    ax.text(0.97, 0.96, f"Pearson r = {r:.2f}", transform=ax.transAxes, ha="right", va="top",
-            fontsize=11, color="#b2182b", bbox=dict(fc="white", ec="#b2182b", alpha=0.9, pad=3))
-    ax.set_xlabel("NeuralFoil analysis_confidence"); ax.set_ylabel("|$\\Delta$CL / WT CL|  [%]")
-    ax.set_title(f"NeuralFoil {model}"); clean(ax); ax.legend(fontsize=9)
+    s["ae"] = (s.NF_CL - s.WT_CL).abs()
+    sc = ax.scatter(s.NF_conf, s.ae, c=s.alpha, cmap="coolwarm", s=44, alpha=0.85, edgecolors="none")
+    plt.colorbar(sc, ax=ax, label="angle of attack [deg]")
+    r_all = np.corrcoef(s.NF_conf, s.ae)[0, 1]
+    sp = s[s.alpha >= 0]
+    r_pos = np.corrcoef(sp.NF_conf, sp.ae)[0, 1]
+    ax.text(0.97, 0.96, f"r = {r_all:+.2f} (all points)\nr = {r_pos:+.2f} (alpha >= 0)",
+            transform=ax.transAxes, ha="right", va="top", fontsize=10.5, color="#b2182b",
+            bbox=dict(fc="white", ec="#b2182b", alpha=0.9, pad=3))
+    ax.set_xlabel("NeuralFoil analysis_confidence")
+    ax.set_ylabel("|$\\Delta C_L$|  (NeuralFoil - wind tunnel)")
+    ax.set_title(f"NeuralFoil {model}"); clean(ax)
 save(fig, "16_e387_confidence_error.png",
-     "Does confidence predict real error? -- E387 vs experiment")
+     "Does confidence predict error? E387 vs experiment (confidence drops only at the alpha extremes)")
 
-# (17) Multi-airfoil parity
-mf = pd.read_csv(os.path.join(DATA, "multifoil_neuralfoil_validation.csv"))
-fig, axes = plt.subplots(1, 2, figsize=(13, 5))
+# (17) Multi-airfoil parity: every clean UIUC point, NeuralFoil large, free transition
+uv = pd.read_csv(os.path.join(DATA, "uiuc_neuralfoil_validation.csv"))
+u17 = uv[(uv.config == "clean") & (uv.NF_mode == "free") & (uv.model == "large") & uv.fit_ok]
+n_af, n_pt = u17.asb_name.nunique(), len(u17)
+fig, axes = plt.subplots(1, 2, figsize=(13.5, 5.4))
 ax = axes[0]
-for nm, c in [("E387", C_A), ("SD2030", C_B)]:
-    s = mf[mf.airfoil == nm]
-    ax.scatter(s.WT_CL, s.NF_CL, s=32, alpha=0.75, color=c, label=nm, edgecolors="none")
-lim = [-0.5, 1.5]
+sc = ax.scatter(u17.WT_CL, u17.NF_CL, c=np.log10(u17.Re), cmap="viridis", s=14, alpha=0.6, edgecolors="none")
+lim = [-0.6, 2.2]
 ax.plot(lim, lim, "k--", lw=1, alpha=0.6, label="perfect")
-ax.fill_between(lim, [l - 0.05 for l in lim], [l + 0.05 for l in lim], color="gray", alpha=0.15, label="±0.05 CL")
-ax.set_xlim(lim); ax.set_ylim(lim); ax.set_xlabel("Wind-tunnel $C_L$"); ax.set_ylabel("NeuralFoil $C_L$")
-ax.set_title("Lift parity: NeuralFoil vs experiment"); ax.legend(fontsize=9); clean(ax); ax.set_aspect("equal")
+ax.fill_between(lim, [l - 0.05 for l in lim], [l + 0.05 for l in lim], color="gray", alpha=0.15, label="±0.05 $C_L$")
+ax.set_xlim(lim); ax.set_ylim(lim); ax.set_aspect("equal"); clean(ax); ax.legend(fontsize=9, loc="upper left")
+ax.set_xlabel("Wind-tunnel $C_L$"); ax.set_ylabel("NeuralFoil $C_L$"); ax.set_title("Lift parity")
 ax = axes[1]
-for nm, c in [("E387", C_A), ("SD2030", C_B)]:
-    s = mf[mf.airfoil == nm]
-    ax.scatter(s.WT_CD, s.NF_CD, s=32, alpha=0.75, color=c, label=nm, edgecolors="none")
-lim = [0.006, 0.12]
+sc = ax.scatter(u17.WT_CD, u17.NF_CD, c=np.log10(u17.Re), cmap="viridis", s=14, alpha=0.6, edgecolors="none")
+lim = [0.004, 0.2]
 ax.plot(lim, lim, "k--", lw=1, alpha=0.6)
-ax.plot(lim, [l * 1.2 for l in lim], ":", color="#b2182b", lw=1, alpha=0.6, label="+20%")
-ax.plot(lim, [l * 0.8 for l in lim], ":", color="#b2182b", lw=1, alpha=0.6)
-ax.set_xscale("log"); ax.set_yscale("log"); ax.set_xlim(lim); ax.set_ylim(lim)
-ax.set_xlabel("Wind-tunnel $C_D$"); ax.set_ylabel("NeuralFoil $C_D$")
-ax.set_title("Drag parity: NeuralFoil vs experiment (log)"); ax.legend(fontsize=9); clean(ax); ax.set_aspect("equal")
+ax.plot(lim, [l * 1.2 for l in lim], ":", color="#b2182b", lw=1, alpha=0.7, label="±20%")
+ax.plot(lim, [l * 0.8 for l in lim], ":", color="#b2182b", lw=1, alpha=0.7)
+ax.set_xscale("log"); ax.set_yscale("log"); ax.set_xlim(lim); ax.set_ylim(lim); ax.set_aspect("equal")
+ax.set_xlabel("Wind-tunnel $C_D$"); ax.set_ylabel("NeuralFoil $C_D$"); ax.set_title("Drag parity (log)")
+clean(ax); ax.legend(fontsize=9, loc="upper left")
+fig.colorbar(sc, ax=axes.ravel().tolist(), label="log$_{10}$(Re)", fraction=0.025, pad=0.02)
 save(fig, "17_multifoil_parity.png",
-     "NeuralFoil vs wind-tunnel experiment -- 2 airfoils, Re 100k-200k")
+     f"NeuralFoil vs wind tunnel: {n_af} airfoils, {n_pt} clean measured points, Re 40k-500k")
 
 # ═════════════════════════════════════════════════════════════════════════
 # 18-19: replot_with_uncertainty.py
@@ -464,7 +465,7 @@ co_hi = pd.read_csv(os.path.join(DATA, f"uncertainty_aware_wconf{wc_hi:.0f}_coor
 fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(13, 5))
 ax1.plot(sweep.mean_conf, sweep.worst_LD, "-o", color=C_A, lw=2.2, ms=8)
 for _, r in sweep.iterrows():
-    ax1.annotate(f"w={r.w_conf:.0f}", (r.mean_conf, r.worst_LD), xytext=(6, 5),
+    ax1.annotate(f"w={r.w_conf:g}", (r.mean_conf, r.worst_LD), xytext=(6, 5),
                  textcoords="offset points", fontsize=9)
 ax1.set_xlabel("Mean NeuralFoil confidence (how much you can trust the number)")
 ax1.set_ylabel("Worst-case L/D (predicted performance)")
@@ -480,5 +481,70 @@ ax2.set_xlabel("x / c")
 save(fig, "20_trust_vs_performance.png",
      "Uncertainty-aware airfoil optimization: using the measured\n"
      "confidence-error link inside the design loop")
+
+# ═════════════════════════════════════════════════════════════════════════
+# 21-23: uiuc_neuralfoil_validation.py  (22-airfoil benchmark)
+# ═════════════════════════════════════════════════════════════════════════
+from scipy import stats as _stats
+ba = pd.read_csv(os.path.join(DATA, "uiuc_validation_by_airfoil.csv")).sort_values("mean_abs_err_CD")
+
+# (21) Error by airfoil
+fig, axes = plt.subplots(1, 2, figsize=(13, 6.5), sharey=True)
+y = np.arange(len(ba))
+bar_c = [C_NF_L if ok else "#bbbbbb" for ok in ba.fit_ok]
+axes[0].barh(y, ba.mean_abs_err_CD * 100, color=bar_c, alpha=0.85)
+axes[0].set_xlabel("mean |$\\Delta C_D$ / $C_D$|  [%]"); axes[0].set_title("Drag error by airfoil")
+axes[1].barh(y, ba.mean_abs_dCL, color=[C_NF_XL if ok else "#bbbbbb" for ok in ba.fit_ok], alpha=0.85)
+axes[1].set_xlabel("mean |$\\Delta C_L$|"); axes[1].set_title("Lift error by airfoil")
+for ax in axes:
+    clean(ax)
+axes[0].set_yticks(y)
+axes[0].set_yticklabels([f"{a}  (n={int(n)})" + ("" if ok else "  [poor Kulfan fit]") for a, n, ok in zip(ba.asb_name, ba.n, ba.fit_ok)], fontsize=9)
+save(fig, "21_uiuc_error_by_airfoil.png",
+     "NeuralFoil (large) vs wind tunnel, clean runs, by airfoil")
+
+# (22) What analysis_confidence tracks: binned calibration + airfoil level
+cb = pd.read_csv(os.path.join(DATA, "uiuc_validation_confidence_bins.csv"))
+fig, axes = plt.subplots(1, 3, figsize=(16.5, 5))
+x = np.arange(len(cb))
+axes[0].bar(x, cb.mean_abs_dCL, color=C_NF_L, alpha=0.85)
+axes[0].set_ylabel("mean |$\\Delta C_L$|"); axes[0].set_title("Lift error by confidence bin")
+axes[1].bar(x, cb.mean_abs_err_CD * 100, color=C_NF_XL, alpha=0.85)
+axes[1].set_ylabel("mean |$\\Delta C_D$ / $C_D$|  [%]"); axes[1].set_title("Drag error by confidence bin")
+for ax in axes[:2]:
+    ax.set_xticks(x)
+    ax.set_xticklabels([f"{b}\nn={int(n)}" for b, n in zip(cb.conf_bin, cb.n)], fontsize=8.5)
+    ax.set_xlabel("analysis_confidence"); clean(ax)
+ax = axes[2]
+bo = ba[ba.fit_ok]
+ax.scatter(bo.mean_conf, bo.mean_abs_err_CD * 100, s=55, color=C_A, edgecolors="k", linewidths=0.5)
+for _, r in bo.iterrows():
+    ax.annotate(r.asb_name, (r.mean_conf, r.mean_abs_err_CD * 100), fontsize=7.5,
+                xytext=(4, 3), textcoords="offset points")
+rho = _stats.spearmanr(bo.mean_conf, bo.mean_abs_err_CD).correlation
+ax.set_xlabel("mean confidence for the airfoil"); ax.set_ylabel("mean |$\\Delta C_D$ / $C_D$|  [%]")
+ax.set_title(f"Airfoil level (Spearman rho = {rho:+.2f})"); clean(ax)
+save(fig, "22_uiuc_confidence_calibration.png",
+     "What NeuralFoil's confidence actually tracks (clean runs, large model)")
+
+# (23) Tripped runs: transition forced at the trip location, Vol 4 airfoils near Re = 200k
+tr = uv[(uv.volume == "vol4") & (uv.model == "large")]
+fig, axes = plt.subplots(1, 3, figsize=(15.5, 4.8))
+for ax, name in zip(axes, ["e387", "sd2030", "fx63137"]):
+    d = tr[tr.asb_name == name]
+    rc = min(d[d.config == "clean"].Re.unique(), key=lambda r: abs(r - 200e3))
+    rt = min(d[d.config == "tripped"].Re.unique(), key=lambda r: abs(r - 200e3))
+    c = d[(d.config == "clean") & (d.Re == rc) & (d.NF_mode == "free")].sort_values("alpha")
+    tf = d[(d.config == "tripped") & (d.Re == rt) & (d.NF_mode == "free")].sort_values("alpha")
+    tx = d[(d.config == "tripped") & (d.Re == rt) & (d.NF_mode == "forced")].sort_values("alpha")
+    ax.scatter(c.alpha, c.WT_CD, marker="D", s=30, color=C_WT, zorder=5, label="wind tunnel, clean")
+    ax.scatter(tf.alpha, tf.WT_CD, marker="s", s=30, color="#762a83", zorder=5, label="wind tunnel, tripped")
+    ax.plot(c.alpha, c.NF_CD, "-", color=C_NF_L, lw=1.8, label="NeuralFoil, free transition")
+    ax.plot(tx.alpha, tx.NF_CD, "--", color="#762a83", lw=1.8, label="NeuralFoil, transition forced at trip")
+    ax.set_yscale("log"); ax.set_title(f"{name.upper()}   Re $\\approx$ {rc/1e3:.0f}k")
+    ax.set_xlabel("AoA [deg]"); clean(ax)
+axes[0].set_ylabel("$C_D$ (log)"); axes[0].legend(fontsize=8)
+save(fig, "23_uiuc_tripped_vs_forced_transition.png",
+     "Boundary-layer trip runs: NeuralFoil with transition forced at the trip location")
 
 print("\nAll figures rebuilt with a single consistent style.")

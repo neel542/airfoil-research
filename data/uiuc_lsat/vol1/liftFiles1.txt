@@ -1,0 +1,287 @@
+A18.LFT
+Tabulated from data in file AB00520.DAT & reduced using program Q01.00L
+Tabulated from data in file AB00519.DAT & reduced using program Q01.00L
+Tabulated from data in file JG00160.DAT & reduced using program Q01.00L
+Tabulated from data in file MS00162.DAT & reduced using program Q01.00L
+Tabulated from data in file MS00164.DAT & reduced using program Q01.00L
+Tabulated from data in file MS00166.DAT & reduced using program Q01.00L
+File a18.lft created on 12-05-1997 at 15:25:49 using program FORMAT
+BE50.LFT
+Tabulated from data in file JG00567.DAT & reduced using program Q01.00L
+Tabulated from data in file JG00568.DAT & reduced using program Q01.00L
+Tabulated from data in file JG00569.DAT & reduced using program Q01.00L
+Tabulated from data in file JG00571.DAT & reduced using program Q01.00L
+Tabulated from data in file JG00573.DAT & reduced using program Q01.00L
+Tabulated from data in file JG00575.DAT & reduced using program Q01.00L
+File be50.lft created on 12-05-1997 at 15:25:49 using program FORMAT
+CH10T.LFT
+Tabulated from data in file MS00340.DAT & reduced using program Q01.00L
+Tabulated from data in file JG00557.DAT & reduced using program Q01.00L
+Tabulated from data in file JG00558.DAT & reduced using program Q01.00L
+Tabulated from data in file PG00559.DAT & reduced using program Q01.00L
+Tabulated from data in file MS00155.DAT & reduced using program Q01.00L
+File ch10t.lft created on 12-05-1997 at 15:25:49 using program FORMAT
+E374B.LFT
+Tabulated from data in file JG00361.DAT & reduced using program Q01.00L
+Tabulated from data in file JG00363.DAT & reduced using program Q01.00L
+Tabulated from data in file AB00501.DAT & reduced using program Q01.00L
+Tabulated from data in file JG00359.DAT & reduced using program Q01.00L
+Tabulated from data in file JG00062.DAT & reduced using program Q01.00L
+File e374b.lft created on 12-05-1997 at 15:25:49 using program FORMAT
+E387A.LFT
+Tabulated from data in file MS00296.DAT & reduced using program Q01.00L
+Tabulated from data in file MS00294.DAT & reduced using program Q01.00L
+Tabulated from data in file MS00295.DAT & reduced using program Q01.00L
+Tabulated from data in file AB00208.DAT & reduced using program Q01.00L
+Tabulated from data in file AB00210.DAT & reduced using program Q01.00L
+Tabulated from data in file JG00554.DAT & reduced using program Q01.00L
+Tabulated from data in file JG00212.DAT & reduced using program Q01.00L
+Tabulated from data in file JG00214.DAT & reduced using program Q01.00L
+File e387a.lft created on 12-05-1997 at 15:25:49 using program FORMAT
+FX63137B.LFT
+Tabulated from data in file AB00504.DAT & reduced using program Q01.00L
+Tabulated from data in file MS00297.DAT & reduced using program Q01.00L
+Tabulated from data in file MS00299.DAT & reduced using program Q01.00L
+Tabulated from data in file MS00158.DAT & reduced using program Q01.00L
+Tabulated from data in file MS00298.DAT & reduced using program Q01.00L
+Tabulated from data in file JG00507.DAT & reduced using program Q01.00L
+Tabulated from data in file JG00508.DAT & reduced using program Q01.00L
+Tabulated from data in file JG00510.DAT & reduced using program Q01.00L
+File fx63137b.lft created on 12-05-1997 at 15:25:49 using program FORMAT
+FX74MOD.LFT
+Tabulated from data in file MS00302.DAT & reduced using program Q01.00L
+Tabulated from data in file MS00304.DAT & reduced using program Q01.00L
+Tabulated from data in file MS00303.DAT & reduced using program Q01.00L
+Tabulated from data in file MS00305.DAT & reduced using program Q01.00L
+Tabulated from data in file PG00579.DAT & reduced using program Q01.00L
+Tabulated from data in file PG00578.DAT & reduced using program Q01.00L
+File fx74mod.lft created on 12-05-1997 at 15:25:49 using program FORMAT
+GEMINI.LFT
+Tabulated from data in file JG00216.DAT & reduced using program Q01.00L
+Tabulated from data in file JG00218.DAT & reduced using program Q01.00L
+Tabulated from data in file MS00220.DAT & reduced using program Q01.00L
+File gemini.lft created on 12-05-1997 at 15:25:49 using program FORMAT
+GM15.LFT
+Tabulated from data in file JG00403.DAT & reduced using program Q01.00L
+Tabulated from data in file JG00402.DAT & reduced using program Q01.00L
+Tabulated from data in file JG00400.DAT & reduced using program Q01.00L
+Tabulated from data in file MS00394.DAT & reduced using program Q01.00L
+Tabulated from data in file JG00398.DAT & reduced using program Q01.00L
+File gm15.lft created on 12-05-1997 at 15:25:49 using program FORMAT
+GM15F1.LFT
+Tabulated from data in file MS00410.DAT & reduced using program Q01.00L
+Tabulated from data in file JG00406.DAT & reduced using program Q01.00L
+Tabulated from data in file MS00411.DAT & reduced using program Q01.00L
+Tabulated from data in file MS00413.DAT & reduced using program Q01.00L
+File gm15f1.lft created on 12-05-1997 at 15:25:49 using program FORMAT
+J5012.LFT
+Tabulated from data in file MS00290.DAT & reduced using program Q01.00L
+Tabulated from data in file MS00291.DAT & reduced using program Q01.00L
+Tabulated from data in file MS00292.DAT & reduced using program Q01.00L
+Tabulated from data in file MS00293.DAT & reduced using program Q01.00L
+File j5012.lft created on 12-05-1997 at 15:25:50 using program FORMAT
+K3311.LFT
+Tabulated from data in file JG00125.DAT & reduced using program Q01.00L
+Tabulated from data in file AB00123.DAT & reduced using program Q01.00L
+Tabulated from data in file AB00121.DAT & reduced using program Q01.00L
+Tabulated from data in file AB00119.DAT & reduced using program Q01.00L
+File k3311.lft created on 12-05-1997 at 15:25:50 using program FORMAT
+M06B.LFT
+Tabulated from data in file JG00192.DAT & reduced using program Q01.00L
+Tabulated from data in file JG00193.DAT & reduced using program Q01.00L
+Tabulated from data in file JG00194.DAT & reduced using program Q01.00L
+Tabulated from data in file JG00195.DAT & reduced using program Q01.00L
+Tabulated from data in file JG00196.DAT & reduced using program Q01.00L
+Tabulated from data in file JG00198.DAT & reduced using program Q01.00L
+File m06b.lft created on 12-05-1997 at 15:25:50 using program FORMAT
+MA409.LFT
+Tabulated from data in file AB00524.DAT & reduced using program Q01.00L
+Tabulated from data in file AB00525.DAT & reduced using program Q01.00L
+Tabulated from data in file MS00176.DAT & reduced using program Q01.00L
+Tabulated from data in file JG00178.DAT & reduced using program Q01.00L
+Tabulated from data in file AB00180.DAT & reduced using program Q01.00L
+Tabulated from data in file AB00182.DAT & reduced using program Q01.00L
+File ma409.lft created on 12-05-1997 at 15:25:50 using program FORMAT
+MB253515.LFT
+Tabulated from data in file MS00367.DAT & reduced using program Q01.00L
+Tabulated from data in file MS00366.DAT & reduced using program Q01.00L
+Tabulated from data in file MS00365.DAT & reduced using program Q01.00L
+Tabulated from data in file MS00368.DAT & reduced using program Q01.00L
+Tabulated from data in file MS00369.DAT & reduced using program Q01.00L
+File mb253515.lft created on 12-05-1997 at 15:25:50 using program FORMAT
+MH45.LFT
+Tabulated from data in file MS00111.DAT & reduced using program Q01.00L
+Tabulated from data in file JG00113.DAT & reduced using program Q01.00L
+Tabulated from data in file JG00115.DAT & reduced using program Q01.00L
+Tabulated from data in file JG00117.DAT & reduced using program Q01.00L
+File mh45.lft created on 12-05-1997 at 15:25:50 using program FORMAT
+N0009.LFT
+Tabulated from data in file MS00279.DAT & reduced using program Q01.00L
+Tabulated from data in file MS00280.DAT & reduced using program Q01.00L
+Tabulated from data in file MS00281.DAT & reduced using program Q01.00L
+Tabulated from data in file MS00282.DAT & reduced using program Q01.00L
+File n0009.lft created on 12-05-1997 at 15:25:50 using program FORMAT
+N6409.LFT
+Tabulated from data in file AB00186.DAT & reduced using program Q01.00L
+Tabulated from data in file AB00188.DAT & reduced using program Q01.00L
+Tabulated from data in file AB00190.DAT & reduced using program Q01.00L
+File n6409.lft created on 12-05-1997 at 15:25:50 using program FORMAT
+N64A.LFT
+Tabulated from data in file MS00242.DAT & reduced using program Q01.00L
+Tabulated from data in file MS00265.DAT & reduced using program Q01.00L
+Tabulated from data in file MS00266.DAT & reduced using program Q01.00L
+Tabulated from data in file MS00267.DAT & reduced using program Q01.00L
+Tabulated from data in file MS00268.DAT & reduced using program Q01.00L
+Tabulated from data in file MS00269.DAT & reduced using program Q01.00L
+Tabulated from data in file MS00270.DAT & reduced using program Q01.00L
+Tabulated from data in file AB00247.DAT & reduced using program Q01.00L
+Tabulated from data in file AB00249.DAT & reduced using program Q01.00L
+File n64a.lft created on 12-05-1997 at 15:25:50 using program FORMAT
+R140A.LFT
+Tabulated from data in file AB00202.DAT & reduced using program Q01.00L
+Tabulated from data in file AB00204.DAT & reduced using program Q01.00L
+Tabulated from data in file AB00206.DAT & reduced using program Q01.00L
+File r140a.lft created on 12-05-1997 at 15:25:50 using program FORMAT
+RG15B.LFT
+Tabulated from data in file MS00306.DAT & reduced using program Q01.00L
+Tabulated from data in file MS00307.DAT & reduced using program Q01.00L
+Tabulated from data in file AB00549.DAT & reduced using program Q01.00L
+Tabulated from data in file JG00080.DAT & reduced using program Q01.00L
+Tabulated from data in file JG00078.DAT & reduced using program Q01.00L
+File rg15b.lft created on 12-05-1997 at 15:25:50 using program FORMAT
+S1210.LFT
+Tabulated from data in file JG00127.DAT & reduced using program Q01.00L
+Tabulated from data in file JG00484.DAT & reduced using program Q01.00L
+Tabulated from data in file JG00485.DAT & reduced using program Q01.00L
+Tabulated from data in file JG00128.DAT & reduced using program Q01.00L
+Tabulated from data in file JG00545.DAT & reduced using program Q01.00L
+Tabulated from data in file JG00544.DAT & reduced using program Q01.00L
+Tabulated from data in file AB00489.DAT & reduced using program Q01.00L
+Tabulated from data in file JG00494.DAT & reduced using program Q01.00L
+File s1210.lft created on 12-05-1997 at 15:25:51 using program FORMAT
+S1223.LFT
+Tabulated from data in file MS00132.DAT & reduced using program Q01.00L
+Tabulated from data in file MS00133.DAT & reduced using program Q01.00L
+Tabulated from data in file MS00336.DAT & reduced using program Q01.00L
+Tabulated from data in file MS00337.DAT & reduced using program Q01.00L
+Tabulated from data in file MS00338.DAT & reduced using program Q01.00L
+Tabulated from data in file MS00339.DAT & reduced using program Q01.00L
+Tabulated from data in file MS00592.DAT & reduced using program Q01.00L
+Tabulated from data in file JG00595.DAT & reduced using program Q01.00L
+File s1223.lft created on 12-05-1997 at 15:25:51 using program FORMAT
+S1223GF1.LFT
+Tabulated from data in file PG00515.DAT & reduced using program Q01.00L
+File s1223gf1.lft created on 12-05-1997 at 15:25:51 using program FORMAT
+S1223VG1.LFT
+Tabulated from data in file MS00354.DAT & reduced using program Q01.00L
+Tabulated from data in file MS00353.DAT & reduced using program Q01.00L
+Tabulated from data in file MS00352.DAT & reduced using program Q01.00L
+Tabulated from data in file MS00346.DAT & reduced using program Q01.00L
+Tabulated from data in file MS00350.DAT & reduced using program Q01.00L
+Tabulated from data in file MS00351.DAT & reduced using program Q01.00L
+Tabulated from data in file MS00344.DAT & reduced using program Q01.00L
+File s1223vg1.lft created on 12-05-1997 at 15:25:51 using program FORMAT
+S6062.LFT
+Tabulated from data in file AB00141.DAT & reduced using program Q01.00L
+Tabulated from data in file AB00139.DAT & reduced using program Q01.00L
+Tabulated from data in file AB00137.DAT & reduced using program Q01.00L
+File s6062.lft created on 12-05-1997 at 15:25:51 using program FORMAT
+S7012B.LFT
+Tabulated from data in file AB00093.DAT & reduced using program Q01.00L
+Tabulated from data in file AB00091.DAT & reduced using program Q01.00L
+Tabulated from data in file PG00564.DAT & reduced using program Q01.00L
+Tabulated from data in file AB00089.DAT & reduced using program Q01.00L
+Tabulated from data in file AB00087.DAT & reduced using program Q01.00L
+File s7012b.lft created on 12-05-1997 at 15:25:51 using program FORMAT
+S7055.LFT
+Tabulated from data in file JG00151.DAT & reduced using program Q01.00L
+Tabulated from data in file AB00149.DAT & reduced using program Q01.00L
+Tabulated from data in file AB00536.DAT & reduced using program Q01.00L
+Tabulated from data in file AB00147.DAT & reduced using program Q01.00L
+Tabulated from data in file AB00145.DAT & reduced using program Q01.00L
+File s7055.lft created on 12-05-1997 at 15:25:51 using program FORMAT
+S822.LFT
+Tabulated from data in file JG00415.DAT & reduced using program Q01.00L
+Tabulated from data in file JG00418.DAT & reduced using program Q01.00L
+Tabulated from data in file JG00438.DAT & reduced using program Q01.00L
+Tabulated from data in file JG00434.DAT & reduced using program Q01.00L
+File s822.lft created on 12-05-1997 at 15:25:50 using program FORMAT
+S823.LFT
+Tabulated from data in file JG00453.DAT & reduced using program Q01.00L
+Tabulated from data in file JG00456.DAT & reduced using program Q01.00L
+Tabulated from data in file AB00460.DAT & reduced using program Q01.00L
+Tabulated from data in file JG00463.DAT & reduced using program Q01.00L
+File s823.lft created on 12-05-1997 at 15:25:50 using program FORMAT
+SD6060.LFT
+Tabulated from data in file MS00312.DAT & reduced using program Q01.00L
+Tabulated from data in file MS00314.DAT & reduced using program Q01.00L
+Tabulated from data in file PG00539.DAT & reduced using program Q01.00L
+Tabulated from data in file JG00072.DAT & reduced using program Q01.00L
+Tabulated from data in file JG00070.DAT & reduced using program Q01.00L
+File sd6060.lft created on 12-05-1997 at 15:25:51 using program FORMAT
+SD7003.LFT
+Tabulated from data in file JG00168.DAT & reduced using program Q01.00L
+Tabulated from data in file JG00170.DAT & reduced using program Q01.00L
+Tabulated from data in file JG00172.DAT & reduced using program Q01.00L
+Tabulated from data in file MS00174.DAT & reduced using program Q01.00L
+File sd7003.lft created on 12-05-1997 at 15:25:52 using program FORMAT
+SD7032D.LFT
+Tabulated from data in file JG00234.DAT & reduced using program Q01.00L
+Tabulated from data in file JG00236.DAT & reduced using program Q01.00L
+Tabulated from data in file PG00542.DAT & reduced using program Q01.00L
+Tabulated from data in file JG00238.DAT & reduced using program Q01.00L
+Tabulated from data in file JG00240.DAT & reduced using program Q01.00L
+File sd7032d.lft created on 12-05-1997 at 15:25:52 using program FORMAT
+SD7032E.LFT
+Tabulated from data in file MS00355.DAT & reduced using program Q01.00L
+File sd7032e.lft created on 12-05-1997 at 15:25:52 using program FORMAT
+SD7037A.LFT
+Tabulated from data in file JG00103.DAT & reduced using program Q01.00L
+Tabulated from data in file JG00222.DAT & reduced using program Q01.00L
+Tabulated from data in file AB00224.DAT & reduced using program Q01.00L
+Tabulated from data in file AB00226.DAT & reduced using program Q01.00L
+File sd7037a.lft created on 12-05-1997 at 15:25:52 using program FORMAT
+SD7037B.LFT
+Tabulated from data in file PG00580.DAT & reduced using program Q01.00L
+Tabulated from data in file AB00099.DAT & reduced using program Q01.00L
+Tabulated from data in file PG00581.DAT & reduced using program Q01.00L
+Tabulated from data in file AB00097.DAT & reduced using program Q01.00L
+Tabulated from data in file AB00095.DAT & reduced using program Q01.00L
+File sd7037b.lft created on 12-05-1997 at 15:25:52 using program FORMAT
+SD8000.LFT
+Tabulated from data in file JG00324.DAT & reduced using program Q01.00L
+Tabulated from data in file JG00326.DAT & reduced using program Q01.00L
+Tabulated from data in file MS00328.DAT & reduced using program Q01.00L
+Tabulated from data in file JG00330.DAT & reduced using program Q01.00L
+File sd8000.lft created on 12-05-1997 at 15:25:52 using program FORMAT
+SD8020.LFT
+Tabulated from data in file MS00262.DAT & reduced using program Q01.00L
+Tabulated from data in file MS00259.DAT & reduced using program Q01.00L
+Tabulated from data in file MS00260.DAT & reduced using program Q01.00L
+Tabulated from data in file MS00261.DAT & reduced using program Q01.00L
+Tabulated from data in file MS00263.DAT & reduced using program Q01.00L
+Tabulated from data in file MS00264.DAT & reduced using program Q01.00L
+Tabulated from data in file JG00255.DAT & reduced using program Q01.00L
+Tabulated from data in file JG00257.DAT & reduced using program Q01.00L
+File sd8020.lft created on 12-05-1997 at 15:25:52 using program FORMAT
+SD8020T1.LFT
+Tabulated from data in file MS00271.DAT & reduced using program Q01.00L
+Tabulated from data in file MS00272.DAT & reduced using program Q01.00L
+Tabulated from data in file MS00273.DAT & reduced using program Q01.00L
+Tabulated from data in file MS00274.DAT & reduced using program Q01.00L
+Tabulated from data in file MS00275.DAT & reduced using program Q01.00L
+Tabulated from data in file MS00276.DAT & reduced using program Q01.00L
+File sd8020t1.lft created on 12-05-1997 at 15:25:52 using program FORMAT
+SD8020T2.LFT
+Tabulated from data in file MS00283.DAT & reduced using program Q01.00L
+Tabulated from data in file MS00284.DAT & reduced using program Q01.00L
+Tabulated from data in file MS00285.DAT & reduced using program Q01.00L
+Tabulated from data in file MS00286.DAT & reduced using program Q01.00L
+Tabulated from data in file MS00288.DAT & reduced using program Q01.00L
+File sd8020t2.lft created on 12-05-1997 at 15:25:52 using program FORMAT
+WASP.LFT
+Tabulated from data in file AB00228.DAT & reduced using program Q01.00L
+Tabulated from data in file AB00143.DAT & reduced using program Q01.00L
+Tabulated from data in file AB00230.DAT & reduced using program Q01.00L
+Tabulated from data in file AB00232.DAT & reduced using program Q01.00L
+File wasp.lft created on 12-05-1997 at 15:25:53 using program FORMAT

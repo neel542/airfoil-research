@@ -1,11 +1,15 @@
 {
-  "LD_band_pct": 16.2,
-  "CL_err_pct": 7.0,
-  "CD_err_pct": 15.0,
+  "LD_band_pct": 16.0,
+  "LD_mean_abs_err_pct": 22.0,
+  "LD_bias_pct": 14.0,
+  "CL_abs_err": 0.078,
+  "CD_err_pct": 13.2,
+  "CD_median_err_pct": 8.2,
   "validated_conf_range": [
-    0.7,
-    0.92
+    0.9,
+    1.0
   ],
-  "note": "band is a FLOOR; A/B operate below validated confidence so true error >= this. NF under-predicts bubble drag => over-predicts L/D => true L/D trends to LOWER edge.",
-  "systematic_bias": "one-sided: true L/D <= predicted at low Re"
+  "source": "uiuc_neuralfoil_validation.py: 20-airfoil clean benchmark, UIUC LSAT Vol 1 + Vol 4, Re 60k-500k, NeuralFoil large, free transition",
+  "note": "LD_band_pct is the median |dL/D|/L/D over the 1,033 clean benchmark points with CL > 0.2; the mean is 22%. The error is one-sided: NeuralFoil over-predicts L/D by 14% on average (24% at Re~100k). Drag error is ~10% when analysis_confidence > 0.95 and ~37% when it is < 0.5; lift error does not depend on confidence. Airfoils A and B operate at confidence 0.00 and 0.16, below the validated range, so their true error is at least this band.",
+  "systematic_bias": "one-sided: true L/D <= predicted for most of the envelope"
 }

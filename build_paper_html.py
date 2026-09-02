@@ -21,36 +21,54 @@ FIGURE_INSERTS = [
         ("18_LD_vs_AoA_uncertainty.png",
          "Figure 1. Lift-to-drag ratio versus angle of attack for airfoil A "
          "(single-point) and B (robust) at three Reynolds numbers. Hatched bands "
-         "show the measured +/-16% surrogate uncertainty; both airfoils sit below "
+         "show the measured 16% surrogate uncertainty; both airfoils sit below "
          "NeuralFoil's validated confidence range, so the band is a lower bound."),
         ("19_tradeoff_uncertainty.png",
          "Figure 2. Peak versus worst-case L/D across the design family. Error "
          "bars are one-sided (true values trend downward at low Re). Airfoil A's "
          "peak near 233 is produced where NeuralFoil reports near-zero confidence."),
     ]),
-    ("not a problem with how the shape was described", [
+    ("missing that bubble drag", [
         ("12_e387_CL_polars.png",
-         "Figure 3. Lift coefficient versus angle of attack for the Eppler E387: "
-         "NeuralFoil, headless XFoil, and wind-tunnel measurement. Lift agrees to "
-         "within about 5-8%."),
+         "Figure 3. Lift coefficient versus angle of attack for the clean Eppler "
+         "E387 at Re of about 100k, 200k and 500k: NeuralFoil, headless XFoil, and "
+         "wind-tunnel measurement (UIUC; Selig & McGranahan 2004)."),
         ("13_e387_CD_polars.png",
-         "Figure 4. Drag coefficient (log scale). The wind-tunnel points sit above "
-         "the predictions near Re = 100k, angle 1-5 degrees: this is the laminar "
-         "separation bubble that both NeuralFoil and XFoil under-predict."),
-        ("17_multifoil_parity.png",
-         "Figure 5. NeuralFoil versus experiment for both airfoils (E387 and "
-         "SD2030). Lift falls within +/-0.05; drag scatters within about +/-20%."),
-        ("16_e387_confidence_error.png",
-         "Figure 6. NeuralFoil's self-reported confidence versus its true error. "
-         "The negative trend means the model can flag when it is unreliable."),
+         "Figure 4. Drag coefficient (log scale) for the same runs. At Re of about "
+         "100k the measured drag sits above both predictions across the low-drag "
+         "range: the laminar separation bubble that both NeuralFoil and XFoil "
+         "under-predict."),
     ]),
-    ("fed a surrogate model's own measured", [
+    ("be read as optimistic", [
+        ("17_multifoil_parity.png",
+         "Figure 5. NeuralFoil versus wind tunnel for all 1,408 clean benchmark "
+         "points on 20 airfoils, coloured by Reynolds number. Lift scatters within "
+         "about 0.05 for most points; drag within about 20%."),
+        ("21_uiuc_error_by_airfoil.png",
+         "Figure 6. Mean drag and lift error by airfoil, clean runs. Grey bars are "
+         "the two airfoils excluded from the benchmark because the 17-parameter "
+         "shape description cannot reproduce them."),
+    ]),
+    ("had not been checked against experiment either", [
+        ("23_uiuc_tripped_vs_forced_transition.png",
+         "Figure 7. Boundary-layer trip runs near Re = 200k. Diamonds: clean "
+         "measurement; squares: tripped measurement. Running NeuralFoil with "
+         "transition forced at the trip location (dashed) reproduces the tripped "
+         "drag that a free-transition run (solid) misses."),
+    ]),
+    ("It is the basis for", [
+        ("22_uiuc_confidence_calibration.png",
+         "Figure 8. What NeuralFoil's confidence score tracks. Left: lift error is "
+         "flat across confidence bins. Middle: drag error falls steadily from 37% "
+         "to 10% as confidence rises. Right: the same relationship at the airfoil "
+         "level."),
+    ]),
+    ("the two extremes are shown in the figure", [
         ("20_trust_vs_performance.png",
-         "Figure 7. The uncertainty-aware optimizer. Left: turning up the "
-         "confidence dial moves the design from an untrustworthy corner "
-         "(confidence 0.14) to a trustworthy one (0.96); worst-case L/D actually "
-         "improves at first, then trades off slowly. Right: the blind-optimum and "
-         "trust-aware shapes differ."),
+         "Figure 9. The uncertainty-aware optimizer. Left: worst-case L/D against "
+         "mean confidence as the dial w_conf is turned up; the first step, from "
+         "confidence 0.16 to 0.96, costs 2% of predicted L/D. Right: the two "
+         "extreme shapes."),
     ]),
 ]
 

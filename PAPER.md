@@ -1,4 +1,4 @@
-# Robust, multi-objective airfoil design at low Reynolds number, with the first check of a neural surrogate against real wind-tunnel data below Re = 500,000
+# Robust, multi-objective airfoil design at low Reynolds number, with a 20-airfoil wind-tunnel benchmark of the NeuralFoil surrogate below Re = 500,000
 
 **Author:** Neel Madhav
 **Date:** 2026
@@ -24,16 +24,22 @@ This project does three things. First, it builds a pipeline that designs wings
 for good *worst-case* performance across a whole range of conditions, balancing
 four goals at once: efficiency, safety, structural strength, and quietness.
 Second, it makes the wing hold up even when it is built slightly wrong, the way
-a real 3D-printed part would be. Third, and most important, it gives the
-**first check of NeuralFoil against real wind-tunnel data below Re = 500,000**,
-using two classic reference wings, the Eppler E387 and the SD2030.
+a real 3D-printed part would be. Third, and most important, it benchmarks
+NeuralFoil against **1,400 measured wind-tunnel points on 20 airfoils** from
+the public UIUC low-speed airfoil archive, at Re = 60,000 to 500,000, including
+runs with a boundary-layer trip.
 
-The result: NeuralFoil gets lift right to within about 5 to 8 percent, and drag
-to within about 15 percent, though it always guesses drag a little low. The
-useful surprise is that NeuralFoil's own confidence score drops exactly when its
-error goes up, so the model can warn you when it is unreliable. This project
-uses that warning inside the optimizer itself, and it changes the design that
-comes out.
+The result: NeuralFoil predicts lift to within about 0.08 in lift coefficient
+and drag to within about 13 percent on average (8 percent in the typical case),
+with drag error rising to about 22 percent at Re = 60,000. Modelling a trip
+strip by forcing transition at its location removes an otherwise large drag
+bias. The most useful finding concerns NeuralFoil's own confidence score: it
+tracks **drag** error closely (from 10 percent error when confidence is above
+0.95 to 37 percent when it is below 0.5) but says nothing about lift error.
+This project uses that score inside the optimizer, and shows that a small
+confidence reward moves the design out of the region where the surrogate's
+drag is least reliable for a cost of about 2 percent in predicted worst-case
+L/D.
 
 ---
 
@@ -83,12 +89,14 @@ closes.
    (stall margin), structural strength (spar depth), and quietness.
 3. **Manufacturing-tolerance robustness**: wings that keep performing even when
    built imperfectly, tested on error patterns the optimizer never saw.
-4. **The first check of NeuralFoil against real experiment below
-   Re = 500,000**, giving an honest, measured error bar, and showing that its
-   confidence score genuinely predicts its own reliability.
+4. **A 20-airfoil wind-tunnel benchmark of NeuralFoil below Re = 500,000**,
+   built from the official UIUC low-speed airfoil archive: 1,400 clean
+   measurements plus 250 with a boundary-layer trip. It gives a measured
+   error bar for lift, drag and L/D by Reynolds number, and shows what
+   NeuralFoil's confidence score does and does not predict.
 5. **An uncertainty-aware optimizer** that uses that measured reliability
-   inside the design process itself, steering away from designs that look
-   great on paper but that the model itself does not actually trust.
+   inside the design process itself, steering the design out of the region
+   where the surrogate's drag prediction is least trustworthy.
 
 ---
 
@@ -155,21 +163,31 @@ trustworthy and not just memorized.
 
 ### 2.6 Checking NeuralFoil against real measurements
 
-This is the new step nobody else had done. Real, measured lift and drag numbers
-for the Eppler E387 and SD2030 wings came from a public wind-tunnel report
-(Selig & McGranahan, 2004, NREL/SR-500-34515), covering speeds from Re = 100,000
-to Re = 500,000. These numbers were pulled out of the report using two separate
-computer programs, and only numbers both programs agreed on were kept. Numbers
-that clearly belonged to a different wing printed on the same page were thrown
-out. NeuralFoil, and a separately built copy of the older XFoil solver, were
-then run at exactly the same conditions as the real measurements and compared
-point by point.
+Measured lift and drag polars come from the UIUC Low-Speed Airfoil Tests
+archive (Selig et al., 1995; Selig & McGranahan, 2004), which publishes its
+wind-tunnel tables as plain text files. Every airfoil in those two volumes
+whose design coordinates exist in the AeroSandbox airfoil database was
+included: 22 airfoils, 30 data files, 1,763 measured points at Re = 40,000 to
+500,000. Clean runs and runs with a zigzag boundary-layer trip are separate
+files in the archive and are kept separate here. A parser script turns the
+files into one table, so every number is traceable to its source file and run.
 
-One more check: does describing the E387 with only 17 numbers lose any real
-shape detail? The answer is no. The reconstructed shape is off from the true
-shape by only 0.15 percent of the chord length on average, which is far smaller
-than NeuralFoil's own error. So any mismatch found below is NeuralFoil's fault,
-not a problem with how the shape was described.
+Each airfoil is described with the same 17-number Kulfan basis used for the
+designs. For 20 of the 22 airfoils that description reproduces the true shape
+to better than 0.5 percent of the chord, the manufacturing-error scale used
+elsewhere in this project; the two that do not (A18 and BE50, at 0.9 to 1.3
+percent) are reported but left out of the benchmark statistics, because their
+disagreement with experiment cannot be separated from the shape error. The
+E387, the most-tested low-Re reference airfoil, is reproduced to 0.15 percent.
+
+NeuralFoil (the `large` model, with the bigger `xxlarge` as a check) was run
+at every measured condition. For clean runs it was run with free transition.
+For tripped runs it was run twice: with free transition, and with transition
+forced at the trip locations given in the file header (2 percent of chord on
+the upper surface and 5 percent on the lower for the three airfoils in the
+2004 report), to test whether that input does what it should. For the E387, a
+separately built copy of the XFoil solver was also run at the same conditions,
+so the surrogate can be compared against the solver it was trained to copy.
 
 ---
 
@@ -218,89 +236,158 @@ on-paper numbers.
 
 ### 3.4 The main result: checking NeuralFoil against real measurements
 
-| What was measured | NeuralFoil vs real experiment (Re 100k to 500k) |
-|----------|------------------------------------------|
-| Lift | within about **5 to 8 percent** |
-| Drag | within about **15 percent**, always guessed a little low near Re = 100,000 |
-| Confidence score vs true error | strongly linked (Pearson r about −0.48) |
-| Shape-description error (E387) | 0.15% of chord |
+**The reference airfoil first.** The Eppler E387 has been measured in more
+wind tunnels than any other low-Re section, so it is the natural place to
+start. Against its 112 clean measurements at six Reynolds numbers (errors are
+absolute values, averaged; bias is the signed average):
 
-Three things stand out:
+| Re | Lift error (ΔCL) | Lift error, relative | Drag error (%) | Drag bias (%) | Confidence |
+|---:|---:|---:|---:|---:|---:|
+| 100,000 | 0.057 | 11% | 22 | −5 | 0.88 |
+| 200,000 | 0.030 | 5.4% | 12 | 0 | 0.82 |
+| 300,000 | 0.025 | 4.9% | 12 | −1 | 0.81 |
+| 350,000 | 0.024 | 4.7% | 12 | −3 | 0.81 |
+| 460,000 | 0.023 | 5.1% | 12 | −4 | 0.81 |
+| 500,000 | 0.023 | 5.1% | 12 | −5 | 0.81 |
 
-1. **NeuralFoil gets lift right, to within 5 to 8 percent, even at low speed.**
-   That is good news, and nobody had shown it before in this speed range.
-2. **Drag is the harder number, off by about 15 percent, and always guessed a
-   little low** near Re = 100,000. This happens because both NeuralFoil and the
-   older XFoil solver miss the extra drag from that separation bubble mentioned
-   earlier. You can see the gap directly in one of the drag charts.
-3. **The model knows when it is guessing.** NeuralFoil's own confidence score
-   drops exactly when its real error goes up. Think of a student taking a test
-   who says "I'm sure" on some answers and "honestly, I'm just guessing" on
-   others, and it turns out the guessed answers really are the wrong ones.
-   NeuralFoil behaves the same way. This is exactly why wing A's headline peak
-   L/D of 232.9, produced where NeuralFoil's confidence is close to zero, should
-   be read as an upper limit and not a trustworthy number. The model itself is
-   quietly saying "I'm guessing" about that 233.
+Lift is right to about 5 percent from Re = 200,000 up, and to 11 percent at
+Re = 100,000. Drag is the harder number: about 12 percent at Re = 200,000 and
+above, and 22 percent at Re = 100,000, where the laminar separation bubble
+sits in the middle of the low-drag range. The drag charts show both NeuralFoil
+and XFoil missing that bubble drag. There is no large systematic drag bias
+for the E387: 3 percent low overall.
 
-Since L/D is just lift divided by drag, a 15 percent drag error means every L/D
-number in this project carries an error of at least about 16 percent, and that
-error leans one direction: the true L/D is probably at or below what the model
-predicts, not above it. Every main chart in this project is redrawn with that
-honest error band included.
+**Twenty airfoils.** The E387 is a well-behaved shape. Across the 20-airfoil
+benchmark set (1,408 clean measurements), the picture is broader:
+
+| Re | Points | Lift error (ΔCL) | Drag error, mean (%) | Drag error, median (%) | Drag bias (%) | Confidence |
+|---:|---:|---:|---:|---:|---:|---:|
+| 60,000 | 174 | 0.066 | 22 | 16 | +20 | 0.93 |
+| 100,000 | 329 | 0.093 | 15 | 11 | +1 | 0.92 |
+| 200,000 | 468 | 0.080 | 10 | 7 | +1 | 0.92 |
+| 300,000 to 350,000 | 357 | 0.075 | 11 | 7 | −2 | 0.92 |
+| 460,000 to 500,000 | 80 | 0.043 | 12 | 7 | −8 | 0.89 |
+| **All** | **1,408** | **0.078** | **13** | **8** | **+2** | **0.92** |
+
+Three things stand out.
+
+1. **Drag is good from Re = 100,000 up and degrades below it.** The typical
+   (median) drag error is 7 percent between Re = 200,000 and 500,000, 11
+   percent at Re = 100,000, and 16 percent at Re = 60,000, where NeuralFoil
+   over-predicts drag by about 20 percent on average. The bias changes sign
+   with Reynolds number: high at the low end, about 8 percent low at the high
+   end. The bigger `xxlarge` model is no more accurate than `large`.
+2. **Lift error is concentrated in highly cambered shapes.** The mean lift
+   error of 0.078 hides a split: 0.058 for the 16 airfoils with less than 5
+   percent camber, and 0.143 for the four with more (FX 63-137, NACA 6409,
+   S1210, S1223). Those are the high-lift shapes near the edge of what XFoil,
+   and so NeuralFoil, handles well.
+3. **Because L/D divides lift by drag, its error is larger than either.**
+   Over the 1,033 clean points with a lift coefficient above 0.2, NeuralFoil's
+   L/D is off by 16 percent in the typical case (22 percent on average), and
+   the error leans one way: NeuralFoil over-predicts L/D by 14 percent on
+   average, most strongly at Re = 100,000 (24 percent). Every L/D chart in
+   this project is drawn with that band, and quoted L/D values should
+   be read as optimistic.
+
+**Trip strips.** The 2004 report also measured the E387, SD2030 and FX 63-137
+with a zigzag trip near the leading edge, which forces the boundary layer
+turbulent the way roughness or insects would on a real blade. Against those
+247 tripped measurements, NeuralFoil run normally under-predicts drag by 19
+percent on average, as it should, since nothing told it about the trip. Run
+with transition forced at the trip locations, the bias falls to 2 percent and
+the lift error halves. NeuralFoil's transition inputs do what they claim,
+which had not been checked against experiment either.
+
+**What the confidence score actually tells you.** NeuralFoil reports a
+confidence number with every prediction. Binning the 1,292 attached-flow
+benchmark points by that number:
+
+| Confidence | Points | Lift error (ΔCL) | Drag error, mean (%) | Drag error, median (%) |
+|---|---:|---:|---:|---:|
+| below 0.5 | 70 | 0.056 | 37 | 33 |
+| 0.5 to 0.7 | 24 | 0.107 | 35 | 28 |
+| 0.7 to 0.8 | 13 | 0.090 | 27 | 21 |
+| 0.8 to 0.9 | 60 | 0.057 | 21 | 17 |
+| 0.9 to 0.95 | 130 | 0.079 | 15 | 11 |
+| above 0.95 | 995 | 0.083 | 10 | 7 |
+
+The score is a drag-error indicator and nothing else. Drag error falls
+steadily from 37 percent to 10 percent as confidence rises (correlation
+r = −0.46 across all points, with the same sign in every Reynolds-number band
+and at both positive and negative angles). Lift error is flat across the bins,
+and its correlation with confidence is zero (r = +0.07, with a 95 percent
+interval of +0.03 to +0.11). So when NeuralFoil says it is unsure, believe it
+about drag, and therefore about L/D, but not about lift. Since it is the drag
+that carries the L/D error, this is the useful direction. It is the basis for
+the next section.
 
 ### 3.5 Using the finding to design better wings
 
-This is the part of the project that goes beyond just checking a tool: it uses
-what was learned to actually change how the design is done. Normally an
-optimizer chases the single highest predicted L/D and simply trusts NeuralFoil's
-number completely. But the previous section just showed that NeuralFoil is
-least trustworthy exactly where its confidence is low. So a second goal was
-added to the optimizer: alongside chasing performance, also reward designs that
-land in the part of the map where NeuralFoil is confident. One single dial,
-called `w_conf`, controls how strongly this new goal is weighted.
+Section 3.4 showed that NeuralFoil's confidence score is a reliable warning
+about its drag error, and drag is what carries the L/D error. This section
+puts that warning inside the optimizer. Alongside the worst-case L/D, the
+optimizer is given a second reward for landing where NeuralFoil is confident,
+controlled by one dial, `w_conf`. Everything else (the 5-by-5 optimization
+grid, the three starting shapes, the thickness limits) is the same as for the
+robust airfoil B in section 3.1, and each dial setting is also started from
+the previous one.
 
-| `w_conf` dial setting | Worst-case L/D | Average confidence | Lowest confidence seen |
-|---------:|---------------:|----------------:|------------------:|
-| 0 (trust the model blindly) | 32.1 | 0.14 | 0.02 |
-| 1 | **37.7** | 0.96 | 0.90 |
-| 2 | 37.4 | 0.96 | 0.92 |
-| 4 | 36.6 | 0.97 | 0.93 |
-| 8 | 34.9 | 0.98 | 0.94 |
+| `w_conf` | Worst-case L/D | Mean confidence | Lowest confidence | Drag error expected at that confidence (section 3.4) |
+|---:|---:|---:|---:|---:|
+| 0 (trust the model blindly) | 38.5 | 0.16 | 0.01 | about 37% |
+| 0.5 | 37.7 | 0.96 | 0.89 | about 10% |
+| 1 | 37.7 | 0.96 | 0.90 | about 10% |
+| 2 | 37.5 | 0.96 | 0.92 | about 10% |
+| 4 | 36.7 | 0.97 | 0.93 | about 10% |
+| 8 | 35.2 | 0.98 | 0.94 | about 10% |
 
-The result was a genuine surprise. With the dial turned off, the optimizer found
-a design sitting at a confidence of just 0.14, right in the zone where
-NeuralFoil is known to be unreliable. It looked fine on paper, but that "fine"
-number is one the model itself does not really believe. The moment the dial is
-turned up even a little, the design jumps to a confidence of 0.96, and its
-honestly re-checked worst-case L/D actually goes up too, from 32 to 38. In other
-words, blindly trusting the surrogate did not even buy better performance. It
-bought a mirage. Only once the dial is pushed much harder does a small, real
-performance cost start to appear in exchange for even higher confidence.
+With the dial off, the optimizer finds the same design as airfoil B: a
+predicted worst-case L/D of 38.5, at a mean confidence of 0.16. Section 3.4
+says that at that confidence NeuralFoil's drag is wrong by more than a third
+on average, so the 38.5 is a number the model itself does not stand behind.
+The optimizer went there because, as far as the surrogate can tell, there is
+a whole family of shapes with almost the same worst-case L/D, some inside the
+region it was validated in and some well outside it, and with nothing to
+break the tie it picked one outside.
 
-The takeaway is simple: a small amount of confidence-awareness gives a design
-whose predicted performance can actually be believed, and it often costs
-nothing to get it. As far as this project's search of prior work could tell, no
-earlier airfoil-design study has fed a surrogate model's own measured
-reliability back into the design process this way.
+A small nudge on the dial (`w_conf` = 0.5) breaks the tie. The design moves
+to a mean confidence of 0.96, where the measured drag error is about 10
+percent, and the predicted worst-case L/D drops by 2 percent, from 38.5 to
+37.7. Pushing the dial harder buys a little more confidence for a steadily
+larger price: at `w_conf` = 8 the predicted L/D is 35.2. The shape changes
+are modest; the two extremes are shown in the figure.
+
+One caution: the "expected drag error" column is a population statistic from
+20 other airfoils, not a measurement of these designs, which have not been
+tested. What the experiment does establish is that the standard approach,
+trusting the surrogate blindly, lands by default in the region where it is
+known to be least reliable, and that leaving that region is nearly free. As
+far as this project's search of prior work could tell, no earlier
+airfoil-design study has fed a surrogate's own measured reliability back into
+the design loop this way.
 
 ---
 
 ## 4. Discussion
 
-The practical rule that comes out of all this is simple: know when to trust the
-fast stand-in. In the middle of the range, at moderate angles and speeds above
-roughly Re = 200,000, NeuralFoil is accurate to within a few percent and is a
-genuinely excellent design tool. Near zero lift, near Re = 100,000, and for very
-aggressive high-lift shapes, it turns optimistic, and its own confidence score
-correctly drops exactly in those spots. So a designer can watch that confidence
-score as a live warning light, and send only the most doubtful, highest-value
-final designs off for slower, higher-fidelity testing or an actual wind tunnel.
+The practical rule that comes out of all this is simple: know when to trust
+the fast stand-in, and know what to trust it about. From Re = 100,000 up,
+NeuralFoil's drag is typically within 7 to 11 percent of measurement and its
+lift within a few hundredths of the lift coefficient for ordinary shapes,
+which makes it a genuinely useful design tool. Below Re = 100,000, for highly
+cambered high-lift shapes, and for L/D in general, it turns optimistic. Its
+own confidence score flags the drag problem, though not the lift one. So a
+designer can watch that score as a live warning light for drag and L/D, and
+send only the most doubtful, highest-value final designs off for slower,
+higher-fidelity testing or an actual wind tunnel. If the blade will fly rough
+or dirty, the transition inputs should be used; they work.
 
-The robustness results point the same direction from a different angle. Designs
-chosen to be robust, whether to changing flying conditions or to build error,
-also tend to be the designs NeuralFoil is most confident about, because they
-keep the airflow smooth and attached to the surface rather than separating and
-becoming chaotic.
+The robustness results point the same direction from a different angle.
+Designs chosen to be robust, whether to changing flying conditions or to
+build error, tend to keep the airflow attached rather than separated, and the
+uncertainty-aware optimizer shows that staying inside NeuralFoil's validated
+region costs almost nothing in predicted performance.
 
 ---
 
@@ -310,19 +397,24 @@ becoming chaotic.
   discovery. The shape description, the neural stand-in, and the base
   optimization method were all built by other people. Much of this project's
   value is in combining them carefully and making them robust. The two
-  genuinely new pieces are (a) checking the stand-in against real measurements
-  at low speed, and (b) the uncertainty-aware optimizer that uses that
-  measured reliability inside the design loop. Both still rely on the same
-  underlying model, so they need further, higher-fidelity, or physical
-  confirmation before any specific shape should be fully trusted.
-- **Every L/D number here is an estimate**, with a measured error floor of
-  about 16 percent that leans toward overstating performance at low speed. The
-  conclusions worth trusting most are the *relative* ones, such as robust
-  beating peak, or manufacturing-aware beating nominal, not the raw numbers
-  themselves.
-- **Only two wings** could be both cleanly pulled from the source report and
-  matched to a shape already available in the airfoil database: the E387 and
-  the SD2030. Checking more wings would make this result stronger.
+  genuinely new pieces are (a) the 20-airfoil experimental benchmark and what
+  it shows about the confidence score and the transition inputs, and (b) the
+  uncertainty-aware optimizer that uses that measured reliability inside the
+  design loop. Both still rely on the same underlying model, so any specific
+  optimized shape needs higher-fidelity or physical confirmation before it is
+  fully trusted.
+- **Every L/D number here is an estimate**, with a typical measured error of
+  16 percent and an average over-prediction of 14 percent. The conclusions
+  worth trusting most are the *relative* ones, such as robust beating peak, or
+  manufacturing-aware beating nominal, not the raw numbers themselves.
+- **The benchmark covers 20 airfoils from two of the five UIUC volumes.** The
+  other volumes, and the lift curves through stall, are not yet included. Two
+  airfoils had to be left out because the 17-number shape description could
+  not reproduce them. The wind-tunnel models themselves differ from their
+  design shapes by a few hundredths to a few tenths of a percent of chord,
+  which sets a floor on how well any prediction can agree.
+- **The "expected drag error" attached to the optimized designs is a
+  population statistic**, not a measurement of those designs.
 - **This is two-dimensional, steady analysis only.** It does not model a full
   three-dimensional wing, spinning propellers or turbines, or unsteady gusts.
 - **None of the optimized wings from this project have been physically
@@ -334,13 +426,18 @@ becoming chaotic.
 ## 6. Conclusion and what comes next
 
 This project delivers a repeatable, honest, uncertainty-aware pipeline for
-designing wings at low speed, and it closes a real gap by checking NeuralFoil
-against real wind-tunnel data below Re = 500,000 for the first time. The
-stand-in turns out to be accurate on lift, a little too optimistic on drag, and
-usefully self-aware of its own weak spots. The most valuable next steps are (1)
-pushing the uncertainty-aware optimizer further, and (2) an actual physical
-wind-tunnel test of 3D-printed robust-versus-peak-tuned wings, which would turn
-this validation study into a fully original experimental result.
+designing wings at low speed, and it closes a real gap by benchmarking
+NeuralFoil against 1,400 wind-tunnel measurements on 20 airfoils below
+Re = 500,000. The stand-in turns out to be accurate on drag from Re = 100,000
+up, optimistic below that and for high-lift shapes, and its confidence score
+is a trustworthy warning about drag error but not about lift. Its transition
+inputs reproduce trip-strip measurements. Feeding that warning back into the
+optimizer moves designs out of the surrogate's least reliable region for
+about 2 percent of predicted performance. The most valuable next steps are
+(1) extending the benchmark to the remaining UIUC volumes and to lift curves
+through stall, and (2) an actual physical wind-tunnel test of 3D-printed
+robust-versus-peak-tuned wings, which would turn this validation study into a
+fully original experimental result.
 
 ---
 
@@ -375,6 +472,10 @@ below.
    airfoils.* In Low Reynolds Number Aerodynamics (pp. 1-12). Springer.
 6. Sharpe, P. D. (2021). *AeroSandbox: A differentiable framework for aircraft
    design optimization.* (MIT master's thesis / software.)
+7. Selig, M. S., Guglielmo, J. J., Broeren, A. P., & Giguère, P. (1995).
+   *Summary of Low-Speed Airfoil Data, Volume 1.* SoarTech Publications.
+   Tabulated data for Volumes 1 and 4 from the UIUC Low-Speed Airfoil Tests
+   archive, https://m-selig.ae.illinois.edu/pd.html
 
 ---
 
