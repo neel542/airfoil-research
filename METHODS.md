@@ -50,8 +50,9 @@ solution - which keeps the Pareto front monotonic.
 
 **Confidence-aware objective.** For the uncertainty-aware sweep the objective
 is g / S_LD + w_conf · mean(analysis_confidence) over the optimization grid,
-with the same grid, seeds and continuation as the base problem, so w_conf = 0
-reproduces the robust design exactly.
+with the same grid, seeds and continuation as the base problem (thickness band
+8-16% rather than 9-13%), so w_conf = 0 reproduces the robust design to within
+that difference (worst-case L/D 38.5 vs 38.2).
 
 ## 5. Multi-objective formulation
 
