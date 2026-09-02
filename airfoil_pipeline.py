@@ -30,7 +30,7 @@ import pandas as pd
 import aerosandbox as asb
 import aerosandbox.numpy as anp   # casadi-aware numpy for use inside Opti
 
-OUT = "/Users/neelmadhav/Airfoil research"
+OUT = os.path.dirname(os.path.abspath(__file__))
 os.makedirs(os.path.join(OUT, "figures"), exist_ok=True)
 os.makedirs(os.path.join(OUT, "data"), exist_ok=True)
 
@@ -138,6 +138,8 @@ def solve_airfoil(lam, label, extra_seeds=()):
             continue  # IPOPT failed from this seed; try the next
         if obj > best_obj:
             best_af, best_obj = af, obj
+    if best_af is None:
+        raise RuntimeError(f"[{label}] lam={lam}: every seed failed to converge")
     aero_sp = best_af.get_aero_from_neuralfoil(alpha=DESIGN_AOA, Re=DESIGN_RE, model_size=MODEL)
     print(f"  [{label:>14}] lam={lam:.2f}  "
           f"design L/D={float(aero_sp['CL']/aero_sp['CD']):6.1f}   "

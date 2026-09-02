@@ -18,7 +18,7 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
-OUT = "/Users/neelmadhav/Airfoil research"
+OUT = os.path.dirname(os.path.abspath(__file__))
 DATA = os.path.join(OUT, "data")
 FIG = os.path.join(OUT, "figures")
 
@@ -237,6 +237,13 @@ for ax, name in zip(axes, ["B_nominal", "B_mfg"]):
         if d.empty:
             continue
         ax.plot(d.alpha, d.L_over_D, ms=5, lw=1.8, label=src, **sty)
+    # True-XFoil ground truth comes from xfoil_validate.py (headless binary,
+    # PACC polar parsed directly); fidelity_check.csv only has it when the
+    # AeroSandbox XFoil wrapper happened to work, which it does not on this build.
+    if fid[(fid.design == name) & (fid.source == "XFoil")].empty:
+        x9 = xf9[xf9.design == name].dropna(subset=["XFoil_LD"]).sort_values("alpha")
+        if not x9.empty:
+            ax.plot(x9.alpha, x9.XFoil_LD, ms=5, lw=1.8, label="XFoil", **styles["XFoil"])
     ax.set_title(f"{name} @ Re = 200k"); ax.set_xlabel("AoA [deg]"); clean(ax)
 axes[0].set_ylabel("L / D"); axes[0].legend()
 save(fig, "9_fidelity_check.png", "Fidelity cross-check: surrogate vs higher fidelity")
@@ -291,7 +298,6 @@ save(fig, "11_envelope_polars.png", "B_mfg: surrogate vs true XFoil across Re")
 exp = pd.read_csv(os.path.join(DATA, "e387_experimental_NREL.csv"))
 val12 = pd.read_csv(os.path.join(DATA, "e387_neuralfoil_validation.csv"))
 PLOT_RE_NOM = [100, 200, 460]
-_RE_AVAIL_ENV = sorted(env[env.design == "B_mfg"].Re.unique())  # unused, kept for parity
 
 def _panels(value_fn, ylabel, fname, title, logy=False):
     fig, axes = plt.subplots(1, 3, figsize=(14, 4.5), sharey=True)

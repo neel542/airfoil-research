@@ -19,9 +19,3 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
-
----------------------------------------------------------------------------
-Third-party note: this project can call XFoil (Mark Drela / Harold Youngren),
-which is licensed under the GNU GPL. XFoil is NOT included or redistributed
-here; users build it themselves (see THIRD_PARTY_XFOIL.md). The MIT license
-above covers only the code in this repository.

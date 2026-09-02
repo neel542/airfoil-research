@@ -9,7 +9,7 @@ tools or internet needed.
 
 import os, re, base64, markdown
 
-OUT = "/Users/neelmadhav/Airfoil research"
+OUT = os.path.dirname(os.path.abspath(__file__))
 MD  = os.path.join(OUT, "PAPER.md")
 FIG = os.path.join(OUT, "figures")
 HTML_OUT = os.path.join(OUT, "PAPER.html")

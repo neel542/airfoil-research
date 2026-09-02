@@ -33,7 +33,7 @@ import pandas as pd
 import aerosandbox as asb
 import aerosandbox.numpy as anp
 
-OUT = "/Users/neelmadhav/Airfoil research"
+OUT = os.path.dirname(os.path.abspath(__file__))
 os.makedirs(os.path.join(OUT, "figures"), exist_ok=True)
 os.makedirs(os.path.join(OUT, "data"), exist_ok=True)
 
@@ -111,6 +111,8 @@ def solve_profile(name, w, extra_seeds=()):
             continue
         if obj > best_obj:
             best_af, best_obj = af, obj
+    if best_af is None:
+        raise RuntimeError(f"profile '{name}': every seed failed to converge")
     return best_af
 
 
