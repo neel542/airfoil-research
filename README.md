@@ -294,7 +294,7 @@ python multiobjective.py            # efficiency / safety / structure / noise
 python manufacturing_robust.py      # build-tolerance robustness
 python xfoil_validate_envelope.py   # surrogate trust map vs true XFoil
 python uiuc_lsat_parse.py           # official UIUC wind-tunnel files -> one table
-python uiuc_neuralfoil_validation.py  # 20-airfoil benchmark of NeuralFoil
+python uiuc_neuralfoil_validation.py  # 55-airfoil benchmark of NeuralFoil
 python uiuc_stall_validation.py     # lift through stall: CLmax, stall angle, CM
 python e387_neuralfoil_validation.py  # E387 in detail, with XFoil
 python uncertainty_aware_design.py  # confidence-aware optimizer sweep
@@ -327,7 +327,7 @@ figures/
   3_LD_heatmap.png         # L/D over the (Re, AoA) envelope: A, B, and B−A
   4_tradeoff.png           # peak-vs-robustness Pareto frontier
   12-16_e387_*.png         # E387: NeuralFoil vs XFoil vs experiment
-  17_multifoil_parity.png  # 20-airfoil lift / drag parity
+  17_multifoil_parity.png  # 55-airfoil lift / drag parity
   20_trust_vs_performance.png
   21-23_uiuc_*.png         # error by airfoil, confidence calibration, tripped runs
   24-25_uiuc_*.png         # CLmax / stall-angle parity, lift curves through stall

@@ -430,7 +430,7 @@ region costs almost nothing in predicted performance.
   discovery. The shape description, the neural stand-in, and the base
   optimization method were all built by other people. Much of this project's
   value is in combining them carefully and making them robust. The two
-  genuinely new pieces are (a) the 20-airfoil experimental benchmark and what
+  genuinely new pieces are (a) the 55-airfoil experimental benchmark and what
   it shows about the confidence score and the transition inputs, and (b) the
   uncertainty-aware optimizer that uses that measured reliability inside the
   design loop. Both still rely on the same underlying model, so any specific
