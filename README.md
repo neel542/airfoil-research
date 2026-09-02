@@ -102,6 +102,12 @@ network) and an upper bound on the network alone.
   drag by 19%; with transition forced at the trip location (`xtr_upper`,
   `xtr_lower`) the bias is 2% and lift error halves. The transition inputs
   work, which had not been checked against experiment before.
+- **Through stall** (`uiuc_stall_validation.py`, 107 clean lift sweeps past
+  CLmax, Re 30k-500k): CLmax over-predicted by 0.07 (~6%); stall angle within
+  ~2° (NeuralFoil ~1° early); past stall the CL error doubles while confidence
+  halves (0.89 → 0.48); CM off by 0.024 (~25% of typical). Measured hysteresis
+  is 0.04 typical but >0.5 in the worst tenth. Figures `24`-`25`; data
+  `data/uiuc_stall_validation.csv`.
 - **What `analysis_confidence` tracks: drag, not lift.** Drag error falls
   monotonically from 37% (confidence < 0.5) to 10% (> 0.95); r = −0.46, same
   sign in every Re band. Lift error is flat across confidence (r = +0.07). An
@@ -284,6 +290,7 @@ python manufacturing_robust.py      # build-tolerance robustness
 python xfoil_validate_envelope.py   # surrogate trust map vs true XFoil
 python uiuc_lsat_parse.py           # official UIUC wind-tunnel files -> one table
 python uiuc_neuralfoil_validation.py  # 20-airfoil benchmark of NeuralFoil
+python uiuc_stall_validation.py     # lift through stall: CLmax, stall angle, CM
 python e387_neuralfoil_validation.py  # E387 in detail, with XFoil
 python uncertainty_aware_design.py  # confidence-aware optimizer sweep
 python rebuild_all_figures.py       # every figure, from the saved CSVs
@@ -306,6 +313,7 @@ data/
   uiuc_lsat/               # raw UIUC wind-tunnel files (Vol 1, Vol 4), as downloaded
   uiuc_experimental.csv    # all 1,763 measured points in one table
   uiuc_neuralfoil_validation.csv + uiuc_validation_*.csv   # benchmark, point-by-point + summaries
+  uiuc_experimental_lift.csv / uiuc_stall_validation.csv   # lift runs through stall
   e387_experimental_NREL.csv / e387_neuralfoil_validation.csv   # E387 detail (+ XFoil)
   uncertainty_aware_sweep.csv
 figures/
@@ -317,4 +325,5 @@ figures/
   17_multifoil_parity.png  # 20-airfoil lift / drag parity
   20_trust_vs_performance.png
   21-23_uiuc_*.png         # error by airfoil, confidence calibration, tripped runs
+  24-25_uiuc_*.png         # CLmax / stall-angle parity, lift curves through stall
 ```

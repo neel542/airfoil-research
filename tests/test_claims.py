@@ -113,6 +113,22 @@ def test_uncertainty_sweep():
     _close(fam.loc[0.0, "worst_case_LD"], 38.2, 0.1, "airfoil B worst-case L/D")
 
 
+def test_stall():
+    st = _csv("uiuc_stall_validation.csv")
+    b = st[st.fit_ok & (st.config == "clean") & st.stall_captured]
+    assert len(b) == 107 and b.asb_name.nunique() == 20
+    _close(b.dCLmax.mean(), 0.07, 0.01, "mean dCLmax")
+    _close(b.dalpha_CLmax.median() if False else b.dalpha_CLmax.abs().median(), 1.8, 0.2, "median |dalpha|")
+    _close(b.dalpha_CLmax.mean(), -1.1, 0.2, "mean stall-angle offset")
+    _close(b.err_CL_prestall.mean(), 0.09, 0.01, "pre-stall CL error")
+    _close(b.err_CL_poststall.mean(), 0.17, 0.01, "post-stall CL error")
+    _close(b.conf_prestall.mean(), 0.89, 0.02, "pre-stall confidence")
+    _close(b.conf_poststall.mean(), 0.48, 0.03, "post-stall confidence")
+    _close(b.err_CM_prestall.mean(), 0.024, 0.003, "pre-stall CM error")
+    _close(b.hysteresis_dCL.median(), 0.04, 0.01, "median hysteresis")
+    assert b.hysteresis_dCL.quantile(0.9) > 0.5
+
+
 if __name__ == "__main__":
     fails = 0
     for name, fn in sorted(globals().items()):

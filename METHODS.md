@@ -113,7 +113,10 @@ falls to 2%. `analysis_confidence` is a calibrated indicator of **drag** error
 (37% below 0.5, 10% above 0.95; r = −0.46, same sign in every Re band) and
 carries no information about lift error (r = +0.07). For the E387 alone, lift
 is within ~5% from Re = 200k up (11% at 100k) and drag within ~12% (22% at
-100k, the laminar-bubble regime that XFoil also misses). Scripts:
+100k, the laminar-bubble regime that XFoil also misses). On the 107 clean lift
+sweeps that pass through stall, CLmax is over-predicted by 0.07 (~6%) and the
+stall angle placed within ~2°; post-stall CL error doubles while confidence
+halves (`uiuc_stall_validation.py`). Scripts:
 `uiuc_neuralfoil_validation.py`, `e387_neuralfoil_validation.py`; data
 `data/uiuc_*.csv`; `figures/12-17, 21-23`.
 

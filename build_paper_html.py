@@ -56,16 +56,26 @@ FIGURE_INSERTS = [
          "transition forced at the trip location (dashed) reproduces the tripped "
          "drag that a free-transition run (solid) misses."),
     ]),
+    ("differ by 0.5", [
+        ("24_uiuc_stall_parity.png",
+         "Figure 8. Maximum lift and the angle it occurs at, NeuralFoil versus wind "
+         "tunnel, for the 107 clean lift sweeps that passed through stall."),
+        ("25_uiuc_lift_curves.png",
+         "Figure 9. Three lift curves through stall. Triangles: increasing angle; "
+         "open circles: decreasing angle (the gap is stall hysteresis); line: "
+         "NeuralFoil; grey band: NeuralFoil's confidence, which collapses past "
+         "the stall."),
+    ]),
     ("It is the basis for", [
         ("22_uiuc_confidence_calibration.png",
-         "Figure 8. What NeuralFoil's confidence score tracks. Left: lift error is "
+         "Figure 10. What NeuralFoil's confidence score tracks. Left: lift error is "
          "flat across confidence bins. Middle: drag error falls steadily from 37% "
          "to 10% as confidence rises. Right: the same relationship at the airfoil "
          "level."),
     ]),
     ("the two extremes are shown in the figure", [
         ("20_trust_vs_performance.png",
-         "Figure 9. The uncertainty-aware optimizer. Left: worst-case L/D against "
+         "Figure 11. The uncertainty-aware optimizer. Left: worst-case L/D against "
          "mean confidence as the dial w_conf is turned up; the first step, from "
          "confidence 0.16 to 0.96, costs 2% of predicted L/D. Right: the two "
          "extreme shapes."),

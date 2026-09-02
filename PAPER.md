@@ -31,9 +31,10 @@ runs with a boundary-layer trip.
 
 The result: NeuralFoil predicts lift to within about 0.08 in lift coefficient
 and drag to within about 13 percent on average (8 percent in the typical case),
-with drag error rising to about 22 percent at Re = 60,000. Modelling a trip
-strip by forcing transition at its location removes an otherwise large drag
-bias. The most useful finding concerns NeuralFoil's own confidence score: it
+with drag error rising to about 22 percent at Re = 60,000. Maximum lift is
+over-predicted by about 6 percent and the stall angle is placed within 2
+degrees. Modelling a trip strip by forcing transition at its location removes
+an otherwise large drag bias. The most useful finding concerns NeuralFoil's own confidence score: it
 tracks **drag** error closely (from 10 percent error when confidence is above
 0.95 to 37 percent when it is below 0.5) but says nothing about lift error.
 This project uses that score inside the optimizer, and shows that a small
@@ -91,9 +92,10 @@ closes.
    built imperfectly, tested on error patterns the optimizer never saw.
 4. **A 20-airfoil wind-tunnel benchmark of NeuralFoil below Re = 500,000**,
    built from the official UIUC low-speed airfoil archive: 1,400 clean
-   measurements plus 250 with a boundary-layer trip. It gives a measured
-   error bar for lift, drag and L/D by Reynolds number, and shows what
-   NeuralFoil's confidence score does and does not predict.
+   measurements plus 250 with a boundary-layer trip, and 107 lift sweeps
+   through stall. It gives a measured error bar for lift, drag, L/D and
+   maximum lift by Reynolds number, and shows what NeuralFoil's confidence
+   score does and does not predict.
 5. **An uncertainty-aware optimizer** that uses that measured reliability
    inside the design process itself, steering the design out of the region
    where the surrogate's drag prediction is least trustworthy.
@@ -168,7 +170,8 @@ archive (Selig et al., 1995; Selig & McGranahan, 2004), which publishes its
 wind-tunnel tables as plain text files. Every airfoil in those two volumes
 whose design coordinates exist in the AeroSandbox airfoil database was
 included: 22 airfoils, 30 data files, 1,763 measured points at Re = 40,000 to
-500,000. Clean runs and runs with a zigzag boundary-layer trip are separate
+500,000, plus the companion lift runs (7,319 points) that sweep through stall
+and back. Clean runs and runs with a zigzag boundary-layer trip are separate
 files in the archive and are kept separate here. A parser script turns the
 files into one table, so every number is traceable to its source file and run.
 
@@ -306,6 +309,21 @@ with transition forced at the trip locations, the bias falls to 2 percent and
 the lift error halves. NeuralFoil's transition inputs do what they claim,
 which had not been checked against experiment either.
 
+**Through stall.** The archive's lift runs sweep to 15 to 24 degrees, past
+maximum lift, stepping up and then back down. Against the 107 clean runs on
+the 20 benchmark airfoils where the sweep passed the stall (Re = 30,000 to
+500,000), NeuralFoil over-predicts maximum lift by 0.07 on average (about 6
+percent) and puts the stall about 1 degree early, within 2 degrees in the
+typical case. Past the stall its lift error doubles (0.09 to 0.17) and its
+confidence halves (0.89 to 0.48), so the warning light works there too. Its
+pitching-moment coefficient is rougher: off by 0.024 on average against
+typical values near 0.10. The high-lift shapes are again the outliers, the
+S1223 by 0.19 in maximum lift. One thing no steady model can reproduce is
+stall hysteresis, the gap between the lift on the way up and on the way
+down; it is small in the typical run (0.04) but large at the lowest Reynolds
+numbers and on the high-lift shapes, where the two curves can differ by 0.5
+or more.
+
 **What the confidence score actually tells you.** NeuralFoil reports a
 confidence number with every prediction. Binning the 1,292 attached-flow
 benchmark points by that number:
@@ -415,7 +433,7 @@ region costs almost nothing in predicted performance.
   worth trusting most are the *relative* ones, such as robust beating peak, or
   manufacturing-aware beating nominal, not the raw numbers themselves.
 - **The benchmark covers 20 airfoils from two of the five UIUC volumes.** The
-  other volumes, and the lift curves through stall, are not yet included. Two
+  other three volumes are not yet included. Two
   airfoils had to be left out because the 17-number shape description could
   not reproduce them. The wind-tunnel models themselves differ from their
   design shapes by a few hundredths to a few tenths of a percent of chord,
@@ -443,8 +461,8 @@ is a trustworthy warning about drag error but not about lift. Its transition
 inputs reproduce trip-strip measurements. Feeding that warning back into the
 optimizer moves designs out of the surrogate's least reliable region for
 about 2 percent of predicted performance. The most valuable next steps are
-(1) extending the benchmark to the remaining UIUC volumes and to lift curves
-through stall, and (2) an actual physical wind-tunnel test of 3D-printed
+(1) extending the benchmark to the remaining UIUC volumes, and (2) an actual
+physical wind-tunnel test of 3D-printed
 robust-versus-peak-tuned wings, which would turn this validation study into a
 fully original experimental result.
 
