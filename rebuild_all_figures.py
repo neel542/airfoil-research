@@ -549,4 +549,57 @@ axes[0].set_ylabel("$C_D$ (log)"); axes[0].legend(fontsize=8)
 save(fig, "23_uiuc_tripped_vs_forced_transition.png",
      "Boundary-layer trip runs: NeuralFoil with transition forced at the trip location")
 
+# ═════════════════════════════════════════════════════════════════════════
+# 24-25: uiuc_stall_validation.py  (lift through stall)
+# ═════════════════════════════════════════════════════════════════════════
+st = pd.read_csv(os.path.join(DATA, "uiuc_stall_validation.csv"))
+lv = pd.read_csv(os.path.join(DATA, "uiuc_lift_validation.csv"))
+lfx = pd.read_csv(os.path.join(DATA, "uiuc_experimental_lift.csv"))
+sb = st[st.fit_ok & (st.config == "clean") & st.stall_captured]
+
+# (24) CLmax and stall-angle parity
+fig, axes = plt.subplots(1, 2, figsize=(13, 5.6))
+ax = axes[0]
+sc = ax.scatter(sb.WT_CLmax, sb.NF_CLmax, c=np.log10(sb.Re), cmap="viridis", s=34, alpha=0.8, edgecolors="none")
+lim = [0.7, 2.3]
+ax.plot(lim, lim, "k--", lw=1, alpha=0.6, label="perfect")
+ax.fill_between(lim, [l - 0.1 for l in lim], [l + 0.1 for l in lim], color="gray", alpha=0.15, label="±0.1")
+ax.set_xlim(lim); ax.set_ylim(lim); ax.set_aspect("equal"); clean(ax); ax.legend(fontsize=9, loc="upper left")
+ax.set_xlabel("Wind-tunnel $C_{L,max}$"); ax.set_ylabel("NeuralFoil $C_{L,max}$")
+ax.set_title(f"Maximum lift ({len(sb)} runs, {sb.asb_name.nunique()} airfoils)")
+ax = axes[1]
+sc = ax.scatter(sb.WT_alpha_CLmax, sb.NF_alpha_CLmax, c=np.log10(sb.Re), cmap="viridis", s=34, alpha=0.8, edgecolors="none")
+lim = [4, 20]
+ax.plot(lim, lim, "k--", lw=1, alpha=0.6)
+ax.fill_between(lim, [l - 2 for l in lim], [l + 2 for l in lim], color="gray", alpha=0.15, label="±2 deg")
+ax.set_xlim(lim); ax.set_ylim(lim); ax.set_aspect("equal"); clean(ax); ax.legend(fontsize=9, loc="upper left")
+ax.set_xlabel("Wind-tunnel stall angle [deg]"); ax.set_ylabel("NeuralFoil stall angle [deg]")
+ax.set_title("Angle of maximum lift")
+fig.colorbar(sc, ax=axes.ravel().tolist(), label="log$_{10}$(Re)", fraction=0.025, pad=0.02)
+save(fig, "24_uiuc_stall_parity.png", "NeuralFoil vs wind tunnel through stall (clean runs)")
+
+# (25) Example lift curves: up-sweep, down-sweep, NeuralFoil
+cases = [("e387_c_lft.txt", 100064, "E387, Re = 100k"), ("SD7003.LFT", None, "SD7003, Re = 200k"),
+         ("S1223.LFT", None, "S1223, Re = 200k")]
+fig, axes = plt.subplots(1, 3, figsize=(15.5, 4.8))
+for ax, (file, Re, title) in zip(axes, cases):
+    d = lfx[lfx.file == file]
+    if Re is None:
+        Re = min(d.Re.unique(), key=lambda r: abs(r - 200e3))
+    d = d[d.Re == Re]
+    up, dn = d[d.sweep == "up"], d[d.sweep == "down"]
+    p = lv[(lv.file == file) & (lv.Re == Re)].sort_values("alpha")
+    ax.scatter(up.alpha, up.CL, marker="^", s=30, color=C_WT, label="wind tunnel, increasing alpha", zorder=4)
+    ax.scatter(dn.alpha, dn.CL, marker="o", s=26, facecolors="none", edgecolors=C_WT, label="wind tunnel, decreasing alpha", zorder=4)
+    ax.plot(p.alpha, p.NF_CL, "-", color=C_NF_L, lw=2, label="NeuralFoil large")
+    ax2 = ax.twinx()
+    ax2.fill_between(p.alpha, 0, p.NF_conf, color="#999999", alpha=0.15, step=None)
+    ax2.set_ylim(0, 1); ax2.set_yticks([0, 0.5, 1]); ax2.tick_params(labelsize=8, colors="#777777")
+    ax2.spines["top"].set_visible(False)
+    if ax is axes[-1]:
+        ax2.set_ylabel("NeuralFoil confidence (shaded)", color="#777777", fontsize=9)
+    ax.set_title(title); ax.set_xlabel("AoA [deg]"); clean(ax); ax.set_zorder(ax2.get_zorder() + 1); ax.patch.set_visible(False)
+axes[0].set_ylabel("$C_L$"); axes[0].legend(fontsize=8, loc="upper left")
+save(fig, "25_uiuc_lift_curves.png", "Lift curves through stall: measurement, hysteresis, and NeuralFoil")
+
 print("\nAll figures rebuilt with a single consistent style.")
