@@ -5,7 +5,11 @@ abstract: >-
   A reproducible pipeline and config-driven tool for robust, multi-objective
   airfoil optimization at low Reynolds number, using AeroSandbox and the
   differentiable NeuralFoil surrogate, with manufacturing-tolerance robustness
-  and independent XFoil validation.
+  and independent XFoil validation. Includes a benchmark of NeuralFoil against
+  1,763 measured wind-tunnel points on 22 airfoils (Re 40k-500k, clean and
+  boundary-layer-tripped) from the UIUC Low-Speed Airfoil Tests archive, and an
+  uncertainty-aware optimizer that uses the surrogate's measured reliability
+  inside the design loop.
 type: software
 authors:
   - family-names: Madhav
@@ -19,9 +23,11 @@ keywords:
   - NeuralFoil
   - AeroSandbox
   - XFoil
+  - wind-tunnel validation
+  - surrogate model
 license: MIT
-version: "1.0.0"
-date-released: "2026-06-24"
+version: "1.1.0"
+date-released: "2026-09-02"
 references:
   - type: software
     title: AeroSandbox
