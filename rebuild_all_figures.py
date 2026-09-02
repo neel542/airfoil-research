@@ -465,7 +465,7 @@ co_hi = pd.read_csv(os.path.join(DATA, f"uncertainty_aware_wconf{wc_hi:.0f}_coor
 fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(13, 5))
 ax1.plot(sweep.mean_conf, sweep.worst_LD, "-o", color=C_A, lw=2.2, ms=8)
 # w = 0.5 and w = 1 land on almost the same point; stagger their labels.
-_off = {0.5: (8, 9), 1.0: (8, -13)}
+_off = {0.5: (8, 9), 1.0: (10, -6), 2.0: (10, -14)}
 for _, r in sweep.iterrows():
     ax1.annotate(f"w={r.w_conf:g}", (r.mean_conf, r.worst_LD), xytext=_off.get(r.w_conf, (6, 5)),
                  textcoords="offset points", fontsize=9)
