@@ -353,7 +353,7 @@ measurements):
 | 400,000 to 500,000 | 388 | 0.049 | 9 | 7 | −7 | 0.95 |
 | **All** | **4,428** | **0.072** | **12** | **8** | **0** | **0.91** |
 
-Three things stand out.
+The three coefficients behave differently.
 
 1. **Drag is good from Re = 100,000 up and degrades below it.** The median
    drag error is 7 percent from Re = 200,000 up, 10 percent at Re = 100,000
@@ -699,8 +699,8 @@ performance at almost no nominal cost.
 
 Section 3.1 showed that NeuralFoil's confidence score is a reliable warning
 about its drag error, section 3.3 showed that the warning is largely about
-XFoil's physics, and drag is what carries the L/D error. This section puts
-the warning inside the optimizer. Alongside the worst-case L/D, the
+XFoil's physics, and drag is what carries the L/D error. So put the warning
+inside the optimizer. Alongside the worst-case L/D, the
 optimizer is given a second reward for landing where NeuralFoil is
 confident, controlled by one weight, `w_conf`. The optimization grid (5 by
 5) and the three starting shapes are the same as for the robust airfoil B
@@ -716,7 +716,7 @@ instead of 9 to 13), and each weight is also started from the previous one.
 | 4 | 36.7 | 0.97 | 0.93 | about 9% |
 | 8 | 35.2 | 0.98 | 0.94 | about 9% |
 
-With the weight at zero, the optimizer finds essentially airfoil B again: a
+With the weight at zero, the optimizer finds airfoil B again: a
 predicted worst-case L/D of 38.5 (B: 38.2) at a mean confidence of 0.16 (B:
 0.16). At that confidence the benchmark says NeuralFoil's drag is wrong by
 about a third on average, so the 38.5 is a number the model itself does not
@@ -748,8 +748,7 @@ least reliable, and that leaving that region is nearly free.
 
 ## 4. Discussion
 
-The practical rule is simple: know when to trust the surrogate, and know
-what to trust it about. From Re = 100,000 up, NeuralFoil's drag is
+Know when to trust the surrogate, and know what to trust it about. From Re = 100,000 up, NeuralFoil's drag is
 typically within 7 to 10 percent of measurement and its lift within a few
 hundredths of the lift coefficient for ordinary shapes, in two independent
 wind tunnels, and from Re = 200,000 up the drag error is no larger than the
@@ -765,8 +764,7 @@ Re = 60,000 over-prediction and the high-camber lift error are XFoil's
 physics, inherited intact. A user who wants better low-Re drag than this
 will not get it from a bigger network trained on more XFoil; they will need
 a better physics model to train on, or experimental correction. The
-confidence score, meanwhile, turns out to be more useful than it was
-designed to be: it flags the conditions where XFoil's solution is
+confidence score, meanwhile, is more useful than it was designed to be: it flags the conditions where XFoil's solution is
 ill-conditioned, which are the conditions where XFoil's physics is also
 wrong, so it works as a proxy for experimental drag error. A designer can
 watch it as a live warning for drag and L/D, or better, evaluate the fitted
@@ -777,8 +775,7 @@ design is built, the as-built shape should be measured and re-analysed: a
 few tenths of a percent of chord in build error moves the drag prediction
 by about 5 percent.
 
-The statistics carry two lessons for benchmarks of this kind. Points within
-a polar are not independent, and treating them as such understates the
+Two lessons here generalize. Points within a polar are not independent, and treating them as such understates the
 uncertainty by a factor of two to five. And a correlation measured at the
 point level can be produced by very different structures: the UIUC and
 Princeton sets give the same conclusion about the confidence score at the
