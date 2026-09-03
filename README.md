@@ -1,22 +1,33 @@
 # How far can NeuralFoil be trusted below Re = 500,000?
 
-A two-tunnel, 94-airfoil wind-tunnel benchmark of the **NeuralFoil** surrogate
-(9,100 clean points, Re 60k-500k, UIUC + Princeton), with headless **XFoil**
-run at every point to split the error into XFoil's physics error and the
-network's emulation error, a tunnel-vs-tunnel noise floor, airfoil-cluster
-bootstrap intervals and a cross-validated error model. Plus the design
-pipeline it was built for: gradient-based robust, multi-objective and
-manufacturing-tolerant airfoil optimization with **AeroSandbox** (`Opti`/IPOPT).
+**NeuralFoil** is a neural network that copies the airfoil solver XFoil and
+answers in a fraction of a second. People use it to design slow-flying wings.
+Nobody had checked it against a real wind tunnel at those speeds.
 
-**Headline results.** NeuralFoil's drag is off by 11-12% on average (8%
-median) and lift by 0.07-0.09 in CL in both tunnels; drag error rises to
-17-22% at Re = 60k. Almost all of it is inherited: XFoil at the same points is
-off by 12%, the network differs from XFoil by only 2.8%, and NeuralFoil is
-closer to the tunnel than XFoil on 55% of points. The two tunnels disagree with
-each other by 12% in drag, so from Re = 200k up the model is at the
-reproducibility limit of the experiments. The confidence score tracks drag
-error (and XFoil's physics error) but not lift error. Full paper: `PAPER.md` /
-`PAPER.html`; plain-language summary: `SUMMARY.md`; methods: `METHODS.md`.
+So this repo checks it. 9,100 wind-tunnel measurements, 94 airfoils, two
+separate tunnels (UIUC and Princeton), Re 60k-500k. XFoil itself gets run at
+every one of those points too, which splits the error into XFoil's share and
+the network's share. Fifteen airfoils appear in both tunnels, so the tunnels
+can be checked against each other. Every number gets an error bar built by
+resampling whole airfoils, and a fitted model turns any prediction into an
+expected drag error.
+
+The other half is the design pipeline this was built for: robust,
+multi-objective, build-tolerant airfoil optimization with **AeroSandbox**
+(`Opti`/IPOPT).
+
+**What came out.** NeuralFoil's drag is off by 11-12% on average and 8% in a
+typical case, and its lift by 0.07-0.09. Both tunnels agree. At Re = 60k the
+drag error grows to 17-22%. But almost none of that is the network's fault.
+XFoil misses the same points by 12%, and the network differs from XFoil by
+only 2.8%. It even lands closer to the tunnel than XFoil does, on 55% of
+points. The two tunnels disagree with each other by 12% in drag, so from
+Re = 200k up the model is already as close as the experiments can resolve.
+The confidence score warns about drag, and about XFoil's physics, but not
+about lift.
+
+Full paper: `PAPER.md` or `PAPER.html`. Short version: `SUMMARY.md`. Methods:
+`METHODS.md`.
 
 ## What it produces
 
@@ -25,75 +36,84 @@ error (and XFoil's physics error) but not lift error. Full paper: `PAPER.md` /
 | **A** single-point | max L/D at Re=200k, AoA=4° | **232.9** † | 7.1 | 86.6 | 13% |
 | **B** robust       | max **worst-case** L/D over the envelope | 105.1 | **38.2** | 64.2 | 9% |
 
-† Every L/D here is a surrogate estimate. Against 9,100 wind-tunnel points on
-94 airfoils in two independent tunnels (below), NeuralFoil's L/D is typically
-**15% off** and **15% too high on average**, so true L/D ≤ shown. Airfoil A's peak sits where NeuralFoil
-reports **confidence ≈ 0**, below the range where its drag was validated, so
-232.9 is an *optimistic upper bound, not a value*. See the
-[wind-tunnel benchmark](#wind-tunnel-benchmark-55-airfoils) section, the XFoil decomposition and the
-uncertainty-annotated figures `18_LD_vs_AoA_uncertainty.png` /
+† Every L/D here is a model estimate, not a measurement. Against the 9,100
+wind-tunnel points below, NeuralFoil's L/D is typically **15% off** and **15%
+too high on average**, so the real value is at or under what's shown. Airfoil
+A's peak is worse than that. It sits where NeuralFoil reports **confidence
+near 0**, outside the range where its drag was ever checked, so 232.9 is an
+*optimistic ceiling, not a number*. See the
+[wind-tunnel benchmark](#wind-tunnel-benchmark-55-airfoils), the XFoil split,
+and figures `18_LD_vs_AoA_uncertainty.png` and
 `19_tradeoff_uncertainty.png`.
 
 Operating envelope for the robust design: **Re ∈ [50k, 500k]**, **AoA ∈ [0°, 8°]**.
 
-**Headline result:** B trades ~55% of A's peak L/D for a **5.4× higher worst-case
-L/D**. A is a razor-sharp peak that collapses at the corners of the envelope;
-B is a flat plateau that performs decently everywhere.
+**The short version:** B gives up about 55% of A's peak and gets back a
+**5.4× higher worst case**. A is a spike that collapses at the corners of the
+envelope. B is a flat plateau that works nearly everywhere.
 
 ## Design choices
 
-1. **Geometry - Kulfan/CST (8 weights per surface + LE weight).** Smooth,
-   low-dimensional, manufacturable, and analytically differentiable, so the
-   shape feeds clean gradients to the optimizer.
-2. **Aero - NeuralFoil (`large`).** A differentiable XFoil surrogate. The
-   analytic ∂(CL,CD)/∂shape is what makes optimizing over a 25-point envelope
-   tractable in seconds. Same fidelity used for optimization and evaluation so
-   the numbers are self-consistent.
-3. **Optimizer - AeroSandbox `Opti` → IPOPT.** Gradient-based NLP with exact
-   auto-diff derivatives.
-4. **Robust formulation - epigraph max-min.** Introduce a scalar `g`, constrain
-   `g ≤ L/D` at every (Re, AoA) grid point, and maximize `g`. This turns the
-   non-smooth worst-case objective into a smooth NLP.
-5. **Re grid is log-spaced** (it spans a full decade); the optimizer uses a
-   coarse 5×5 grid, evaluation uses a finer 11×9 grid to test generalization to
-   unseen operating points.
-6. **Thickness band 9-13%** keeps both airfoils structurally viable and
-   comparable. (A drove to the 13% ceiling, B to the 9% floor - peak wants
-   thick, robust wants thin.)
-7. **Multi-start + continuation.** The problem is non-convex. Each design is
-   solved from several NACA seeds; the tradeoff family is solved by continuation
-   (warm-starting each λ from the previous), which keeps the Pareto front
-   monotonic and stops the peak design from sticking in a weak local optimum.
-8. **Tradeoff family.** Blended objective `λ·(L/D at design pt) + (1−λ)·g`.
-   λ=1 → A, λ=0 → B; intermediate λ trace the peak-vs-robustness Pareto front.
+1. **Shape: Kulfan/CST**, 8 numbers per surface plus one for the leading
+   edge. It's smooth, it uses few numbers, it always gives something you
+   could build, and it works with calculus. That last part is what feeds
+   clean gradients to the optimizer.
+2. **Aerodynamics: NeuralFoil (`large`).** A differentiable XFoil stand-in.
+   Because the exact effect of each shape number on lift and drag comes free,
+   optimizing over a 25-point envelope takes seconds. The same model does
+   both the optimizing and the scoring, so the numbers stay consistent.
+3. **Optimizer: AeroSandbox `Opti` into IPOPT.** Gradient-based, with exact
+   derivatives.
+4. **Worst case, made smooth.** Add one number `g`, force `g ≤ L/D` at every
+   grid point, then push `g` up. Since `g` can't rise above the worst point,
+   pushing it lifts the worst case with it. A jagged objective becomes a
+   smooth one.
+5. **The Re grid is log-spaced**, because it spans a full decade. The
+   optimizer uses a coarse 5×5 grid. Scoring uses a finer 11×9 grid, to see
+   whether the design holds at conditions it was never tuned on.
+6. **Thickness stays between 9 and 13%** so both airfoils are buildable and
+   comparable. A ran to the 13% ceiling and B to the 9% floor. Peak wants
+   thick, robust wants thin.
+7. **Many starts, then continuation.** The problem has more than one hilltop.
+   Each design is solved from several NACA starting shapes. The tradeoff
+   family warm-starts each λ from the previous answer, which keeps the front
+   clean and stops the peak design getting stuck somewhere weak.
+8. **The tradeoff family** blends the two goals: `λ·(L/D at design point) +
+   (1−λ)·g`. λ=1 gives A, λ=0 gives B, and everything between traces the
+   curve from peak to robust.
 
 ## Caveat
 
-NeuralFoil's `analysis_confidence` is low for these aggressive high-L/D low-Re
-sections (0.00 for A, ~0.16 for B); they sit outside its validated range. The
-benchmark below shows that confidence is a reliable warning about **drag**
-error (9% when confidence > 0.95, 32% when < 0.5) but not about lift. Treat
-absolute L/D values (especially A's ~233 peak) as optimistic surrogate
-ceilings; the robust **A-vs-B comparison** is the reliable conclusion.
+NeuralFoil reports low confidence for these aggressive slow-speed sections:
+0.00 for A and about 0.16 for B. Both sit outside the range where it was
+checked. The benchmark below shows confidence is a reliable warning about
+**drag** error, 9% when it's above 0.95 and 32% when it's below 0.5, but it
+says nothing about lift. So read the absolute L/D numbers, especially A's
+233, as optimistic ceilings. The **A-against-B comparison** is the part to
+trust.
 
 ## Wind-tunnel benchmark: 55 airfoils
 
 (`uiuc_lsat_parse.py`, `uiuc_neuralfoil_validation.py`, `uiuc_stall_validation.py`, `e387_neuralfoil_validation.py`)
 
-The whole pipeline rests on NeuralFoil, yet NeuralFoil had only been checked
-against experiment at Re = 1.8×10⁶ (its paper's one validation case). This
-benchmark checks it against the official plain-text polars of the UIUC
-Low-Speed Airfoil Tests archive (Selig et al. 1995, 1996; Lyon et al. 1998;
-Selig & McGranahan 2004): every airfoil in Vols 1-4 with geometry in the
-AeroSandbox database, in its plain configuration (no flaps / gurney flaps):
-**57 airfoils, 91 files, 5,441 drag-run points and 21,462 lift-run points,
-Re 30k-500k**, clean and boundary-layer-tripped runs kept separate. Two
-airfoils (A18, BE50) are excluded from the statistics because the 17-parameter
-Kulfan basis cannot reproduce them to within 0.5% chord; the other 55 fit to
-0.01-0.2% (E387: 0.15%). Even 0.15% matters: XFoil on the true E387 versus its
-Kulfan fit differs by ~3% in CL and 4-7% in CD, about half / a third of
-NeuralFoil's E387 error, so the errors below are pipeline errors (Kulfan fit +
-network) and an upper bound on the network alone.
+The whole pipeline rests on NeuralFoil. But NeuralFoil had only ever been
+checked against an experiment once, at Re = 1.8×10⁶, in its own paper. So
+this benchmark checks it against the UIUC Low-Speed Airfoil Tests archive
+(Selig et al. 1995, 1996; Lyon et al. 1998; Selig & McGranahan 2004), which
+publishes its tables as plain text.
+
+Every airfoil in Volumes 1-4 with a shape in the AeroSandbox database is
+included, in its plain form with no flaps or gurney flaps. That's **57
+airfoils, 91 files, 5,441 drag points and 21,462 lift points, Re 30k-500k**.
+Clean runs and trip-strip runs stay separate.
+
+Two airfoils, A18 and BE50, are dropped from the statistics because the
+17-number Kulfan shape can't reproduce them to within 0.5% of chord. The
+other 55 fit to 0.01-0.2%, with the E387 at 0.15%. Even 0.15% matters. Run
+XFoil on the true E387 and on its Kulfan fit and you get ~3% difference in CL
+and 4-7% in CD, which is about half the E387 lift error and a third of the
+drag error. So the numbers below are pipeline errors, meaning shape fit plus
+network, and an upper bound on the network by itself.
 
 **Clean runs, NeuralFoil `large`, 55 airfoils, 4,428 points:**
 
@@ -147,15 +167,17 @@ summaries; raw source files in `data/uiuc_lsat/`.
 
 (`soartech8_parse.py`, `soartech8_neuralfoil_validation.py`)
 
-The whole benchmark is repeated on an independent, older data set: SoarTech 8,
-*Airfoils at Low Speeds* (Selig, Donovan & Fraser 1989), measured in the
-Princeton 3×4 ft smoke tunnel in 1986-89 and distributed by the same archive
-(`Stec8.zip`, unpacked in `data/soartech8/`): **127 airfoil/configuration
-blocks, 7,762 drag-polar points and 15,565 lift-curve points on 54 airfoils
-(68 models), Re 60k-300k**, plus, uniquely, **profiler-measured coordinates of
-the actual models** next to the design coordinates. Clean and single-trip
-blocks are kept; flaps, gurney flaps, blowing and mixed-configuration blocks
-are excluded. All 68 models fit the Kulfan basis to < 0.07% chord.
+The whole benchmark then runs again on a separate, older data set: SoarTech
+8, *Airfoils at Low Speeds* (Selig, Donovan & Fraser 1989). Those runs
+happened in the Princeton 3×4 ft smoke tunnel between 1986 and 1989, and the
+same archive shares them (`Stec8.zip`, unpacked in `data/soartech8/`).
+
+That gives **127 airfoil and setup blocks, 7,762 drag points and 15,565 lift
+points on 54 airfoils (68 models), Re 60k-300k**. It also gives something
+UIUC doesn't: somebody measured **the actual models with a profiler** and
+published those shapes next to the design ones. Clean and single-trip blocks
+are kept. Flaps, gurney flaps, blowing and mixed setups are dropped. All 68
+models fit the Kulfan shape to under 0.07% of chord.
 
 **Clean runs, NeuralFoil `large` on the measured model shape, 4,702 points:**
 

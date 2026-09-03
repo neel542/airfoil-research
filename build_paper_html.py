@@ -45,7 +45,7 @@ FIGURE_INSERTS = [
          "transition forced at the trip location (dashed) reproduces the tripped "
          "drag that a free-transition run (solid) misses."),
     ]),
-    ("how far the two branches can differ.", [
+    ("the two branches can differ.", [
         ("24_uiuc_stall_parity.png",
          "Figure 6. Maximum lift and the angle it occurs at, NeuralFoil versus wind "
          "tunnel, for the 298 clean lift sweeps that passed through stall."),
@@ -63,7 +63,7 @@ FIGURE_INSERTS = [
          "airfoil level (section 3.4 shows this panel does not replicate in the "
          "Princeton data, and why)."),
     ]),
-    ("and 11 doubles the error.", [
+    ("doubles the error.", [
         ("26_two_tunnels_and_ncrit.png",
          "Figure 9. Left: NeuralFoil's drag error by Reynolds number against the "
          "UIUC tunnel (red) and the Princeton tunnel (purple), mean and median. "
@@ -71,7 +71,7 @@ FIGURE_INSERTS = [
          "Princeton data; 9, the value used throughout, gives the lowest error "
          "and the smallest bias."),
     ]),
-    ("so the lift error is the model's.", [
+    ("error is the model's.", [
         ("27_tunnel_vs_tunnel.png",
          "Figure 10. The same airfoil in two wind tunnels. Diamonds: UIUC; squares: "
          "Princeton; dashed: NeuralFoil on the design coordinates; solid: NeuralFoil "
@@ -86,7 +86,7 @@ FIGURE_INSERTS = [
          "moves NeuralFoil's drag; the dotted line is the 0.5% chord build-error "
          "scale used in section 2.5."),
     ]),
-    ("Section 3.8 relies on that.", [
+    ("relies on that.", [
         ("29_xfoil_decomposition.png",
          "Figure 12. Where the drag error comes from. Left and middle: mean drag "
          "error by Reynolds number in each tunnel for NeuralFoil versus tunnel "
@@ -96,7 +96,7 @@ FIGURE_INSERTS = [
          "the score tracks XFoil's error against experiment at least as closely "
          "as the network's error against XFoil."),
     ]),
-    ("not a general property of the score itself.", [
+    ("score itself.", [
         ("30_clustered_statistics.png",
          "Figure 13. Honest uncertainty. Left and middle: point estimates with "
          "airfoil-cluster bootstrap intervals (thin) and naive point-bootstrap "
@@ -106,7 +106,7 @@ FIGURE_INSERTS = [
          "Princeton data it lives entirely within polars, which is why the "
          "airfoil-level result does not replicate there."),
     ]),
-    ("evaluated without this paper.", [
+    ("model without this paper.", [
         ("31_error_model.png",
          "Figure 14. The fitted error model. Left: held-out calibration by decile "
          "of predicted drag error, whole airfoils held out. Middle: multiplicative "
