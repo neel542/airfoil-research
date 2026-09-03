@@ -223,6 +223,94 @@ def test_soartech8_trips_stall_confidence():
     assert abs(rho.correlation) < 0.2 and rho.pvalue > 0.05, "airfoil-level correlation does not replicate on Princeton"
 
 
+def test_xfoil_decomposition():
+    d = _csv("xfoil_decomposition.csv")
+    assert len(d) == 9130 and d.polar.nunique() == 667
+    _close(d.xf_converged.mean(), 0.965, 0.01, "XFoil convergence fraction")
+    s = _csv("xfoil_decomposition_summary.csv").set_index("tunnel")
+    p = s.loc["pooled"]
+    assert int(p.n_xfoil_converged) == 8814
+    _close(p.mean_abs_errCD_NF_WT, 0.112, 0.004, "NF vs tunnel drag error")
+    _close(p.mean_abs_errCD_XF_WT, 0.121, 0.004, "XFoil vs tunnel drag error")
+    _close(p.mean_abs_errCD_NF_XF, 0.028, 0.003, "NF vs XFoil drag error (network only)")
+    _close(p.median_abs_errCD_NF_XF, 0.017, 0.003, "median NF vs XFoil drag error")
+    _close(p.corr_signed_NF_WT_vs_XF_WT, 0.946, 0.02, "correlation of signed NF and XFoil errors")
+    _close(p.frac_NF_closer_than_XF, 0.549, 0.02, "fraction of points where NF is closer to tunnel than XFoil")
+    _close(p.mean_abs_dCL_NF_WT, 0.079, 0.003, "NF lift error"); _close(p.mean_abs_dCL_XF_WT, 0.082, 0.003, "XFoil lift error")
+    _close(p.mean_abs_dCL_NF_XF, 0.011, 0.002, "NF vs XFoil lift error")
+    _close(p.corr_conf_abs_XF_WT, -0.384, 0.03, "r(conf, |XFoil error|)")
+    _close(p.corr_conf_abs_NF_XF, -0.328, 0.03, "r(conf, |NF - XFoil|)")
+    _close(p.corr_conf_abs_NF_WT, -0.322, 0.03, "r(conf, |NF error|)")
+    for t, nfwt, xfwt in [("UIUC", 0.115, 0.129), ("Princeton", 0.109, 0.114)]:
+        _close(s.loc[t].mean_abs_errCD_NF_WT, nfwt, 0.004, f"{t} NF error"); _close(s.loc[t].mean_abs_errCD_XF_WT, xfwt, 0.004, f"{t} XFoil error")
+    r = _csv("xfoil_decomposition_by_Re.csv").set_index(["tunnel", "Re_bin"])
+    _close(r.loc[("UIUC", "100k")].mean_abs_errCD_XF_WT, 0.149, 0.005, "UIUC 100k XFoil error")
+    _close(r.loc[("UIUC", "100k")].mean_abs_errCD_NF_WT, 0.125, 0.005, "UIUC 100k NF error")
+    _close(r.loc[("UIUC", "40-60k")].mean_abs_errCD_NF_XF, 0.033, 0.005, "UIUC 60k network error")
+    assert (r.mean_abs_errCD_NF_XF < 0.045).all() and (r.mean_abs_errCD_NF_WT <= r.mean_abs_errCD_XF_WT + 0.005).all()
+    cb = _csv("xfoil_decomposition_confidence.csv")
+    _close(cb.mean_abs_errCD_XF_WT.iloc[0], 0.405, 0.01, "XFoil error, confidence < 0.5")
+    _close(cb.mean_abs_errCD_NF_XF.iloc[0], 0.101, 0.01, "network error, confidence < 0.5")
+    _close(cb.mean_abs_errCD_XF_WT.iloc[-1], 0.097, 0.005, "XFoil error, confidence > 0.95")
+    _close(cb.mean_abs_errCD_NF_XF.iloc[-1], 0.020, 0.003, "network error, confidence > 0.95")
+    assert int(cb.n.iloc[-1]) == 6742
+
+
+def test_clustered_statistics():
+    cs = _csv("clustered_statistics.csv").set_index(["tunnel", "statistic"])
+    u = cs.loc["UIUC"]; p = cs.loc["Princeton"]; a = cs.loc["pooled"]
+    assert int(u.n_clusters.iloc[0]) == 55 and int(p.n_clusters.iloc[0]) == 54 and int(a.n_clusters.iloc[0]) == 109
+    _close(u.loc["mean_abs_errCD"].cluster_ci_lo, 0.113, 0.004, "UIUC drag error CI low")
+    _close(u.loc["mean_abs_errCD"].cluster_ci_hi, 0.134, 0.004, "UIUC drag error CI high")
+    _close(p.loc["mean_abs_errCD"].cluster_ci_lo, 0.103, 0.004, "Princeton drag error CI low")
+    _close(p.loc["mean_abs_errCD"].cluster_ci_hi, 0.120, 0.004, "Princeton drag error CI high")
+    _close(a.loc["mean_abs_errCD"].cluster_ci_lo, 0.110, 0.004, "pooled drag error CI low")
+    _close(a.loc["mean_abs_errCD"].cluster_ci_hi, 0.124, 0.004, "pooled drag error CI high")
+    for t in (u, p):
+        assert t.loc["mean_abs_errCD"].ci_width_ratio > 2.0 and t.loc["mean_abs_dCL"].ci_width_ratio > 3.0
+        assert t.loc["bias_CD"].cluster_ci_lo < 0 < t.loc["bias_CD"].cluster_ci_hi + 0.001, "drag bias not distinguishable from zero"
+        assert t.loc["bias_LD"].cluster_ci_lo > 0.10, "L/D over-prediction survives clustering"
+        assert t.loc["r_conf_absDCL"].cluster_ci_lo < 0 < t.loc["r_conf_absDCL"].cluster_ci_hi, "lift correlation includes zero"
+    assert u.loc["r_conf_absErrCD"].cluster_ci_hi < -0.30 and p.loc["r_conf_absErrCD"].cluster_ci_hi < -0.15
+    assert u.loc["rho_airfoil_conf_errCD"].cluster_ci_hi < -0.4
+    assert p.loc["rho_airfoil_conf_errCD"].cluster_ci_lo < 0 < p.loc["rho_airfoil_conf_errCD"].cluster_ci_hi
+    d = _csv("confidence_correlation_decomposition.csv").set_index("tunnel")
+    _close(d.loc["UIUC"].r_between_airfoil, -0.687, 0.03, "UIUC between-airfoil r")
+    _close(d.loc["UIUC"].r_within_polar, -0.450, 0.03, "UIUC within-polar r")
+    assert abs(d.loc["Princeton"].r_between_airfoil) < 0.15
+    _close(d.loc["Princeton"].r_within_polar, -0.305, 0.03, "Princeton within-polar r")
+    _close(d.loc["UIUC"].conf_var_share_between_airfoil, 0.26, 0.03, "UIUC confidence variance between airfoils")
+    _close(d.loc["Princeton"].conf_var_share_between_airfoil, 0.07, 0.03, "Princeton confidence variance between airfoils")
+
+
+def test_fitted_error_model():
+    import json
+    cv = _csv("error_model_cv.csv")
+    m = cv.groupby(["scheme", "model"]).mean(numeric_only=True)
+    f = m.loc[("airfoil_10fold", "full")]
+    _close(f.mae, 0.0742, 0.002, "full model held-out MAE")
+    _close(m.loc[("airfoil_10fold", "constant")].mae, 0.0867, 0.002, "constant MAE")
+    _close(m.loc[("airfoil_10fold", "six_bin_table")].mae, 0.0794, 0.002, "six-bin table MAE")
+    _close(f.spearman, 0.39, 0.03, "full model rank correlation")
+    _close(f.coverage_80, 0.80, 0.03, "80th percentile coverage"); _close(f.coverage_95, 0.95, 0.02, "95th percentile coverage")
+    _close(m.loc[("train_UIUC_test_Princeton", "full")].mae, 0.0711, 0.002, "UIUC -> Princeton MAE")
+    _close(m.loc[("train_UIUC_test_Princeton", "constant")].mae, 0.0847, 0.002, "UIUC -> Princeton constant MAE")
+    _close(m.loc[("train_Princeton_test_UIUC", "full")].mae, 0.0771, 0.002, "Princeton -> UIUC MAE")
+    _close(m.loc[("train_Princeton_test_UIUC", "constant")].mae, 0.0889, 0.002, "Princeton -> UIUC constant MAE")
+    em = json.load(open(os.path.join(DATA, "error_model_fit.json")))
+    assert em["n_points"] == 8211 and em["n_airfoils"] == 94
+    _close(em["beta"]["log_unconf"], 0.625, 0.03, "confidence coefficient"); _close(em["beta"]["log_Re"], -0.842, 0.03, "Re coefficient")
+    _close(em["beta"]["camber"], 0.0345, 0.005, "camber coefficient"); assert abs(em["beta"]["thickness"]) < 0.01
+    cal = _csv("error_model_calibration.csv")
+    _close(cal.mean_pred.iloc[-1], 0.292, 0.01, "top-decile predicted"); _close(cal.mean_actual.iloc[-1], 0.287, 0.01, "top-decile actual")
+    _close(cal.mean_pred.iloc[0], 0.057, 0.005, "bottom-decile predicted"); _close(cal.mean_actual.iloc[0], 0.069, 0.005, "bottom-decile actual")
+    assert (cal.mean_actual.diff().dropna() > -0.01).all(), "actual error should rise with predicted error"
+    ex = pd.DataFrame(em["worked_examples"]).set_index("NF_conf")
+    _close(ex.loc[0.98].iloc[0].expected_abs_errCD if hasattr(ex.loc[0.98], "iloc") and ex.loc[0.98].ndim == 2 else ex.loc[0.98].expected_abs_errCD, 0.067, 0.005, "worked example, conf 0.98 Re 200k")
+    top = json.load(open(os.path.join(DATA, "error_model.json")))
+    assert top["fitted_error_model"] == "data/error_model_fit.json"
+
+
 if __name__ == "__main__":
     fails = 0
     for name, fn in sorted(globals().items()):

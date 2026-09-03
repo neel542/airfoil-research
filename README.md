@@ -1,7 +1,22 @@
-# Robust multi-point airfoil optimization at low Reynolds number
+# How far can NeuralFoil be trusted below Re = 500,000?
 
-Gradient-based shape optimization with **AeroSandbox** (`Opti`/IPOPT) and the
-differentiable **NeuralFoil** surrogate (a neural emulator of XFoil).
+A two-tunnel, 94-airfoil wind-tunnel benchmark of the **NeuralFoil** surrogate
+(9,100 clean points, Re 60k-500k, UIUC + Princeton), with headless **XFoil**
+run at every point to split the error into XFoil's physics error and the
+network's emulation error, a tunnel-vs-tunnel noise floor, airfoil-cluster
+bootstrap intervals and a cross-validated error model. Plus the design
+pipeline it was built for: gradient-based robust, multi-objective and
+manufacturing-tolerant airfoil optimization with **AeroSandbox** (`Opti`/IPOPT).
+
+**Headline results.** NeuralFoil's drag is off by 11-12% on average (8%
+median) and lift by 0.07-0.09 in CL in both tunnels; drag error rises to
+17-22% at Re = 60k. Almost all of it is inherited: XFoil at the same points is
+off by 12%, the network differs from XFoil by only 2.8%, and NeuralFoil is
+closer to the tunnel than XFoil on 55% of points. The two tunnels disagree with
+each other by 12% in drag, so from Re = 200k up the model is at the
+reproducibility limit of the experiments. The confidence score tracks drag
+error (and XFoil's physics error) but not lift error. Full paper: `PAPER.md` /
+`PAPER.html`; plain-language summary: `SUMMARY.md`; methods: `METHODS.md`.
 
 ## What it produces
 
@@ -15,7 +30,7 @@ differentiable **NeuralFoil** surrogate (a neural emulator of XFoil).
 **15% off** and **15% too high on average**, so true L/D ≤ shown. Airfoil A's peak sits where NeuralFoil
 reports **confidence ≈ 0**, below the range where its drag was validated, so
 232.9 is an *optimistic upper bound, not a value*. See the
-[wind-tunnel benchmark](#wind-tunnel-benchmark-55-airfoils) section and the
+[wind-tunnel benchmark](#wind-tunnel-benchmark-55-airfoils) section, the XFoil decomposition and the
 uncertainty-annotated figures `18_LD_vs_AoA_uncertainty.png` /
 `19_tradeoff_uncertainty.png`.
 
@@ -192,6 +207,44 @@ Data: `data/soartech8_experimental*.csv`, `data/soartech8_*_coords.csv`,
 `data/soartech8_neuralfoil_validation.csv` and `data/soartech8_*.csv`
 summaries; raw files in `data/soartech8/`.
 
+## XFoil decomposition, honest statistics, fitted error model
+
+(`xfoil_decomposition.py`, `clustered_statistics.py`, `fit_error_model.py`)
+
+- **Where the error comes from.** Headless XFoil at all 9,130 clean conditions
+  of both tunnels on the same Kulfan geometry NeuralFoil saw (converged at
+  8,814, 96.5%). Mean |ΔCD/CD|: **NeuralFoil-vs-tunnel 11.2%, XFoil-vs-tunnel
+  12.1%, NeuralFoil-vs-XFoil 2.8%** (median 1.7%). Signed errors correlate at
+  r = 0.95; XFoil explains 86% of the variance of NeuralFoil's error; the
+  network's own part is < 4% in every Re band of both tunnels, including 60k.
+  NeuralFoil is *closer* to experiment than XFoil on 55% of points and has the
+  lower mean error in every band (it smooths XFoil's scatter). Lift: 0.079 /
+  0.082 / 0.011. The confidence score correlates with |XFoil − tunnel|
+  (r = −0.40) at least as strongly as with |NeuralFoil − XFoil| (−0.33): it
+  flags where XFoil's solution is ill-conditioned, which is also where XFoil's
+  physics is wrong. XFoil converges at only 56% of conditions with confidence
+  < 0.5 vs 99% above 0.95. Figure `29`; `data/xfoil_decomposition*.csv`.
+- **Clustered intervals.** Points within a polar are one α sweep and are not
+  independent; the independent unit is the airfoil. An airfoil-cluster
+  bootstrap (B = 2,000) gives 95% intervals **2-5× wider** than the naive point
+  bootstrap. Everything survives: drag error 12.3% [11.3, 13.4] UIUC, 11.1%
+  [10.3, 12.0] Princeton; L/D bias +15% [12, 18] in both; r(conf, |ΔCD/CD|)
+  −0.43 [−0.50, −0.35] and −0.27 [−0.33, −0.20]; lift r includes zero in both.
+  The one non-replicating statistic is the airfoil-level rank correlation
+  (−0.65 [−0.80, −0.46] vs −0.10 [−0.32, 0.15]), and the correlation anatomy
+  shows why: 26% of the confidence variance is between airfoils in the UIUC
+  set vs 7% in Princeton, so there the correlation lives entirely along the α
+  sweep. Figure `30`; `data/clustered_statistics.csv`,
+  `data/confidence_correlation_decomposition.csv`.
+- **Fitted error model.** Gamma GLM (log link) of expected |ΔCD/CD| on
+  log10(1.001 − confidence), log10(Re/1e5), α, α², camber, thickness; 8,211
+  attached-flow points. Effects: ×1.87 per decade of (1 − confidence), ×0.43
+  per decade of Re, ×1.035 per % camber, no thickness effect. Held-out-airfoil
+  MAE 0.074 vs 0.087 constant vs 0.079 six-bin table; Spearman 0.39; 80th/95th
+  percentile bands cover 80%/95%; transfers UIUC→Princeton (0.071 vs 0.085)
+  and back (0.077 vs 0.089). Coefficients + worked examples in
+  `data/error_model_fit.json`. Figure `31`.
+
 ## Uncertainty-aware optimizer (`uncertainty_aware_design.py`)
 
 The benchmark above showed that NeuralFoil's confidence is a reliable warning
@@ -363,6 +416,9 @@ python uiuc_stall_validation.py     # lift through stall: CLmax, stall angle, CM
 python soartech8_parse.py           # Princeton "Airfoils at Low Speeds" files -> tables
 python soartech8_neuralfoil_validation.py  # second tunnel, tunnel-vs-tunnel, measured geometry
 python e387_neuralfoil_validation.py  # E387 in detail, with XFoil
+python xfoil_decomposition.py       # XFoil at all 9,130 clean points: physics vs network error (~25 min, 8 procs)
+python clustered_statistics.py      # airfoil-cluster bootstrap intervals + correlation anatomy
+python fit_error_model.py           # cross-validated Gamma GLM error model -> data/error_model_fit.json
 python uncertainty_aware_design.py  # confidence-aware optimizer sweep
 python rebuild_all_figures.py       # every figure, from the saved CSVs
 ```
@@ -390,6 +446,9 @@ data/
   soartech8_experimental*.csv / soartech8_*_coords.csv   # Princeton polars, lift, measured + design coords
   soartech8_neuralfoil_validation.csv + soartech8_*.csv  # second-tunnel benchmark + summaries
   cross_tunnel_*.csv       # UIUC vs Princeton vs NeuralFoil on the 15 shared airfoils
+  xfoil_decomposition*.csv # XFoil at every clean point: NF-vs-tunnel, XFoil-vs-tunnel, NF-vs-XFoil
+  clustered_statistics.csv / confidence_correlation_decomposition.csv   # cluster-bootstrap CIs, correlation anatomy
+  error_model_fit.json / error_model_cv.csv / error_model_calibration.csv  # fitted error model + CV
   uncertainty_aware_sweep.csv
 figures/
   1_shapes.png             # overlaid optimized shapes
@@ -402,4 +461,5 @@ figures/
   21-23_uiuc_*.png         # error by airfoil, confidence calibration, tripped runs
   24-25_uiuc_*.png         # CLmax / stall-angle parity, lift curves through stall
   26-28_*.png              # two tunnels + n_crit, tunnel vs tunnel, measured vs design geometry
+  29_xfoil_decomposition.png / 30_clustered_statistics.png / 31_error_model.png
 ```

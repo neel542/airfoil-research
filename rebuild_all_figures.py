@@ -3,7 +3,7 @@ rebuild_all_figures.py
 =============================================================================
 Re-render every figure in the project with one clean, consistent, presentation
 style: readable fonts, a fixed color palette, light gridlines, no top/right
-border clutter, and higher resolution. All 28 figures are rebuilt straight
+border clutter, and higher resolution. All 31 figures are rebuilt straight
 from the already-saved CSV/coordinate data in data/ -- nothing is re-optimized,
 so this runs in well under a minute except for one quick NeuralFoil forward
 sweep (fast; not an optimization) needed for the multi-objective stall plot.
@@ -677,3 +677,116 @@ ax.set_title("How much a real build error moves the prediction"); ax.legend(font
 save(fig, "28_measured_vs_design_geometry.png", "Running NeuralFoil on the measured shape of each Princeton model instead of its design coordinates")
 
 print("\nAll figures rebuilt with a single consistent style.")
+
+# ═════════════════════════════════════════════════════════════════════════
+# 29-31: xfoil_decomposition.py, clustered_statistics.py, fit_error_model.py
+# ═════════════════════════════════════════════════════════════════════════
+xd = pd.read_csv(os.path.join(DATA, "xfoil_decomposition_by_Re.csv"))
+xc = pd.read_csv(os.path.join(DATA, "xfoil_decomposition_confidence.csv"))
+cs = pd.read_csv(os.path.join(DATA, "clustered_statistics.csv"))
+cd_ = pd.read_csv(os.path.join(DATA, "confidence_correlation_decomposition.csv"))
+cal = pd.read_csv(os.path.join(DATA, "error_model_calibration.csv"))
+emf = json.load(open(os.path.join(DATA, "error_model_fit.json")))
+re_x = {"40-60k": 60, "60k": 60, "100k": 100, "150k": 150, "200k": 200, "300-400k": 350, "300k": 300, "400-500k": 450}
+C_XFWT, C_NFXF = C_XF, "#7f7f7f"
+
+# (29) Three-way error decomposition: NeuralFoil vs tunnel, XFoil vs tunnel, NeuralFoil vs XFoil
+fig, axes = plt.subplots(1, 3, figsize=(17, 5))
+for ax, tunnel, col in [(axes[0], "UIUC", C_WT), (axes[1], "Princeton", C_PR)]:
+    d = xd[xd.tunnel == tunnel]
+    x = [re_x[b] for b in d.Re_bin]
+    ax.plot(x, d.mean_abs_errCD_NF_WT * 100, "o-", color=C_NF_L, lw=2.2, label="NeuralFoil vs wind tunnel")
+    ax.plot(x, d.mean_abs_errCD_XF_WT * 100, "s-", color=C_XFWT, lw=2.2, label="XFoil vs wind tunnel")
+    ax.plot(x, d.mean_abs_errCD_NF_XF * 100, "^--", color=C_NFXF, lw=1.8, label="NeuralFoil vs XFoil (network only)")
+    ax.set_xscale("log"); ax.set_xticks(sorted(set(x))); ax.set_xticklabels([f"{v}k" for v in sorted(set(x))]); ax.minorticks_off()
+    ax.set_ylim(0, 27); ax.set_xlabel("Reynolds number (bin centre)"); ax.set_ylabel("mean |$\\Delta C_D$ / $C_D$|  [%]")
+    n_ok = int(d.n_xfoil_converged.sum()); n_all = int(d.n.sum())
+    ax.set_title(f"{tunnel} tunnel ({n_ok:,} of {n_all:,} points where XFoil converged)", color=col); clean(ax)
+axes[0].legend(fontsize=9)
+ax = axes[2]
+lab = [str(b).replace("(0.0, 0.5]", "< 0.5").replace("(0.95, 1.0000001]", "> 0.95").replace("(", "").replace("]", "").replace(", ", " to ") for b in xc.conf_bin]
+xx = np.arange(len(xc)); w = 0.27
+ax.bar(xx - w, xc.mean_abs_errCD_NF_WT * 100, w, color=C_NF_L, label="NeuralFoil vs wind tunnel")
+ax.bar(xx, xc.mean_abs_errCD_XF_WT * 100, w, color=C_XFWT, label="XFoil vs wind tunnel")
+ax.bar(xx + w, xc.mean_abs_errCD_NF_XF * 100, w, color=C_NFXF, label="NeuralFoil vs XFoil")
+ax.set_xticks(xx); ax.set_xticklabels(lab, fontsize=8.5); ax.set_xlabel("NeuralFoil confidence"); ax.set_ylabel("mean |$\\Delta C_D$ / $C_D$|  [%]")
+ax.set_title("What the confidence score tracks (both tunnels)"); ax.legend(fontsize=8.5); clean(ax)
+save(fig, "29_xfoil_decomposition.png", "Where the drag error comes from: XFoil's physics carries most of it; the network adds a smaller part")
+
+# (30) Clustered confidence intervals and the correlation decomposition
+def _interval_panel(ax, items, title, xlabel):
+    ypos = np.arange(len(items))[::-1]
+    for tunnel, col, off in [("UIUC", C_WT, 0.18), ("Princeton", C_PR, -0.18)]:
+        for i, (stat, label, scale) in enumerate(items):
+            r = cs[(cs.tunnel == tunnel) & (cs.statistic == stat)].iloc[0]
+            y = ypos[i] + off
+            ax.plot([r.naive_ci_lo * scale, r.naive_ci_hi * scale], [y, y], color=col, lw=8, alpha=0.22, solid_capstyle="butt")
+            ax.plot([r.cluster_ci_lo * scale, r.cluster_ci_hi * scale], [y, y], color=col, lw=2.2, solid_capstyle="butt")
+            ax.plot(r.estimate * scale, y, "o", color=col, ms=6, zorder=5)
+            span = ax.get_xlim()
+            ax.annotate(f"x{r.ci_width_ratio:.1f}", (max(r.cluster_ci_hi, r.naive_ci_hi) * scale, y),
+                        xytext=(5, 0), textcoords="offset points", va="center", fontsize=7.5, color=col)
+    ax.set_yticks(ypos); ax.set_yticklabels([s_[1] for s_ in items], fontsize=9)
+    ax.axvline(0, color="k", lw=0.6, alpha=0.4); ax.set_xlabel(xlabel); ax.set_title(title, fontsize=10.5); clean(ax)
+    lo, hi = ax.get_xlim(); ax.set_xlim(lo, hi + 0.12 * (hi - lo))
+
+fig, axes = plt.subplots(1, 3, figsize=(18, 5.4), gridspec_kw=dict(width_ratios=[1.15, 1.05, 1]))
+_interval_panel(axes[0], [("mean_abs_errCD", "mean |drag error|", 100), ("median_abs_errCD", "median |drag error|", 100),
+                          ("bias_CD", "drag bias", 100), ("bias_LD", "L/D bias", 100),
+                          ("errCD_conf_above_0.95", "|drag error|, conf. > 0.95", 100), ("errCD_conf_below_0.5", "|drag error|, conf. < 0.5", 100)],
+                "Drag statistics: airfoil-cluster (thin) vs naive (thick) 95% intervals", "percent")
+_interval_panel(axes[1], [("mean_abs_dCL", "mean |$\\Delta C_L$|", 1), ("bias_CL", "$C_L$ bias", 1),
+                          ("r_conf_absErrCD", "r(confidence, |drag error|)", 1), ("r_conf_absDCL", "r(confidence, |$\\Delta C_L$|)", 1),
+                          ("rho_airfoil_conf_errCD", "airfoil-level rank corr.", 1)],
+                "Lift and correlation statistics (label = interval width ratio)", "value")
+from matplotlib.lines import Line2D
+axes[1].legend(handles=[Line2D([], [], color=C_WT, lw=2.2, marker="o", label="UIUC (55 airfoils)"),
+                        Line2D([], [], color=C_PR, lw=2.2, marker="o", label="Princeton (54 airfoils)"),
+                        Line2D([], [], color="gray", lw=8, alpha=0.3, label="naive point bootstrap"),
+                        Line2D([], [], color="gray", lw=2.2, label="airfoil-cluster bootstrap")],
+               fontsize=8.5, loc="lower left")
+ax = axes[2]
+keys = [("r_total", "all points"), ("r_between_airfoil", "between airfoils"), ("r_within_airfoil", "within airfoils"),
+        ("r_between_polar", "between polars"), ("r_within_polar", "within a polar")]
+xx = np.arange(len(keys)); w = 0.38
+for k, (tunnel, col) in enumerate([("UIUC", C_WT), ("Princeton", C_PR)]):
+    r = cd_[cd_.tunnel == tunnel].iloc[0]
+    ax.bar(xx + (k - 0.5) * w, [r[a] for a, _ in keys], w, color=col, label=tunnel)
+ax.axhline(0, color="k", lw=0.8); ax.set_xticks(xx); ax.set_xticklabels([b for _, b in keys], fontsize=9, rotation=15)
+ax.set_ylabel("Pearson r, confidence vs |drag error|"); ax.set_title("Where the confidence-drag correlation lives", fontsize=10.5)
+ax.legend(fontsize=9); clean(ax)
+save(fig, "30_clustered_statistics.png", "Points within a polar are not independent: honest intervals and the anatomy of the confidence correlation")
+
+# (31) Fitted error model: calibration, coefficients, and the curve a designer would use
+fig, axes = plt.subplots(1, 3, figsize=(17, 5))
+ax = axes[0]
+ax.plot(cal.mean_pred * 100, cal.mean_actual * 100, "o-", color=C_NF_L, lw=2, label="mean actual error")
+ax.plot(cal.mean_pred * 100, cal.median_actual * 100, "s--", color=C_NF_XL, lw=1.6, label="median actual error")
+lim = [0, max(cal.mean_pred.max(), cal.mean_actual.max()) * 100 + 3]
+ax.plot(lim, lim, "k--", lw=1, alpha=0.6, label="perfect calibration"); ax.set_xlim(lim); ax.set_ylim(lim); ax.set_aspect("equal")
+ax.set_xlabel("predicted |drag error|  [%]  (airfoil held out)"); ax.set_ylabel("actual |drag error|  [%]")
+ax.set_title("Calibration by decile of predicted error"); ax.legend(fontsize=9); clean(ax)
+ax = axes[1]
+names = [n for n in emf["beta"] if n != "one"]
+pretty = {"log_unconf": "log$_{10}$(1 - confidence)", "log_Re": "log$_{10}$(Re / 10$^5$)", "alpha": "alpha [deg]",
+          "alpha_sq": "alpha$^2$", "camber": "camber [% chord]", "thickness": "thickness [% chord]"}
+vals = [100 * (np.exp(emf["beta"][n]) - 1) for n in names]
+ax.barh([pretty[n] for n in names][::-1], vals[::-1], color=[C_B if v > 0 else C_A for v in vals][::-1])
+ax.axvline(0, color="k", lw=0.8); ax.set_xlabel("change in expected drag error per unit of the feature  [%]")
+ax.set_title("Fitted coefficients (multiplicative)"); clean(ax)
+ax = axes[2]
+b = emf["beta"]; phi = emf["dispersion_phi"]
+conf = np.linspace(0.05, 0.995, 200)
+from scipy import stats as _st
+for Re, col in [(60e3, "#762a83"), (100e3, "#e08214"), (200e3, C_NF_L), (400e3, C_XF)]:
+    eta = (b["one"] + b["log_unconf"] * np.log10(1.001 - conf) + b["log_Re"] * np.log10(Re / 1e5)
+           + b["alpha"] * 4 + b["alpha_sq"] * 16 + b["camber"] * 3 + b["thickness"] * 10)
+    mu = np.exp(eta)
+    ax.plot(conf, mu * 100, color=col, lw=2, label=f"Re = {Re / 1e3:.0f}k, expected")
+    ax.plot(conf, _st.gamma.ppf(0.8, a=1 / phi, scale=mu * phi) * 100, color=col, lw=1, ls=":")
+ax.set_xlabel("NeuralFoil confidence"); ax.set_ylabel("|drag error|  [%]"); ax.set_ylim(0, 60)
+ax.set_title("Expected error (solid) and 80th percentile (dotted)\n3% camber, 10% thick, alpha = 4 deg")
+ax.legend(fontsize=8.5); clean(ax)
+save(fig, "31_error_model.png", "A fitted, cross-validated error model: what drag error to expect from a NeuralFoil prediction")
+
+print("Figures 29-31 rebuilt.")

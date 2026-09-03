@@ -146,10 +146,64 @@ airfoil-level rank correlation does not (−0.08, n.s.). CLmax is over-predicted
 by 0.11 on 114 lift sweeps. Script `soartech8_neuralfoil_validation.py`; data
 `data/soartech8_*.csv`, `data/cross_tunnel_*.csv`; `figures/26-28`.
 
+**Decomposition against XFoil.** NeuralFoil emulates XFoil, so its error
+against a tunnel is XFoil's error plus the network's emulation error. Headless
+XFoil 6.99 is run at all 9,130 clean conditions of both tunnels on the same
+Kulfan geometry NeuralFoil saw (viscous, n_crit = 9, free transition, polars
+swept outward from 0° in 0.5° steps with the measured angles inserted so each
+point warm-starts from its neighbour; `xfoil_decomposition.py`, 8 processes,
+about 25 min). XFoil converges at 8,814 points (96.5%); failures cluster at
+low confidence (56% convergence below 0.5 vs 99% above 0.95). *Results
+(converged points):* mean |ΔCD/CD| NeuralFoil-vs-tunnel 11.2%, XFoil-vs-tunnel
+12.1%, NeuralFoil-vs-XFoil 2.8% (median 1.7%); the signed NeuralFoil and XFoil
+errors correlate at r = 0.95 and XFoil's error explains 86% of the variance of
+NeuralFoil's; the network's contribution is < 4% in every Re band of both
+tunnels; NeuralFoil is closer to the tunnel than XFoil on 55% of points and
+has the lower mean error in every band. Lift: 0.079 / 0.082 / 0.011. The
+confidence score correlates with |XFoil − tunnel| (r = −0.40) at least as
+strongly as with |NeuralFoil − XFoil| (−0.33) or |NeuralFoil − tunnel|
+(−0.33): it flags where XFoil's solution is ill-conditioned, which is also
+where XFoil's physics is wrong. Data `data/xfoil_decomposition*.csv`;
+`figures/29`.
+
+**Clustered statistics.** Points within a polar are an α sweep on one model
+at one Re and are not independent; the independent unit is the airfoil (55
+UIUC, 54 Princeton, 94 distinct; 667 clean polars). Every headline statistic
+is given a 95% interval from a cluster bootstrap that resamples airfoils with
+all their points (B = 2,000, seed 0), alongside the naive point bootstrap
+(`clustered_statistics.py`). Clustered intervals are 2-5× wider; all headline
+results survive (e.g. mean drag error 12.3% [11.3, 13.4] UIUC, 11.1% [10.3,
+12.0] Princeton; L/D bias +15% [12, 18] in both; r(conf, |ΔCD/CD|) −0.43
+[−0.50, −0.35] and −0.27 [−0.33, −0.20]; r(conf, |ΔCL|) includes zero in
+both), except the airfoil-level rank correlation (−0.65 [−0.80, −0.46] UIUC;
+−0.10 [−0.32, 0.15] Princeton). Decomposing the confidence-drag correlation
+into between-airfoil, within-airfoil and within-polar parts shows why: in
+the UIUC set 26% of the confidence variance is between airfoils and the
+between-airfoil r is −0.69; in the Princeton set only 7% is, the
+between-airfoil r is −0.07, and the correlation lives within polars (−0.31).
+Data `data/clustered_statistics.csv`,
+`data/confidence_correlation_decomposition.csv`; `figures/30`.
+
+**Fitted error model.** Expected |ΔCD/CD| is modelled as a Gamma GLM with log
+link (IRLS in numpy; `fit_error_model.py`) on log10(1.001 − confidence),
+log10(Re/1e5), α, α², max camber and max thickness (% chord), over the 8,211
+attached-flow clean points of both tunnels. Coefficients (log scale): +0.625,
+−0.842, −0.043, +0.0092, +0.0345, ≈0; dispersion 0.72. Evaluation is
+out-of-sample only: 10-fold CV with whole airfoils held out (MAE 0.074 vs
+0.087 constant vs 0.079 six-bin table; Spearman 0.39; 80th/95th percentile
+Gamma bands cover 80%/95% of held-out points) and cross-tunnel transfer
+(UIUC→Princeton 0.071 vs 0.085 constant; Princeton→UIUC 0.077 vs 0.089).
+Held-out calibration by decile runs from predicted 5.7% / actual 6.9% to
+predicted 29.2% / actual 28.7%. Coefficients and worked examples in
+`data/error_model_fit.json`; `data/error_model.json` points to it;
+`figures/31`.
+
 ## 8. Reproducibility
 
 Pinned dependencies in `requirements.txt`; fixed RNG seeds for all perturbation
-ensembles; every study writes its data to CSV before plotting. The config-driven
+ensembles and bootstraps; every study writes its data to CSV before plotting;
+`tests/test_claims.py` pins every number quoted in PAPER.md, README.md and this
+file to the data files (16 tests). The config-driven
 tool (`airfoil_designer.py` + `configs/*.yaml`) reproduces any mission design
 from a single spec.
 
