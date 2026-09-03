@@ -3,7 +3,7 @@ rebuild_all_figures.py
 =============================================================================
 Re-render every figure in the project with one clean, consistent, presentation
 style: readable fonts, a fixed color palette, light gridlines, no top/right
-border clutter, and higher resolution. All 20 figures are rebuilt straight
+border clutter, and higher resolution. All 28 figures are rebuilt straight
 from the already-saved CSV/coordinate data in data/ -- nothing is re-optimized,
 so this runs in well under a minute except for one quick NeuralFoil forward
 sweep (fast; not an optimization) needed for the multi-objective stall plot.
@@ -602,5 +602,78 @@ for ax, (vol, file, Re, title) in zip(axes, cases):
     ax.set_title(title); ax.set_xlabel("AoA [deg]"); clean(ax); ax.set_zorder(ax2.get_zorder() + 1); ax.patch.set_visible(False)
 axes[0].set_ylabel("$C_L$"); axes[0].legend(fontsize=8, loc="upper left")
 save(fig, "25_uiuc_lift_curves.png", "Lift curves through stall: measurement, hysteresis, and NeuralFoil")
+
+# ═════════════════════════════════════════════════════════════════════════
+# 26-28: soartech8_neuralfoil_validation.py  (second tunnel: Princeton, 1986-89)
+# ═════════════════════════════════════════════════════════════════════════
+sr = pd.read_csv(os.path.join(DATA, "soartech8_validation_by_Re.csv")); sr = sr[sr.nf == "large"]
+ur = pd.read_csv(os.path.join(DATA, "uiuc_validation_by_Re.csv")); ur = ur[ur.model == "large"]
+nc = pd.read_csv(os.path.join(DATA, "soartech8_ncrit_sensitivity.csv"))
+sv = pd.read_csv(os.path.join(DATA, "soartech8_neuralfoil_validation.csv"))
+ct = pd.read_csv(os.path.join(DATA, "cross_tunnel_comparison.csv"))
+ge = pd.read_csv(os.path.join(DATA, "soartech8_geometry_effect.csv"))
+C_PR = "#762a83"     # Princeton tunnel
+
+# (26) Drag error by Re in both tunnels, and the n_crit sweep on the Princeton data
+u_x = {"40-60k": 60, "100k": 100, "200k": 200, "300-400k": 350, "400-500k": 450}
+p_x = {"60k": 60, "100k": 100, "150k": 150, "200k": 200, "300k": 300}
+fig, axes = plt.subplots(1, 3, figsize=(17, 5))
+ax = axes[0]
+ax.plot([u_x[b] for b in ur.Re_bin], ur.mean_abs_err_CD * 100, "o-", color=C_WT, lw=2, label="UIUC tunnel (1995-2005), mean")
+ax.plot([u_x[b] for b in ur.Re_bin], ur.median_abs_err_CD * 100, "o--", color=C_WT, lw=1.4, alpha=0.7, label="UIUC, median")
+ax.plot([p_x[b] for b in sr.Re_bin], sr.mean_abs_err_CD * 100, "s-", color=C_PR, lw=2, label="Princeton tunnel (1986-89), mean")
+ax.plot([p_x[b] for b in sr.Re_bin], sr.median_abs_err_CD * 100, "s--", color=C_PR, lw=1.4, alpha=0.7, label="Princeton, median")
+ax.set_xscale("log"); ax.set_xticks([60, 100, 150, 200, 300, 450]); ax.set_xticklabels(["60k", "100k", "150k", "200k", "300k", "450k"])
+ax.minorticks_off(); ax.set_ylim(0, 25); ax.set_xlabel("Reynolds number (bin centre)"); ax.set_ylabel("|$\\Delta C_D$ / $C_D$|  [%]")
+ax.set_title("Drag error by Re: two tunnels, one model"); ax.legend(fontsize=8.5); clean(ax)
+cols = plt.cm.viridis(np.linspace(0.1, 0.9, len(nc)))
+for ax, key, ttl, yl in [(axes[1], "abs_err_CD_", "n_crit sweep: drag error", "mean |$\\Delta C_D$ / $C_D$|  [%]"),
+                         (axes[2], "bias_CD_", "n_crit sweep: drag bias", "mean $\\Delta C_D$ / $C_D$  [%]")]:
+    for c, (_, r) in zip(cols, nc.iterrows()):
+        ax.plot([p_x[b] for b in p_x], [r[f"{key}{b}"] * 100 for b in p_x], "o-", color=c, lw=2 if r.n_crit == 9 else 1.4,
+                label=f"n_crit = {r.n_crit:.0f}" + ("  (used throughout)" if r.n_crit == 9 else ""))
+    ax.set_xscale("log"); ax.set_xticks([60, 100, 150, 200, 300]); ax.set_xticklabels(["60k", "100k", "150k", "200k", "300k"])
+    ax.minorticks_off(); ax.set_xlabel("Reynolds number"); ax.set_ylabel(yl); ax.set_title(ttl); clean(ax)
+axes[2].axhline(0, color="k", lw=0.8, alpha=0.6); axes[1].legend(fontsize=8.5); axes[1].set_ylim(0, 30); axes[2].set_ylim(-15, 30)
+save(fig, "26_two_tunnels_and_ncrit.png", "The Princeton data set replicates the UIUC benchmark, with n_crit = 9 the best transition setting")
+
+# (27) Tunnel-to-tunnel: the same airfoil in both tunnels, with NeuralFoil on both geometries
+cases = [("e387", "E387A", 100e3, "E387, Re = 100k"), ("sd7037", "SD7037", 200e3, "SD7037, Re = 200k"),
+         ("fx63137", "FX63-137B", 200e3, "FX 63-137, Re = 200k")]
+fig, axes = plt.subplots(1, 3, figsize=(15.5, 4.8))
+for ax, (name, label, Re0, title) in zip(axes, cases):
+    pr = sv[(sv.airfoil_label == label) & (sv.config == "clean") & (sv.NF_mode == "free") & (sv.nf == "large") & sv.primary]
+    Re_p = min(pr.Re.unique(), key=lambda r: abs(r - Re0)); pr = pr[pr.Re == Re_p].sort_values("alpha")
+    pair = ct[(ct.asb_name == name) & (ct.Re_princeton == Re_p)]
+    ufile = pair.uiuc_file.mode().iloc[0]; Re_u = int(pair[pair.uiuc_file == ufile].Re_uiuc.iloc[0])
+    ui = uv[(uv.file == ufile) & (uv.Re == Re_u) & (uv.config == "clean") & (uv.NF_mode == "free") & (uv.model == "large")].sort_values("alpha")
+    ax.scatter(ui.alpha, ui.WT_CD, marker="D", s=30, color=C_WT, zorder=5, label=f"UIUC tunnel, Re = {Re_u/1e3:.0f}k")
+    ax.scatter(pr.alpha, pr.WT_CD, marker="s", s=30, color=C_PR, zorder=5, label=f"Princeton tunnel, Re = {Re_p/1e3:.0f}k")
+    ax.plot(ui.alpha, ui.NF_CD, "--", color=C_NF_L, lw=1.8, label="NeuralFoil, design coordinates")
+    ax.plot(pr.alpha, pr.NF_CD, "-", color=C_NF_L, lw=1.8, label="NeuralFoil, measured Princeton model")
+    ax.set_yscale("log"); ax.set_title(title); ax.set_xlabel("AoA [deg]"); clean(ax)
+axes[0].set_ylabel("$C_D$ (log)"); axes[0].legend(fontsize=8)
+save(fig, "27_tunnel_vs_tunnel.png", "Two wind tunnels, one airfoil: the experiments disagree by about as much as NeuralFoil disagrees with either")
+
+# (28) Measured vs design geometry
+fig, axes = plt.subplots(1, 2, figsize=(13, 5.6))
+ax = axes[0]
+ax.scatter(ge.abs_errCD_design * 100, ge.abs_errCD_measured * 100, s=48, color=C_NF_L, edgecolors="k", linewidths=0.5, zorder=4)
+lim = [0, 30]; ax.plot(lim, lim, "k--", lw=1, alpha=0.6, label="no change")
+for _, r in pd.concat([ge.nlargest(4, "build_rms_pct"), ge.nlargest(3, "abs_errCD_design")]).drop_duplicates("model").iterrows():
+    ax.annotate(r.model, (r.abs_errCD_design * 100, r.abs_errCD_measured * 100), fontsize=7.5, xytext=(4, 3), textcoords="offset points")
+n_better = int((ge.abs_errCD_measured < ge.abs_errCD_design).sum())
+ax.set_xlim(lim); ax.set_ylim(lim); ax.set_aspect("equal"); clean(ax); ax.legend(fontsize=9, loc="upper left")
+ax.set_xlabel("drag error with design coordinates  [%]"); ax.set_ylabel("drag error with measured model coordinates  [%]")
+ax.set_title(f"Per model: measured shape helps for {n_better} of {len(ge)}")
+ax = axes[1]
+ax.scatter(ge.build_rms_pct, ge.geom_effect_CD * 100, s=48, color=C_NF_XL, edgecolors="k", linewidths=0.5, zorder=4)
+for _, r in pd.concat([ge.nlargest(4, "build_rms_pct"), ge.nlargest(3, "geom_effect_CD")]).drop_duplicates("model").iterrows():
+    ax.annotate(r.model, (r.build_rms_pct, r.geom_effect_CD * 100), fontsize=7.5, xytext=(4, 3), textcoords="offset points")
+ax.axvline(0.5, color=C_MFG, ls=":", lw=1.5, label="0.5% chord: the build-error scale assumed in section 2.5")
+ax.set_xlabel("as-built deviation from design, RMS  [% chord]"); ax.set_ylabel("|NeuralFoil drag shift from the shape change alone|  [%]")
+ax.set_ylim(0, ge.geom_effect_CD.max() * 100 + 2.5)
+ax.set_title("How much a real build error moves the prediction"); ax.legend(fontsize=8.5, loc="lower right"); clean(ax)
+save(fig, "28_measured_vs_design_geometry.png", "Running NeuralFoil on the measured shape of each Princeton model instead of its design coordinates")
 
 print("\nAll figures rebuilt with a single consistent style.")

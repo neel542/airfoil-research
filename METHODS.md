@@ -124,6 +124,28 @@ post-stall CL error nearly doubles while confidence halves
 (`uiuc_stall_validation.py`). Scripts: `uiuc_neuralfoil_validation.py`,
 `e387_neuralfoil_validation.py`; data `data/uiuc_*.csv`; `figures/12-17, 21-25`.
 
+**Replication in a second tunnel.** The same benchmark is run on the Princeton
+*Airfoils at Low Speeds* data set (Selig, Donovan & Fraser 1989; SoarTech 8):
+54 airfoils / 68 models, 4,702 clean and 1,744 tripped drag-polar points at
+Re = 60k-300k, parsed from the archive's `Stec8.zip` (`soartech8_parse.py`).
+That set also publishes profiler-measured coordinates of the actual models, so
+NeuralFoil is run on both the design and the as-built shape (Kulfan refit of
+each; all 68 fit to < 0.07% chord). Because the tunnel's turbulence level is
+undocumented, n_crit is swept over 5-11 (9 is best: 11.1% vs 11.3 / 13.0 /
+20.8%). *Results:* drag error 11% mean / 8% median, L/D 15% typical and +15%
+biased, lift 0.086 with the same +0.04-0.05 bias, i.e. the UIUC numbers
+replicate. On the 15 airfoils common to both tunnels (2,139 matched points),
+the two experiments differ by 12% in drag (UIUC ~6% higher) and 0.048 in CL,
+while NeuralFoil differs from them by 11% / 10% and 0.066 / 0.080: at
+Re ≥ 200k the drag error is at the reproducibility limit of the experiments,
+the lift error is not. As-built deviations are 0.22% chord RMS typically (max
+0.68%); using the measured shape lowers drag error 12.8% → 11.1% and lift error
+0.091 → 0.081, and the shape change alone moves NeuralFoil's drag by 5%. The
+point-level confidence result replicates at the extremes (30% → 10%) but the
+airfoil-level rank correlation does not (−0.08, n.s.). CLmax is over-predicted
+by 0.11 on 114 lift sweeps. Script `soartech8_neuralfoil_validation.py`; data
+`data/soartech8_*.csv`, `data/cross_tunnel_*.csv`; `figures/26-28`.
+
 ## 8. Reproducibility
 
 Pinned dependencies in `requirements.txt`; fixed RNG seeds for all perturbation

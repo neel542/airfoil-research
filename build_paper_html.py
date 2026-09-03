@@ -56,26 +56,49 @@ FIGURE_INSERTS = [
          "transition forced at the trip location (dashed) reproduces the tripped "
          "drag that a free-transition run (solid) misses."),
     ]),
+    ("coming out best, is shown in the figure", [
+        ("26_two_tunnels_and_ncrit.png",
+         "Figure 8. Left: NeuralFoil's drag error by Reynolds number against the "
+         "UIUC tunnel (red) and the Princeton tunnel (purple), mean and median. "
+         "Middle and right: sweeping the transition parameter n_crit on the "
+         "Princeton data; 9, the value used throughout, gives the lowest error "
+         "and the smallest bias."),
+    ]),
+    ("is therefore at the reproducibility of", [
+        ("27_tunnel_vs_tunnel.png",
+         "Figure 9. The same airfoil in two wind tunnels. Diamonds: UIUC; squares: "
+         "Princeton; dashed: NeuralFoil on the design coordinates; solid: NeuralFoil "
+         "on the measured shape of the Princeton model. For the E387 at Re = 100k "
+         "the two experiments differ by more than either differs from the model."),
+    ]),
+    ("which is roughly half", [
+        ("28_measured_vs_design_geometry.png",
+         "Figure 10. Left: drag error per Princeton model with design versus "
+         "measured coordinates; points below the line improved. Right: the "
+         "as-built deviation of each model against how much that deviation alone "
+         "moves NeuralFoil's drag; the dotted line is the 0.5% chord build-error "
+         "scale used in section 2.5."),
+    ]),
     ("differ by 0.5", [
         ("24_uiuc_stall_parity.png",
-         "Figure 8. Maximum lift and the angle it occurs at, NeuralFoil versus wind "
+         "Figure 11. Maximum lift and the angle it occurs at, NeuralFoil versus wind "
          "tunnel, for the 298 clean lift sweeps that passed through stall."),
         ("25_uiuc_lift_curves.png",
-         "Figure 9. Three lift curves through stall. Triangles: increasing angle; "
+         "Figure 12. Three lift curves through stall. Triangles: increasing angle; "
          "open circles: decreasing angle (the gap is stall hysteresis); line: "
          "NeuralFoil; grey band: NeuralFoil's confidence, which collapses past "
          "the stall."),
     ]),
     ("It is the basis for", [
         ("22_uiuc_confidence_calibration.png",
-         "Figure 10. What NeuralFoil's confidence score tracks. Left: lift error is "
+         "Figure 13. What NeuralFoil's confidence score tracks. Left: lift error is "
          "flat across confidence bins. Middle: drag error falls steadily from 32% "
          "to 9% as confidence rises. Right: the same relationship at the airfoil "
          "level."),
     ]),
     ("the two extremes are shown in the figure", [
         ("20_trust_vs_performance.png",
-         "Figure 11. The uncertainty-aware optimizer. Left: worst-case L/D against "
+         "Figure 14. The uncertainty-aware optimizer. Left: worst-case L/D against "
          "mean confidence as the dial w_conf is turned up; the first step, from "
          "confidence 0.16 to 0.96, costs 2% of predicted L/D. Right: the two "
          "extreme shapes."),

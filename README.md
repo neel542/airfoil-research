@@ -128,6 +128,70 @@ Figures: `12`-`17`, `21`-`25`; data in `data/uiuc_experimental.csv`,
 `data/uiuc_stall_validation.csv` and the `data/uiuc_validation_*.csv`
 summaries; raw source files in `data/uiuc_lsat/`.
 
+## Second tunnel: the Princeton "Airfoils at Low Speeds" data set
+
+(`soartech8_parse.py`, `soartech8_neuralfoil_validation.py`)
+
+The whole benchmark is repeated on an independent, older data set: SoarTech 8,
+*Airfoils at Low Speeds* (Selig, Donovan & Fraser 1989), measured in the
+Princeton 3×4 ft smoke tunnel in 1986-89 and distributed by the same archive
+(`Stec8.zip`, unpacked in `data/soartech8/`): **127 airfoil/configuration
+blocks, 7,762 drag-polar points and 15,565 lift-curve points on 54 airfoils
+(68 models), Re 60k-300k**, plus, uniquely, **profiler-measured coordinates of
+the actual models** next to the design coordinates. Clean and single-trip
+blocks are kept; flaps, gurney flaps, blowing and mixed-configuration blocks
+are excluded. All 68 models fit the Kulfan basis to < 0.07% chord.
+
+**Clean runs, NeuralFoil `large` on the measured model shape, 4,702 points:**
+
+| Re | n | mean ΔCL | drag error, mean / median | drag bias | confidence |
+|---:|---:|---:|---:|---:|---:|
+| 60k | 759 | 0.101 | 17% / 13% | +12% | 0.96 |
+| 100k | 1,018 | 0.092 | 12% / 8% | +3% | 0.95 |
+| 150k | 810 | 0.082 | 10% / 7% | +1% | 0.95 |
+| 200k | 1,157 | 0.081 | 9% / 6% | −2% | 0.95 |
+| 300k | 958 | 0.077 | 9% / 7% | −4% | 0.96 |
+| **all** | **4,702** | **0.086** | **11% / 8%** | **+1%** | **0.96** |
+
+- **It replicates.** Drag 11% / 8% (UIUC 12% / 8%), the same Re trend and the
+  same sign change of the bias; L/D typically 15% off, 21% mean, over-predicted
+  by 15% (UIUC: identical). Lift slightly worse (0.086 vs 0.072), same +0.04 to
+  +0.05 bias in both tunnels. `xxlarge` again no better. An `n_crit` sweep
+  (5, 7, 9, 11) on this tunnel gives 13.0 / 11.3 / **11.1** / 20.8% drag error:
+  the default 9 is the best setting (figure `26`).
+- **Tunnel vs tunnel.** 15 airfoils were measured in both tunnels: 131 polar
+  pairs, 2,139 matched (Re, α) points. The two experiments differ by **12% in
+  drag** (UIUC ~6% higher) and 0.048 in CL; NeuralFoil differs from UIUC by
+  11% and from Princeton by 10% on the same points, and from Re = 200k up all
+  three are 7-9%. NeuralFoil's drag error at Re ≥ 200k is at the
+  reproducibility limit of the experiments. Lift is not: the tunnels agree
+  (0.048) better than NeuralFoil agrees with either (0.066 / 0.080). Figure
+  `27`; `data/cross_tunnel_*.csv`.
+- **Measured vs design geometry.** The 56 models with both coordinate sets
+  deviate from their design by 0.22% chord RMS typically (max 0.68%, E387B),
+  i.e. the 0.5% build-error scale assumed in the manufacturing study is
+  realistic. Running NeuralFoil on the measured shape lowers drag error from
+  12.8% to 11.1% and lift error from 0.091 to 0.081 (46 of 56 models improve);
+  the shape change alone moves NeuralFoil's drag by 5% and lift by 0.03.
+  Figure `28`; `data/soartech8_geometry_effect.csv`.
+- **Trips** (34 runs, 18 models, 1,744 points, mostly a single upper-surface
+  strip at 20-70% chord): no free-transition bias here, because a mid-chord
+  strip sits near natural transition; forcing transition still cuts drag error
+  13.5% → 11.8% and lift error 0.084 → 0.071.
+- **Stall** (114 clean lift sweeps past CLmax at Re ≥ 55k, 35 airfoils): CLmax
+  over-predicted by 0.11 (UIUC 0.06), stall angle within ~1.4°. At Re 20-50k
+  (MB253515) NeuralFoil finds no stall before 20°.
+- **Confidence.** Point level replicates at the extremes (30% drag error below
+  0.5, 10% above 0.95; lift r = −0.03) but is weaker in between (r = −0.26 vs
+  −0.43, flat middle bins) and the **airfoil-level rank correlation does not
+  replicate** (−0.08, n.s., vs −0.65): 89% of Princeton points sit above 0.95.
+  The score separates trusted from untrusted drag; it is not a fine-grained
+  error estimate.
+
+Data: `data/soartech8_experimental*.csv`, `data/soartech8_*_coords.csv`,
+`data/soartech8_neuralfoil_validation.csv` and `data/soartech8_*.csv`
+summaries; raw files in `data/soartech8/`.
+
 ## Uncertainty-aware optimizer (`uncertainty_aware_design.py`)
 
 The benchmark above showed that NeuralFoil's confidence is a reliable warning
@@ -296,6 +360,8 @@ python xfoil_validate_envelope.py   # surrogate trust map vs true XFoil
 python uiuc_lsat_parse.py           # official UIUC wind-tunnel files -> one table
 python uiuc_neuralfoil_validation.py  # 55-airfoil benchmark of NeuralFoil
 python uiuc_stall_validation.py     # lift through stall: CLmax, stall angle, CM
+python soartech8_parse.py           # Princeton "Airfoils at Low Speeds" files -> tables
+python soartech8_neuralfoil_validation.py  # second tunnel, tunnel-vs-tunnel, measured geometry
 python e387_neuralfoil_validation.py  # E387 in detail, with XFoil
 python uncertainty_aware_design.py  # confidence-aware optimizer sweep
 python rebuild_all_figures.py       # every figure, from the saved CSVs
@@ -320,6 +386,10 @@ data/
   uiuc_neuralfoil_validation.csv + uiuc_validation_*.csv   # benchmark, point-by-point + summaries
   uiuc_experimental_lift.csv / uiuc_stall_validation.csv   # lift runs through stall
   e387_experimental_NREL.csv / e387_neuralfoil_validation.csv   # E387 detail (+ XFoil)
+  soartech8/               # raw Princeton SoarTech 8 files (Stec8.zip), as downloaded
+  soartech8_experimental*.csv / soartech8_*_coords.csv   # Princeton polars, lift, measured + design coords
+  soartech8_neuralfoil_validation.csv + soartech8_*.csv  # second-tunnel benchmark + summaries
+  cross_tunnel_*.csv       # UIUC vs Princeton vs NeuralFoil on the 15 shared airfoils
   uncertainty_aware_sweep.csv
 figures/
   1_shapes.png             # overlaid optimized shapes
@@ -331,4 +401,5 @@ figures/
   20_trust_vs_performance.png
   21-23_uiuc_*.png         # error by airfoil, confidence calibration, tripped runs
   24-25_uiuc_*.png         # CLmax / stall-angle parity, lift curves through stall
+  26-28_*.png              # two tunnels + n_crit, tunnel vs tunnel, measured vs design geometry
 ```
