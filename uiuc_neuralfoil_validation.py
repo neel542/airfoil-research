@@ -2,8 +2,8 @@
 uiuc_neuralfoil_validation.py
 =============================================================================
 Systematic check of NeuralFoil against measured wind-tunnel polars from the
-UIUC Low-Speed Airfoil Tests archive: 22 airfoils, Re 40k-500k, clean and
-boundary-layer-tripped, about 1,760 measured points
+UIUC Low-Speed Airfoil Tests archive: 57 airfoils (Vols 1-4), Re 40k-500k, clean and
+boundary-layer-tripped, 5,441 measured drag-run points
 (data/uiuc_experimental.csv, built by uiuc_lsat_parse.py).
 
 For every measured (airfoil, configuration, Re, alpha):

@@ -10,9 +10,9 @@ differentiable **NeuralFoil** surrogate (a neural emulator of XFoil).
 | **A** single-point | max L/D at Re=200k, AoA=4° | **232.9** † | 7.1 | 86.6 | 13% |
 | **B** robust       | max **worst-case** L/D over the envelope | 105.1 | **38.2** | 64.2 | 9% |
 
-† Every L/D here is a surrogate estimate. Against 4,400 wind-tunnel points on
-55 airfoils (below), NeuralFoil's L/D is typically **15% off** and **15% too
-high on average**, so true L/D ≤ shown. Airfoil A's peak sits where NeuralFoil
+† Every L/D here is a surrogate estimate. Against 9,100 wind-tunnel points on
+94 airfoils in two independent tunnels (below), NeuralFoil's L/D is typically
+**15% off** and **15% too high on average**, so true L/D ≤ shown. Airfoil A's peak sits where NeuralFoil
 reports **confidence ≈ 0**, below the range where its drag was validated, so
 232.9 is an *optimistic upper bound, not a value*. See the
 [wind-tunnel benchmark](#wind-tunnel-benchmark-55-airfoils) section and the
