@@ -1,18 +1,20 @@
 cff-version: 1.2.0
 message: "If you use this software, please cite it as below."
-title: "Robust multi-objective low-Reynolds-number airfoil design"
+title: "How far can NeuralFoil be trusted below Re = 500,000? A two-tunnel wind-tunnel benchmark with an XFoil error decomposition, and robust low-Reynolds-number airfoil design"
 abstract: >-
-  A reproducible pipeline and config-driven tool for robust, multi-objective
-  airfoil optimization at low Reynolds number, using AeroSandbox and the
-  differentiable NeuralFoil surrogate, with manufacturing-tolerance robustness
-  and independent XFoil validation. Includes a two-tunnel benchmark of
-  NeuralFoil against 13,200 drag-run and 37,000 lift-run wind-tunnel points on
-  94 airfoils (Re 30k-500k; clean, tripped and through stall) from the UIUC
+  A two-tunnel wind-tunnel benchmark of the NeuralFoil surrogate below
+  Re = 500,000: 9,100 clean drag-polar points on 94 airfoils from the UIUC
   Low-Speed Airfoil Tests archive and the Princeton "Airfoils at Low Speeds"
-  data set, including a tunnel-to-tunnel comparison and NeuralFoil run on the
-  measured as-built model shapes, and an
-  uncertainty-aware optimizer that uses the surrogate's measured reliability
-  inside the design loop.
+  data set, plus tripped runs and lift sweeps through stall. Headless XFoil is
+  run at every point so the error is split into XFoil's physics error and the
+  network's emulation error; a tunnel-to-tunnel comparison gives the
+  experimental noise floor; NeuralFoil is run on the measured as-built model
+  shapes; statistics use an airfoil-cluster bootstrap; and a cross-validated
+  Gamma GLM predicts the expected drag error from confidence, Re, angle of
+  attack, camber and thickness. Also a reproducible pipeline for robust,
+  multi-objective, manufacturing-tolerant airfoil optimization with
+  AeroSandbox, and a confidence-aware optimizer that uses the measured
+  reliability inside the design loop.
 type: software
 authors:
   - family-names: Madhav
@@ -29,7 +31,7 @@ keywords:
   - wind-tunnel validation
   - surrogate model
 license: MIT
-version: "1.3.0"
+version: "1.4.0"
 date-released: "2026-09-03"
 references:
   - type: software

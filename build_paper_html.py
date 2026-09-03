@@ -17,48 +17,55 @@ HTML_OUT = os.path.join(OUT, "PAPER.html")
 # Which figures to embed, where (after the line containing the key phrase), and
 # their captions.
 FIGURE_INSERTS = [
-    ("razor-thin peak", [
-        ("18_LD_vs_AoA_uncertainty.png",
-         "Figure 1. Lift-to-drag ratio versus angle of attack for airfoil A "
-         "(single-point) and B (robust) at three Reynolds numbers. Hatched bands "
-         "show the measured 16% surrogate uncertainty; both airfoils sit below "
-         "NeuralFoil's validated confidence range, so the band is a lower bound."),
-        ("19_tradeoff_uncertainty.png",
-         "Figure 2. Peak versus worst-case L/D across the design family. Error "
-         "bars are one-sided (true values trend downward at low Re). Airfoil A's "
-         "peak near 233 is produced where NeuralFoil reports near-zero confidence."),
-    ]),
-    ("missing that bubble drag", [
+    ("missing that bubble drag.", [
         ("12_e387_CL_polars.png",
-         "Figure 3. Lift coefficient versus angle of attack for the clean Eppler "
+         "Figure 1. Lift coefficient versus angle of attack for the clean Eppler "
          "E387 at Re of about 100k, 200k and 500k: NeuralFoil, headless XFoil, and "
          "wind-tunnel measurement (UIUC; Selig & McGranahan 2004)."),
         ("13_e387_CD_polars.png",
-         "Figure 4. Drag coefficient (log scale) for the same runs. At Re of about "
+         "Figure 2. Drag coefficient (log scale) for the same runs. At Re of about "
          "100k the measured drag sits above both predictions across the low-drag "
          "range: the laminar separation bubble that both NeuralFoil and XFoil "
          "under-predict."),
     ]),
-    ("be read as optimistic", [
+    ("should be read as optimistic.", [
         ("17_multifoil_parity.png",
-         "Figure 5. NeuralFoil versus wind tunnel for all 4,428 clean benchmark "
+         "Figure 3. NeuralFoil versus wind tunnel for all 4,428 clean benchmark "
          "points on 55 airfoils, coloured by Reynolds number. Lift scatters within "
          "about 0.05 for most points; drag within about 20%."),
         ("21_uiuc_error_by_airfoil.png",
-         "Figure 6. Mean drag and lift error by airfoil, clean runs. Grey bars are "
+         "Figure 4. Mean drag and lift error by airfoil, clean runs. Grey bars are "
          "the two airfoils excluded from the benchmark because the 17-parameter "
          "shape description cannot reproduce them."),
     ]),
-    ("had not been checked against experiment either", [
+    ("had not been checked against experiment either.", [
         ("23_uiuc_tripped_vs_forced_transition.png",
-         "Figure 7. Boundary-layer trip runs near Re = 200k. Diamonds: clean "
+         "Figure 5. Boundary-layer trip runs near Re = 200k. Diamonds: clean "
          "measurement; squares: tripped measurement. Running NeuralFoil with "
          "transition forced at the trip location (dashed) reproduces the tripped "
          "drag that a free-transition run (solid) misses."),
     ]),
+    ("how far the two branches can differ.", [
+        ("24_uiuc_stall_parity.png",
+         "Figure 6. Maximum lift and the angle it occurs at, NeuralFoil versus wind "
+         "tunnel, for the 298 clean lift sweeps that passed through stall."),
+        ("25_uiuc_lift_curves.png",
+         "Figure 7. Three lift curves through stall. Triangles: increasing angle; "
+         "open circles: decreasing angle (the gap is stall hysteresis); line: "
+         "NeuralFoil; grey band: NeuralFoil's confidence, which collapses past "
+         "the stall."),
+    ]),
+    ("Section 3.8 uses the score inside the optimizer.", [
+        ("22_uiuc_confidence_calibration.png",
+         "Figure 8. What NeuralFoil's confidence score tracks in the UIUC data. Left: "
+         "lift error is flat across confidence bins. Middle: drag error falls "
+         "from 32% to 9% as confidence rises. Right: the same relationship at the "
+         "airfoil level (section 3.4 shows this panel does not replicate in the "
+         "Princeton data, and why)."),
+    ]),
     ("and 11 doubles the error.", [
         ("26_two_tunnels_and_ncrit.png",
-         "Figure 8. Left: NeuralFoil's drag error by Reynolds number against the "
+         "Figure 9. Left: NeuralFoil's drag error by Reynolds number against the "
          "UIUC tunnel (red) and the Princeton tunnel (purple), mean and median. "
          "Middle and right: sweeping the transition parameter n_crit on the "
          "Princeton data; 9, the value used throughout, gives the lowest error "
@@ -66,40 +73,62 @@ FIGURE_INSERTS = [
     ]),
     ("so the lift error is the model's.", [
         ("27_tunnel_vs_tunnel.png",
-         "Figure 9. The same airfoil in two wind tunnels. Diamonds: UIUC; squares: "
+         "Figure 10. The same airfoil in two wind tunnels. Diamonds: UIUC; squares: "
          "Princeton; dashed: NeuralFoil on the design coordinates; solid: NeuralFoil "
          "on the measured shape of the Princeton model. For the E387 at Re = 100k "
          "the two experiments differ by more than either differs from the model."),
     ]),
     ("the airfoil it was meant to be.", [
         ("28_measured_vs_design_geometry.png",
-         "Figure 10. Left: drag error per Princeton model with design versus "
+         "Figure 11. Left: drag error per Princeton model with design versus "
          "measured coordinates; points below the line improved. Right: the "
          "as-built deviation of each model against how much that deviation alone "
          "moves NeuralFoil's drag; the dotted line is the 0.5% chord build-error "
          "scale used in section 2.5."),
     ]),
-    ("differ by 0.5", [
-        ("24_uiuc_stall_parity.png",
-         "Figure 11. Maximum lift and the angle it occurs at, NeuralFoil versus wind "
-         "tunnel, for the 298 clean lift sweeps that passed through stall."),
-        ("25_uiuc_lift_curves.png",
-         "Figure 12. Three lift curves through stall. Triangles: increasing angle; "
-         "open circles: decreasing angle (the gap is stall hysteresis); line: "
-         "NeuralFoil; grey band: NeuralFoil's confidence, which collapses past "
-         "the stall."),
+    ("Section 3.8 relies on that.", [
+        ("29_xfoil_decomposition.png",
+         "Figure 12. Where the drag error comes from. Left and middle: mean drag "
+         "error by Reynolds number in each tunnel for NeuralFoil versus tunnel "
+         "(blue), XFoil versus tunnel (green) and NeuralFoil versus XFoil (grey, "
+         "the network's own contribution), on the points where XFoil converged. "
+         "Right: the same three errors by confidence bin, both tunnels pooled; "
+         "the score tracks XFoil's error against experiment at least as closely "
+         "as the network's error against XFoil."),
     ]),
-    ("It is the basis for", [
-        ("22_uiuc_confidence_calibration.png",
-         "Figure 13. What NeuralFoil's confidence score tracks. Left: lift error is "
-         "flat across confidence bins. Middle: drag error falls steadily from 32% "
-         "to 9% as confidence rises. Right: the same relationship at the airfoil "
-         "level."),
+    ("not a general property of the score itself.", [
+        ("30_clustered_statistics.png",
+         "Figure 13. Honest uncertainty. Left and middle: point estimates with "
+         "airfoil-cluster bootstrap intervals (thin) and naive point-bootstrap "
+         "intervals (thick), with the width ratio labelled; clustered intervals "
+         "are two to five times wider, and every headline result survives. Right: "
+         "the confidence-versus-drag-error correlation split by level; in the "
+         "Princeton data it lives entirely within polars, which is why the "
+         "airfoil-level result does not replicate there."),
     ]),
-    ("the two extremes are shown in the figure", [
+    ("evaluated without this paper.", [
+        ("31_error_model.png",
+         "Figure 14. The fitted error model. Left: held-out calibration by decile "
+         "of predicted drag error, whole airfoils held out. Middle: multiplicative "
+         "effect of each feature. Right: expected drag error (solid) and its 80th "
+         "percentile (dotted) against confidence at four Reynolds numbers for a "
+         "representative section."),
+    ]),
+    ("sits on a razor-thin peak.", [
+        ("18_LD_vs_AoA_uncertainty.png",
+         "Figure 15. Lift-to-drag ratio versus angle of attack for airfoil A "
+         "(single-point) and B (robust) at three Reynolds numbers. Hatched bands "
+         "show the measured 15% surrogate uncertainty; both airfoils sit below "
+         "NeuralFoil's validated confidence range, so the band is a lower bound."),
+        ("19_tradeoff_uncertainty.png",
+         "Figure 16. Peak versus worst-case L/D across the design family. Error "
+         "bars are one-sided (true values trend downward at low Re). Airfoil A's "
+         "peak near 233 is produced where NeuralFoil reports near-zero confidence."),
+    ]),
+    ("the two extremes are shown in the figure.", [
         ("20_trust_vs_performance.png",
-         "Figure 14. The uncertainty-aware optimizer. Left: worst-case L/D against "
-         "mean confidence as the dial w_conf is turned up; the first step, from "
+         "Figure 17. The confidence-aware optimizer. Left: worst-case L/D against "
+         "mean confidence as the weight w_conf is turned up; the first step, from "
          "confidence 0.16 to 0.96, costs 2% of predicted L/D. Right: the two "
          "extreme shapes."),
     ]),

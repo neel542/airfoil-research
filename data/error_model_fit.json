@@ -1,0 +1,134 @@
+{
+  "target": "expected |dCD/CD| of NeuralFoil large, free transition, n_crit 9, clean airfoil, attached flow (|CL| > 0.1)",
+  "model": "Gamma GLM, log link: E[y] = exp(sum_i beta_i * x_i); 80th percentile = Gamma(shape 1/phi, scale mu*phi).ppf(0.8)",
+  "features": {
+    "one": "1",
+    "log_unconf": "log10(1.001 - analysis_confidence)",
+    "log_Re": "log10(Re / 1e5)",
+    "alpha": "angle of attack, deg",
+    "alpha_sq": "alpha^2",
+    "camber": "max camber, % chord",
+    "thickness": "max thickness, % chord"
+  },
+  "beta": {
+    "one": -1.4838385487673347,
+    "log_unconf": 0.6254141317383468,
+    "log_Re": -0.8418860599889987,
+    "alpha": -0.042569466254629464,
+    "alpha_sq": 0.009246279803912193,
+    "camber": 0.034489158703563005,
+    "thickness": 0.00029906645371114094
+  },
+  "dispersion_phi": 0.7201069856699382,
+  "n_points": 8211,
+  "n_airfoils": 94,
+  "cross_validation": {
+    "scheme": "10-fold with whole airfoils held out, pooled UIUC + Princeton",
+    "mae": {
+      "confidence_Re": 0.07707302213437173,
+      "confidence_only": 0.07939381239393202,
+      "constant": 0.08673782736636185,
+      "full": 0.07418854709132272,
+      "six_bin_table": 0.07938516686276777
+    },
+    "spearman": {
+      "confidence_Re": 0.2946811012577024,
+      "confidence_only": 0.21561702419014703,
+      "constant": NaN,
+      "full": 0.3903173536218911,
+      "six_bin_table": 0.2752792055002204
+    },
+    "coverage_80_full": 0.7968257083073012,
+    "coverage_95_full": 0.9529790374076883
+  },
+  "cross_tunnel": {
+    "train_Princeton_test_UIUC:confidence_Re": {
+      "mae": 0.07919299757582256,
+      "spearman": 0.3599939497696059
+    },
+    "train_Princeton_test_UIUC:confidence_only": {
+      "mae": 0.0832276980473632,
+      "spearman": 0.2899311390629509
+    },
+    "train_Princeton_test_UIUC:constant": {
+      "mae": 0.0888660943406448,
+      "spearman": NaN
+    },
+    "train_Princeton_test_UIUC:full": {
+      "mae": 0.07711785792521156,
+      "spearman": 0.3981187613142775
+    },
+    "train_Princeton_test_UIUC:six_bin_table": {
+      "mae": 0.08321141899948759,
+      "spearman": 0.33371304208117497
+    },
+    "train_UIUC_test_Princeton:confidence_Re": {
+      "mae": 0.07392892651758258,
+      "spearman": 0.22867349413297602
+    },
+    "train_UIUC_test_Princeton:confidence_only": {
+      "mae": 0.07421996205950009,
+      "spearman": 0.14910512240189513
+    },
+    "train_UIUC_test_Princeton:constant": {
+      "mae": 0.08468567037908967,
+      "spearman": NaN
+    },
+    "train_UIUC_test_Princeton:full": {
+      "mae": 0.07113155740526725,
+      "spearman": 0.357007517297805
+    },
+    "train_UIUC_test_Princeton:six_bin_table": {
+      "mae": 0.0743454588029472,
+      "spearman": 0.20805143600441828
+    }
+  },
+  "worked_examples": [
+    {
+      "NF_conf": 0.98,
+      "Re": 200000.0,
+      "alpha": 4,
+      "camber": 0.03,
+      "thickness": 0.1,
+      "expected_abs_errCD": 0.067,
+      "p80_abs_errCD": 0.1046
+    },
+    {
+      "NF_conf": 0.98,
+      "Re": 60000.0,
+      "alpha": 4,
+      "camber": 0.03,
+      "thickness": 0.1,
+      "expected_abs_errCD": 0.1041,
+      "p80_abs_errCD": 0.1624
+    },
+    {
+      "NF_conf": 0.9,
+      "Re": 100000.0,
+      "alpha": 4,
+      "camber": 0.03,
+      "thickness": 0.1,
+      "expected_abs_errCD": 0.1323,
+      "p80_abs_errCD": 0.2065
+    },
+    {
+      "NF_conf": 0.5,
+      "Re": 100000.0,
+      "alpha": 4,
+      "camber": 0.03,
+      "thickness": 0.1,
+      "expected_abs_errCD": 0.2044,
+      "p80_abs_errCD": 0.319
+    },
+    {
+      "NF_conf": 0.16,
+      "Re": 200000.0,
+      "alpha": 4,
+      "camber": 0.03,
+      "thickness": 0.1,
+      "expected_abs_errCD": 0.1826,
+      "p80_abs_errCD": 0.285
+    }
+  ],
+  "source": "fit_error_model.py"
+}
