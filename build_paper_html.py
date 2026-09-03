@@ -56,7 +56,7 @@ FIGURE_INSERTS = [
          "transition forced at the trip location (dashed) reproduces the tripped "
          "drag that a free-transition run (solid) misses."),
     ]),
-    ("coming out best, is shown in the figure", [
+    ("and 11 doubles the error.", [
         ("26_two_tunnels_and_ncrit.png",
          "Figure 8. Left: NeuralFoil's drag error by Reynolds number against the "
          "UIUC tunnel (red) and the Princeton tunnel (purple), mean and median. "
@@ -64,14 +64,14 @@ FIGURE_INSERTS = [
          "Princeton data; 9, the value used throughout, gives the lowest error "
          "and the smallest bias."),
     ]),
-    ("is therefore at the reproducibility of", [
+    ("so the lift error is the model's.", [
         ("27_tunnel_vs_tunnel.png",
          "Figure 9. The same airfoil in two wind tunnels. Diamonds: UIUC; squares: "
          "Princeton; dashed: NeuralFoil on the design coordinates; solid: NeuralFoil "
          "on the measured shape of the Princeton model. For the E387 at Re = 100k "
          "the two experiments differ by more than either differs from the model."),
     ]),
-    ("which is roughly half", [
+    ("the airfoil it was meant to be.", [
         ("28_measured_vs_design_geometry.png",
          "Figure 10. Left: drag error per Princeton model with design versus "
          "measured coordinates; points below the line improved. Right: the "

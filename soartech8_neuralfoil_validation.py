@@ -17,7 +17,7 @@ What this adds to the UIUC benchmark (uiuc_neuralfoil_validation.py):
      NeuralFoil can be run on the shape that was really in the tunnel. The
      difference between the two runs is the part of the error that is the
      model-builder's, not the surrogate's.
-  3. Tunnel-to-tunnel comparison. 30 airfoil families were tested in both
+  3. Tunnel-to-tunnel comparison. 15 benchmark airfoils were tested in both
      tunnels. At matched Reynolds number and angle of attack, the
      disagreement between the two experiments is a floor on what any
      prediction can be validated to; NeuralFoil's error is compared with
