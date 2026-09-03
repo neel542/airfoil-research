@@ -5,10 +5,12 @@ abstract: >-
   A reproducible pipeline and config-driven tool for robust, multi-objective
   airfoil optimization at low Reynolds number, using AeroSandbox and the
   differentiable NeuralFoil surrogate, with manufacturing-tolerance robustness
-  and independent XFoil validation. Includes a benchmark of NeuralFoil against
-  5,400 drag-run and 21,000 lift-run wind-tunnel points on 57 airfoils
-  (Re 30k-500k; clean, tripped and through stall) from the UIUC Low-Speed
-  Airfoil Tests archive, and an
+  and independent XFoil validation. Includes a two-tunnel benchmark of
+  NeuralFoil against 13,200 drag-run and 37,000 lift-run wind-tunnel points on
+  94 airfoils (Re 30k-500k; clean, tripped and through stall) from the UIUC
+  Low-Speed Airfoil Tests archive and the Princeton "Airfoils at Low Speeds"
+  data set, including a tunnel-to-tunnel comparison and NeuralFoil run on the
+  measured as-built model shapes, and an
   uncertainty-aware optimizer that uses the surrogate's measured reliability
   inside the design loop.
 type: software
@@ -27,8 +29,8 @@ keywords:
   - wind-tunnel validation
   - surrogate model
 license: MIT
-version: "1.2.0"
-date-released: "2026-09-02"
+version: "1.3.0"
+date-released: "2026-09-03"
 references:
   - type: software
     title: AeroSandbox

@@ -132,6 +132,97 @@ def test_uncertainty_sweep():
     _close(fam.loc[0.0, "worst_case_LD"], 38.2, 0.1, "airfoil B worst-case L/D")
 
 
+def test_soartech8_second_tunnel():
+    fit = _csv("soartech8_kulfan_fit.csv")
+    assert fit.fit_ok.all() and len(fit) == 68 and fit.primary_rms_pct.max() < 0.07
+    bd = fit.build_rms_pct.dropna()
+    assert len(bd) == 56
+    _close(bd.median(), 0.22, 0.02, "median build deviation % chord")
+    _close(bd.max(), 0.68, 0.02, "max build deviation % chord")
+    assert fit.loc[bd.idxmax(), "model"] == "E387B"
+    v = _csv("soartech8_neuralfoil_validation.csv")
+    c = v[(v.config == "clean") & (v.NF_mode == "free") & (v.nf == "large") & v.primary & v.fit_ok]
+    assert len(c) == 4702 and c.model.nunique() == 68 and c.family.nunique() == 54
+    _close(c.dCL.abs().mean(), 0.086, 0.002, "Princeton mean |dCL|")
+    _close(c.dCL.mean(), 0.046, 0.005, "Princeton CL bias")
+    _close(c.err_CD.abs().mean(), 0.111, 0.004, "Princeton mean |dCD/CD|")
+    _close(c.err_CD.abs().median(), 0.075, 0.004, "Princeton median |dCD/CD|")
+    _close(c.err_CD.mean(), 0.013, 0.005, "Princeton CD bias")
+    r = _csv("soartech8_validation_by_Re.csv"); L = r[r.nf == "large"].set_index("Re_bin")
+    _close(L.loc["60k", "mean_abs_err_CD"], 0.17, 0.01, "Princeton 60k drag error")
+    _close(L.loc["60k", "mean_err_CD"], 0.12, 0.01, "Princeton 60k drag bias")
+    _close(L.loc["300k", "mean_err_CD"], -0.04, 0.01, "Princeton 300k drag bias")
+    d = c[c.WT_CL > 0.2]
+    e = (d.NF_CL / d.NF_CD - d.WT_CL / d.WT_CD) / (d.WT_CL / d.WT_CD)
+    _close(e.abs().median(), 0.15, 0.01, "Princeton median |dLD/LD|")
+    _close(e.abs().mean(), 0.21, 0.01, "Princeton mean |dLD/LD|")
+    _close(e.mean(), 0.15, 0.01, "Princeton L/D bias")
+    nc = _csv("soartech8_ncrit_sensitivity.csv").set_index("n_crit")
+    assert nc.mean_abs_err_CD.idxmin() == 9.0, "n_crit = 9 should be the best setting"
+    _close(nc.loc[7.0, "mean_err_CD"], -0.05, 0.01, "n_crit 7 bias")
+    assert nc.loc[11.0, "mean_abs_err_CD"] > 0.19
+
+
+def test_soartech8_geometry_effect():
+    ge = _csv("soartech8_geometry_effect.csv")
+    assert len(ge) == 56 and int((ge.abs_errCD_measured < ge.abs_errCD_design).sum()) == 46
+    v = _csv("soartech8_neuralfoil_validation.csv")
+    b = v[(v.config == "clean") & (v.NF_mode == "free") & (v.nf == "large") & v.fit_ok & v.model.isin(ge.model)]
+    piv = b.pivot_table(index=["model", "Re", "alpha"], columns="geom", values=["err_CD", "dCL", "NF_CD", "NF_CL"])
+    assert len(piv) == 4010
+    _close(piv["err_CD"]["design"].abs().mean(), 0.128, 0.004, "drag error, design coords")
+    _close(piv["err_CD"]["measured"].abs().mean(), 0.111, 0.004, "drag error, measured coords")
+    _close(piv["dCL"]["design"].abs().mean(), 0.091, 0.003, "lift error, design coords")
+    _close(piv["dCL"]["measured"].abs().mean(), 0.081, 0.003, "lift error, measured coords")
+    shift = ((piv["NF_CD"]["measured"] - piv["NF_CD"]["design"]) / piv["NF_CD"]["design"]).abs().mean()
+    _close(shift, 0.051, 0.005, "NF drag shift from geometry alone")
+    e = ge[ge.model == "E387B"].iloc[0]
+    _close(e.abs_errCD_design, 0.13, 0.01, "E387B design"); _close(e.abs_errCD_measured, 0.08, 0.01, "E387B measured")
+
+
+def test_cross_tunnel():
+    ct = _csv("cross_tunnel_comparison.csv")
+    assert len(ct) == 2139 and ct.asb_name.nunique() == 15
+    assert ct.groupby(["asb_name", "Re_princeton", "uiuc_file"]).ngroups == 131
+    _close(ct.errCD_tunnels.abs().mean(), 0.118, 0.005, "tunnel-vs-tunnel |dCD/CD|")
+    _close(ct.errCD_tunnels.mean(), 0.063, 0.005, "tunnel-vs-tunnel CD bias (UIUC higher)")
+    _close(ct.dCL_tunnels.abs().mean(), 0.048, 0.003, "tunnel-vs-tunnel |dCL|")
+    _close(ct.errCD_NF_vs_uiuc.abs().mean(), 0.111, 0.005, "NF vs UIUC on matched points")
+    _close(ct.errCD_NF_vs_princeton.abs().mean(), 0.101, 0.005, "NF vs Princeton on matched points")
+    _close(ct.dCL_NF_vs_uiuc.abs().mean(), 0.066, 0.003, "NF vs UIUC |dCL|")
+    _close(ct.dCL_NF_vs_princeton.abs().mean(), 0.080, 0.003, "NF vs Princeton |dCL|")
+    _close((ct.errCD_NF_vs_princeton.abs() < ct.errCD_tunnels.abs()).mean(), 0.53, 0.02, "fraction NF closer than other tunnel")
+    hi = ct[ct.Re_princeton >= 175e3]
+    assert hi.errCD_tunnels.abs().mean() < 0.09 and hi.errCD_NF_vs_princeton.abs().mean() < 0.08
+
+
+def test_soartech8_trips_stall_confidence():
+    v = _csv("soartech8_neuralfoil_validation.csv")
+    t = v[(v.config == "tripped") & (v.nf == "large") & v.primary & v.fit_ok]
+    assert len(t[t.NF_mode == "free"]) == 1744 and t.airfoil_label.nunique() == 34 and t.model.nunique() == 18
+    _close(t[t.NF_mode == "free"].err_CD.abs().mean(), 0.135, 0.005, "tripped free drag error")
+    _close(t[t.NF_mode == "forced"].err_CD.abs().mean(), 0.118, 0.005, "tripped forced drag error")
+    _close(t[t.NF_mode == "free"].dCL.abs().mean(), 0.084, 0.003, "tripped free |dCL|")
+    _close(t[t.NF_mode == "forced"].dCL.abs().mean(), 0.071, 0.003, "tripped forced |dCL|")
+    st = _csv("soartech8_stall_validation.csv")
+    b = st[st.stall_captured & (st.Re >= 55e3)]
+    assert len(b) == 114 and b.family.nunique() == 35
+    _close(b.dCLmax.mean(), 0.11, 0.01, "Princeton mean dCLmax")
+    _close(b.dalpha_CLmax.abs().median(), 1.4, 0.2, "Princeton median |dalpha|")
+    s = v[(v.config == "clean") & (v.NF_mode == "free") & (v.nf == "large") & v.primary & v.fit_ok & (v.WT_CL.abs() > 0.1)]
+    assert len(s) == 4216
+    _close(np.corrcoef(s.NF_conf, s.err_CD.abs())[0, 1], -0.26, 0.03, "Princeton r(conf, |dCD/CD|)")
+    _close(np.corrcoef(s.NF_conf, s.dCL.abs())[0, 1], -0.03, 0.03, "Princeton r(conf, |dCL|)")
+    cb = _csv("soartech8_validation_confidence_bins.csv")
+    _close(cb.mean_abs_err_CD.iloc[0], 0.30, 0.01, "Princeton drag error, confidence < 0.5")
+    _close(cb.mean_abs_err_CD.iloc[-1], 0.10, 0.01, "Princeton drag error, confidence > 0.95")
+    assert int(cb.n.iloc[-1]) == 3742
+    from scipy import stats
+    ba = _csv("soartech8_validation_by_airfoil.csv")
+    rho = stats.spearmanr(ba.mean_conf, ba.mean_abs_err_CD)
+    assert abs(rho.correlation) < 0.2 and rho.pvalue > 0.05, "airfoil-level correlation does not replicate on Princeton"
+
+
 if __name__ == "__main__":
     fails = 0
     for name, fn in sorted(globals().items()):
