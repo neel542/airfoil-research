@@ -149,9 +149,18 @@ FIGURE_INSERTS = [
          "The closure loop roughly doubles the hover-power error, and take-off weight "
          "still moves about two thirds of a percent per percent of section drag."),
     ]),
+    ("propagate into the 1.7.", [
+        ("35_forward_flight.png",
+         "Figure 20. The same rotor in level forward flight. Left: shaft power and "
+         "its three parts against speed, showing the power bucket with its minimum "
+         "at 12 m/s. Right: the profile share of shaft power climbs from 41 percent "
+         "in hover to 68 percent at 14 m/s, and the power error caused by a fixed "
+         "11.7 percent section drag error climbs with it, to 1.7 times the hover "
+         "value."),
+    ]),
     ("the two extremes are shown in the figure.", [
         ("20_trust_vs_performance.png",
-         "Figure 20. The confidence-aware optimizer. Left: worst-case L/D against "
+         "Figure 21. The confidence-aware optimizer. Left: worst-case L/D against "
          "mean confidence as the weight w_conf is turned up; the first step, from "
          "confidence 0.16 to 0.96, costs 2% of predicted L/D. Right: the two "
          "extreme shapes."),

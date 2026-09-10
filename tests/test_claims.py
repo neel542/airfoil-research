@@ -129,6 +129,21 @@ def test_rotor_propagation():
     mc_sym = s.loc["correlated_symmetric"].mean_abs
     assert 1.0 < mc_sym / rule < 1.25, "the rule and the draw have drifted apart"
 
+    # forward flight: the profile share, and the error with it, rise with speed
+    ff = _csv("rotor_forward_flight.csv")
+    assert ff.mu.max() <= 0.21, "the forward-flight model is not defensible past mu = 0.2"
+    assert (ff.P_induced > 0).all(), "a negative induced power means the model has left its range"
+    hover, peak = ff.iloc[0], ff.loc[ff.dP_pct.idxmax()]
+    _close(hover.profile_frac, 0.407, 0.01, "profile share in hover")
+    _close(peak.profile_frac, 0.678, 0.01, "peak profile share")
+    _close(peak.dP_pct / hover.dP_pct, 1.71, 0.06, "forward flight vs hover")
+    assert peak.V > hover.V, "the profile share must rise with airspeed"
+    # the power bucket, and the unhappy coincidence in it
+    assert abs(ff.loc[ff.P_shaft.idxmin()].V - peak.V) <= 4, \
+        "least-power speed and worst-error speed should sit close together"
+    # the propagation rule survives the change of flight condition
+    assert 0.92 < ff.law_coeff.min() and ff.law_coeff.max() < 0.98
+
     w = _csv("rotor_weight_closure.csv").set_index("label")
     _close(w.loc["model"].m_total_kg, 15.71, 0.05, "take-off mass the model predicts")
     for lab in ["5th percentile", "median", "95th percentile"]:

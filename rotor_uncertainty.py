@@ -39,8 +39,10 @@ Inputs  : data/error_model_fit.json          the fitted Gamma drag-error model
 Outputs : data/rotor_design.csv              blade stations at the trim point
           data/rotor_propagation.csv         Monte Carlo, four error cases
           data/rotor_weight_closure.csv      the closure loop and amplification
+          data/rotor_forward_flight.csv     the profile share against airspeed
           figures/33_rotor_power_uncertainty.png
           figures/34_weight_amplification.png
+          figures/35_forward_flight.png
 
 Usage   : python rotor_uncertainty.py              the full study, about 17 minutes
           python rotor_uncertainty.py --explore     rotor sizing sweep only
@@ -450,7 +452,7 @@ def closure(rotor, cd_scale=1.0, cfg=None, tol=1e-6, max_iter=60):
 # ═════════════════════════════════════════════════════════════════════════
 # Figures
 # ═════════════════════════════════════════════════════════════════════════
-def figures(rotor, nominal, stations, mc, closure_tbl, mu):
+def figures(rotor, nominal, stations, mc, closure_tbl, mu, ff=None):
     import matplotlib
     matplotlib.use("Agg")
     import matplotlib.pyplot as plt
@@ -592,6 +594,57 @@ def figures(rotor, nominal, stations, mc, closure_tbl, mu):
     plt.close(fig)
     print("  wrote figures/34_weight_amplification.png")
 
+    # ── 35: forward flight, where the profile share takes over ────────────
+    if ff is None:
+        return
+    fig, axes = plt.subplots(1, 2, figsize=(11.8, 4.5))
+
+    ax = axes[0]
+    ax.stackplot(ff.V, ff.P_induced, ff.P_profile, ff.P_propulsive,
+                 labels=["induced", "profile", "propulsive"],
+                 colors=["#2166ac", "#b2182b", "#999999"], alpha=0.9)
+    ax.plot(ff.V, ff.P_shaft, color="#222222", lw=2, label="shaft power")
+    vmin = ff.loc[ff.P_shaft.idxmin()]
+    ax.plot([vmin.V], [vmin.P_shaft], "o", color="#222222", ms=7)
+    ax.annotate(f"least power, {vmin.V:.0f} m/s", (vmin.V, vmin.P_shaft),
+                textcoords="offset points", xytext=(6, 12), fontsize=9)
+    ax.set_xlabel("flight speed (m/s)"); ax.set_ylabel("power, one rotor (W)")
+    ax.set_title("Where the power goes")
+    ax.set_xlim(ff.V.min(), ff.V.max())
+    ax.legend(loc="upper center", ncol=2, fontsize=9)
+    clean(ax)
+
+    ax = axes[1]
+    ax.plot(ff.V, 100 * ff.profile_frac, "o-", color=C_COR, lw=2.2, ms=5.5,
+            label="profile share of shaft power")
+    ax.set_ylabel("profile share of shaft power (%)", color=C_COR)
+    ax.tick_params(axis="y", colors=C_COR)
+    ax.set_ylim(0, 100)
+    ax2 = ax.twinx()
+    ax2.plot(ff.V, ff.dP_pct, "s--", color=C_IND, lw=2, ms=5,
+             label=f"power error from a {ff.e_test_pct.iloc[0]:.1f}% drag error")
+    ax2.set_ylabel("shaft power error (%)", color=C_IND)
+    ax2.tick_params(axis="y", colors=C_IND); ax2.grid(False)
+    ax2.set_ylim(0, ff.dP_pct.max() * 1.35)
+    pk = ff.loc[ff.dP_pct.idxmax()]
+    ax2.annotate(f"{pk.dP_pct:.1f}% at {pk.V:.0f} m/s,\n"
+                 f"{pk.dP_pct / ff.dP_pct.iloc[0]:.1f}x the hover value",
+                 (pk.V, pk.dP_pct), textcoords="offset points", xytext=(-10, 14),
+                 ha="right", fontsize=9, color=C_IND)
+    ax.set_xlabel("flight speed (m/s)")
+    ax.set_title("Hover is the mild case")
+    lines = ax.get_lines() + ax2.get_lines()
+    ax.legend(lines, [l.get_label() for l in lines], loc="lower right", fontsize=9)
+    clean(ax)
+
+    fig.suptitle("Forward flight: the profile share of power rises with airspeed, "
+                 "and the drag error rises with it",
+                 fontsize=12.5, fontweight="bold", y=1.02)
+    fig.tight_layout()
+    fig.savefig(os.path.join(FIG, "35_forward_flight.png"), bbox_inches="tight")
+    plt.close(fig)
+    print("  wrote figures/35_forward_flight.png")
+
 
 # ═════════════════════════════════════════════════════════════════════════
 def main(explore=False, from_cache=False):
@@ -707,8 +760,179 @@ def main(explore=False, from_cache=False):
           f"weight per percent of section drag")
     print("  " + ("the error compounds" if amp > 1 else "the error is diluted, not amplified"))
 
-    figures(rotor, nom, st, mc, tbl, mu)
+    # ── forward flight: the profile share, and the error, against airspeed ──
+    print("\nForward flight ...")
+    ff = forward_flight_sweep(rotor, N_ROTORS * THRUST_PER_ROTOR)
+    ff["law_coeff"] = ff.dP_pct / (ff.profile_frac * ff.e_test_pct)
+    ff.to_csv(os.path.join(DATA, "rotor_forward_flight.csv"), index=False)
+    print(ff[["V", "mu", "P_induced", "P_profile", "P_propulsive", "P_shaft",
+              "profile_frac", "dP_pct", "law_coeff"]].round(3).to_string(index=False))
+    h, pk = ff.iloc[0], ff.loc[ff.dP_pct.idxmax()]
+    print(f"\n  Profile share {100 * h.profile_frac:.1f}% in hover, peaking at "
+          f"{100 * pk.profile_frac:.1f}% at {pk.V:.0f} m/s. A fixed "
+          f"{h.e_test_pct:.1f}% drag error costs {h.dP_pct:.2f}% of shaft power in "
+          f"hover and {pk.dP_pct:.2f}% there, {pk.dP_pct / h.dP_pct:.2f} times worse.")
+    print(f"  Least power at {ff.loc[ff.P_shaft.idxmin()].V:.0f} m/s, which is "
+          f"within 2 m/s of where the drag error hurts most.")
+
+    figures(rotor, nom, st, mc, tbl, mu, ff)
     print("\nDone.")
+
+
+
+
+# ═════════════════════════════════════════════════════════════════════════
+# Forward flight
+# ═════════════════════════════════════════════════════════════════════════
+# Govindarajan's third point: the profile share of power rises with airspeed,
+# so hover is the mild case for this question. This checks that, and measures
+# how much worse forward flight actually is.
+#
+# The model is the standard preliminary-design one. Uniform inflow from
+# Glauert's formula, solved against the thrust the blade elements produce;
+# blade elements integrated over azimuth as well as span, with the local
+# velocity U_T = Omega*r + V*sin(psi) that makes the advancing blade fast and
+# the retreating blade slow; induced and profile power separated exactly as in
+# hover, from the CL sin(phi) and CD cos(phi) parts of the in-plane force.
+#
+# What it leaves out: cyclic pitch and the roll trim it exists to provide, blade
+# flapping, and any non-uniform inflow beyond the uniform value. A multirotor
+# has no cyclic anyway and reacts its roll moment across the rotor set. Inside
+# the reverse-flow disk, where U_T < 0, lift is set to zero and drag to a bluff
+# 0.10, which is the usual preliminary treatment; the affected disk fraction is
+# reported so the reader can see when it starts to matter.
+FLAT_PLATE_AREA = 0.05      # m^2, equivalent airframe drag area for this class
+REVERSE_FLOW_CD = 0.10
+
+
+def _airframe_drag(V):
+    return 0.5 * RHO * V ** 2 * FLAT_PLATE_AREA
+
+
+class ForwardFlight:
+    """One rotor of the design aircraft, in level flight at speed V."""
+
+    def __init__(self, rotor, weight_N, n_rotors=N_ROTORS, n_psi=36):
+        self.r = rotor
+        self.W = weight_N
+        self.n_rotors = n_rotors
+        self.psi = np.linspace(0, 2 * np.pi, n_psi, endpoint=False)
+        CT = (weight_N / n_rotors) / (RHO * rotor.area * (rotor.omega * rotor.R) ** 2)
+        self.B = 1.0 - np.sqrt(2.0 * CT) / rotor.Nb        # Prandtl effective radius
+
+    def _trim_state(self, V):
+        """Forward disk tilt and thrust that hold level flight at V.
+
+        The disk tilts forward by tau to point part of its thrust at the
+        airframe drag. Tilting it that way also turns the freestream partly
+        into inflow: V sin(tau) passes through the disk in the same direction
+        as the induced velocity, exactly as it does through a propeller. That
+        term is what carries the propulsive power, so the blade-element torque
+        already contains the work done against airframe drag and it must not
+        be added again.
+        """
+        D = _airframe_drag(V) if V > 0 else 0.0
+        T_total = np.hypot(self.W, D)
+        tau = np.arctan2(D, self.W)                   # forward tilt, radians
+        return D, T_total / self.n_rotors, tau
+
+    def _integrate(self, V, collective, lam_i, tau, cd_scale):
+        r, R, om = self.r, self.r.R, self.r.omega
+        mu_x = V * np.cos(tau) / (om * R)
+        mu_z = V * np.sin(tau) / (om * R)              # through the disk, adds to inflow
+        lam = mu_z + lam_i
+        u_p = lam * om * R                            # uniform, positive downward
+        T = Qi = Qp = 0.0
+        rev = 0.0
+        cd_scale = np.broadcast_to(np.atleast_1d(cd_scale), (len(r.x),))
+        for j, psi in enumerate(self.psi):
+            u_t = om * r.r + V * np.cos(tau) * np.sin(psi)
+            reverse = u_t < 0
+            rev += reverse.mean()
+            u_t_eff = np.abs(u_t)
+            u = np.hypot(u_t_eff, u_p)
+            phi = np.arctan2(u_p, np.maximum(u_t_eff, 1e-6))
+            alpha = np.rad2deg(r.twist + collective - phi)
+            Re = u * r.chord / NU
+            cl, cd = r.section(np.clip(alpha, -10, 20), Re)
+            cd = cd * cd_scale
+            cl = np.where(reverse, 0.0, cl)           # reverse flow: no useful lift
+            cd = np.where(reverse, REVERSE_FLOW_CD, cd)
+            q = 0.5 * RHO * u ** 2 * r.chord * r.Nb
+            # Prandtl tip loss, in its forward-flight form: the outer (1 - B) of
+            # the blade carries no lift but still carries its own drag
+            lift_ok = r.x <= self.B
+            dT = q * (np.where(lift_ok, cl, 0.0) * np.cos(phi) - cd * np.sin(phi))
+            T += float(np.sum(dT * r.dr))
+            Qi += float(np.sum(q * np.where(lift_ok, cl, 0.0) * np.sin(phi) * r.r * r.dr))
+            Qp += float(np.sum(q * cd * np.cos(phi) * r.r * r.dr))
+        n = len(self.psi)
+        return T / n, Qi / n, Qp / n, rev / n
+
+    def solve(self, V, collective, cd_scale=1.0, tol=1e-7, max_iter=60):
+        """Thrust and power at one speed and collective, inflow converged."""
+        D, T_target, tau = self._trim_state(V)
+        om, R, A = self.r.omega, self.r.R, self.r.area
+        lam_i = np.sqrt(T_target / (2 * RHO * A)) / (om * R)      # hover value as a start
+        mu_x = V * np.cos(tau) / (om * R)
+        mu_z = V * np.sin(tau) / (om * R)
+        for _ in range(max_iter):
+            T, Qi, Qp, rev = self._integrate(V, collective, lam_i, tau, cd_scale)
+            CT = T / (RHO * A * (om * R) ** 2)
+            lam = mu_z + lam_i
+            lam_new = CT / (2 * np.sqrt(mu_x ** 2 + lam ** 2)) if (mu_x or lam) else lam_i
+            if abs(lam_new - lam_i) < tol:
+                lam_i = lam_new
+                break
+            lam_i = lam_i + 0.5 * (lam_new - lam_i)
+        T, Qi, Qp, rev = self._integrate(V, collective, lam_i, tau, cd_scale)
+        P_lift, P_profile = om * Qi, om * Qp           # shaft power, the whole of it
+        # the lift vector's in-plane work splits into propulsion and induced
+        P_propulsive = D * V / self.n_rotors
+        P_induced = P_lift - P_propulsive
+        P_shaft = P_lift + P_profile
+        return dict(V=V, mu=mu_x, tilt_deg=np.rad2deg(tau), T=T,
+                    T_target=T_target, lam_i=lam_i, reverse_flow_frac=rev,
+                    P_induced=P_induced, P_profile=P_profile,
+                    P_propulsive=P_propulsive, P_shaft=P_shaft,
+                    profile_frac=P_profile / P_shaft,
+                    induced_frac=P_induced / P_shaft,
+                    propulsive_frac=P_propulsive / P_shaft,
+                    collective_deg=np.rad2deg(collective))
+
+    def trim(self, V, cd_scale=1.0, lo=-14.0, hi=26.0):
+        _, T_target, _ = self._trim_state(V)
+        f = lambda c: self.solve(V, np.deg2rad(c), cd_scale)["T"] - T_target
+        c = brentq(f, lo, hi, xtol=1e-6)
+        return self.solve(V, np.deg2rad(c), cd_scale)
+
+
+# Above about mu = 0.2 a uniform-inflow model with no cyclic pitch and no
+# flapping stops being defensible: the advancing and retreating sides need
+# cyclic to balance, the reverse-flow disk grows, and the derived induced term
+# turns negative, which is the model telling you it has left its range. The
+# sweep therefore stops at 20 m/s, which is a realistic cruise for this
+# aircraft anyway.
+MU_LIMIT = 0.20
+
+
+def forward_flight_sweep(rotor, weight_N,
+                         speeds=(0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20),
+                         e_test=0.117):
+    """How the profile share, and the propagated error, move with airspeed."""
+    rows = []
+    for V in speeds:
+        ff = ForwardFlight(rotor, weight_N)
+        base = ff.trim(V)
+        hi = ff.trim(V, cd_scale=1.0 / (1.0 + e_test))
+        rows.append(dict(
+            **{k: base[k] for k in ["V", "mu", "tilt_deg", "reverse_flow_frac",
+                                    "collective_deg", "P_induced", "P_profile",
+                                    "P_propulsive", "P_shaft", "profile_frac",
+                                    "induced_frac", "propulsive_frac"]},
+            dP_pct=100 * (base["P_shaft"] - hi["P_shaft"]) / hi["P_shaft"],
+            e_test_pct=100 * e_test))
+    return pd.DataFrame(rows)
 
 
 if __name__ == "__main__":

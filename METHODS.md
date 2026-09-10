@@ -236,10 +236,28 @@ iterates payload + structure fraction + battery to a fixed point (2.5 kg
 payload, 0.40 structure fraction, 45 min hover, 180 Wh/kg pack, 85% usable,
 85% drivetrain). Across the 28 in-envelope sweep configurations the propagated power error is
 0.93 x (profile share) x (section drag error), SD 0.009, while the propagated
-error itself ranges 1.5-5.8% for a fixed 11.7% section error. Results in
-section 3.5 of PAPER.md; data
+error itself ranges 1.5-5.8% for a fixed 11.7% section error.
+
+**Forward flight.** The same rotor in level flight, trimmed at each speed
+against an airframe flat-plate area of 0.05 m2, blade elements integrated over
+36 azimuth stations as well as span, uniform inflow from Glauert
+(lambda = mu_z + lambda_i, lambda_i = C_T/(2*sqrt(mu^2+lambda^2)), fixed
+point), Prandtl effective radius B = 1 - sqrt(2*C_T)/N_b, and the reverse-flow
+disk (U_T < 0) given zero lift and C_D = 0.10. The forward tilt
+tau = atan(D/W) turns V sin(tau) into inflow, so the blade-element torque
+already carries the propulsive power and it is not added again. Profile share
+rises 40.7% (hover) to 67.8% (14 m/s); a fixed 11.7% section error costs 4.47%
+of shaft power in hover and 7.64% at 14 m/s, a factor of 1.71. Shaft power
+minimum 216 W at 12 m/s. Stopped at mu = 0.2: no cyclic, no flapping, and the
+derived induced term turns negative beyond it. At V = 0 this solver gives
+291 W and a 40.7% profile share against the hover solver's 300 W and 36.9%, so
+forward-flight results are quoted only as ratios within it. Data
+`data/rotor_forward_flight.csv`; `figures/35`.
+
+Results in section 3.5 of PAPER.md; data
 `data/rotor_design.csv`, `data/rotor_propagation.csv`,
-`data/rotor_propagation_summary.csv`, `data/rotor_weight_closure.csv`;
+`data/rotor_propagation_summary.csv`, `data/rotor_weight_closure.csv`,
+`data/rotor_forward_flight.csv`;
 `figures/33-34`.
 
 ## 8. Reproducibility

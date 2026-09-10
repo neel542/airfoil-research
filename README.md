@@ -311,9 +311,19 @@ summaries; raw files in `data/soartech8/`.
   moves less than the drag error: the **amplification factor is 0.62-0.68**,
   steady across the distribution. In grams, the 90% interval of the measured
   error is worth about **3 kg on a 15.7 kg aircraft**.
-- BEMT is a model with its own unquantified error, this is hover only, and the
-  Gamma model was fitted to non-rotating two-dimensional residuals. The study
-  propagates uncertainty; it does not predict a rotor.
+- **Hover is the mild case.** The same rotor in level forward flight: shaft
+  power falls from 291 W to a minimum of 216 W at 12 m/s (the power bucket),
+  while the profile share climbs from **41% in hover to 68% at 14 m/s**. The
+  same 11.7% drag error costs 7.6% of shaft power there against 4.5% in hover,
+  so forward flight is **1.7x worse**. The rule holds throughout, coefficient
+  0.938 to 0.963. And an unhappy coincidence: least-power speed (12 m/s) sits
+  within 2 m/s of worst-error speed (14 m/s), so an endurance mission is sized
+  exactly where the uncertainty bites hardest.
+- BEMT is a model with its own unquantified error and the Gamma model was
+  fitted to non-rotating two-dimensional residuals. Forward flight is coarser
+  still: uniform inflow, no cyclic, no flapping, stopped at mu = 0.2, and 3%
+  off the hover solver at zero speed, so its numbers are only quoted as ratios
+  within itself. The study propagates uncertainty; it does not predict a rotor.
 
 ## Uncertainty-aware optimizer (`uncertainty_aware_design.py`)
 
@@ -528,6 +538,7 @@ data/
   rotor_sizing_sweep.csv   # 48 rotors: why Reynolds position and figure of merit trade
   rotor_propagation.csv / rotor_propagation_summary.csv  # 4,000 Monte Carlo rotor trims
   rotor_weight_closure.csv # power -> battery -> weight, and the amplification factor
+  rotor_forward_flight.csv # profile share and propagated error against airspeed
   uncertainty_aware_sweep.csv
 figures/
   1_shapes.png             # overlaid optimized shapes
@@ -543,4 +554,5 @@ figures/
   29_xfoil_decomposition.png / 30_clustered_statistics.png / 31_error_model.png
   32_error_vs_reynolds.png # drag error vs Re, both archives, network and XFoil separated
   33_rotor_power_uncertainty.png / 34_weight_amplification.png   # the rotor and the weight loop
+  35_forward_flight.png    # the power bucket, and the profile share rising with airspeed
 ```

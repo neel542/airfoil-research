@@ -27,9 +27,9 @@ top of that there are 2,629 points with a trip strip and 412 lift sweeps
 that go past the stall. XFoil itself was run at all 9,130 conditions, which
 splits the error into XFoil's share and the network's share. Fifteen
 airfoils were tested in both tunnels, so the tunnels can be checked against
-each other. The measured error is then carried through a hovering rotor and a
-weight-closure loop, so the benchmark reports what it costs a design and not
-only what it is. Every number carries an error bar built by resampling whole
+each other. The measured error is then carried through a rotor, in hover and
+in forward flight, and through a weight-closure loop, so the benchmark reports
+what it costs a design and not only what it is. Every number carries an error bar built by resampling whole
 airfoils, and a fitted model turns any prediction into an expected drag
 error.
 
@@ -57,7 +57,9 @@ arrives divided by three, because two thirds of hover power is induced. Close
 the design loop, letting battery mass feed back into take-off weight, and it
 doubles again: the amplification factor from section drag to take-off weight
 is 0.63, and the 90 percent interval of the measured error is worth three
-kilograms on a 15.7 kg aircraft. Finally, a design pipeline uses all
+kilograms on a 15.7 kg aircraft. Hover is the mild case: in forward flight the
+profile share of shaft power climbs from 41 to 68 percent and the same error
+costs 1.7 times as much. Finally, a design pipeline uses all
 of this: a small reward for staying where NeuralFoil is confident moves a
 design out of its worst region for about 2 percent of predicted worst-case
 L/D.
@@ -162,9 +164,10 @@ that was measured.
    breakdown of where the confidence-versus-error link actually lives, and a
    cross-checked model that turns a prediction into an expected error.
 5. **What the error costs a design.** The measured drag error propagated
-   through a blade-element rotor in hover and a weight-closure loop, with the
-   correlation assumption stated and both bounds reported, giving an
-   amplification factor from section drag to take-off weight.
+   through a blade-element rotor in hover and in forward flight, and through a
+   weight-closure loop, with the correlation assumption stated and both bounds
+   reported. It gives an amplification factor from section drag to take-off
+   weight, and a rule for carrying a section error into any rotor.
 6. **A working design pipeline** for worst-case, multi-objective and
    build-tolerant airfoils, plus a version that uses the measured confidence
    calibration inside the design loop.
@@ -891,6 +894,46 @@ worth about three kilograms of take-off mass, from 14.76 to 17.81 kg on a
 15.71 kg design. That is the number a design review would want, and it comes
 from a wind tunnel rather than from a rule of thumb.
 
+**Hover was the mild case.** Govindarajan's third point was that the profile
+fraction rises with airspeed, which makes hover the friendliest place to ask
+this question. It does, and it is. The same rotor was run in level forward
+flight, trimmed at each speed against an airframe drag area of 0.05 m2, with
+the blade elements integrated over azimuth as well as span and the inflow
+taken from Glauert's formula. Shaft power falls from 291 W in hover to a
+minimum of 216 W at 12 m/s and climbs again as airframe drag takes over, which
+is the familiar power bucket and is the first sign the model is behaving.
+
+| Speed | μ | Induced (W) | Profile (W) | Propulsive (W) | Shaft (W) | Profile share | Power error from 11.7 percent |
+|---:|---:|---:|---:|---:|---:|---:|---:|
+| 0 (hover) | 0 | 173 | 119 | 0 | 291 | 40.7% | 4.47% |
+| 6 | 0.06 | 113 | 129 | 2 | 243 | 52.9% | 5.87% |
+| 12 | 0.12 | 59 | 144 | 13 | 216 | 66.6% | 7.49% |
+| 14 | 0.14 | 49 | 147 | 21 | 217 | 67.8% | 7.64% |
+| 20 | 0.20 | 23 | 151 | 61 | 235 | 64.1% | 7.19% |
+
+The profile share climbs from 41 percent in hover to 68 percent at 14 m/s, and
+the same fixed drag error costs 7.6 percent of shaft power there against 4.5
+percent in hover. Forward flight is **1.7 times worse**, and the rule holds
+through all of it: the coefficient drifts only from 0.938 to 0.963 across the
+whole speed range.
+
+There is an unhappy coincidence in those two columns. Shaft power is lowest at
+12 m/s and the profile share peaks at 14. The speed this aircraft would cruise
+at, because it is the cheapest, is within two metres per second of the speed
+where a surrogate drag error does the most damage. Sizing an endurance mission
+at the best-endurance speed puts the design exactly where this uncertainty
+matters most.
+
+Two limits on that. Above μ ≈ 0.2 a uniform-inflow model with no cyclic pitch
+and no flapping stops being defensible, and the sweep stops there rather than
+producing numbers it cannot stand behind. And the forward-flight solver and
+the hover solver are not the same model: run at zero speed, the forward-flight
+one gives 291 W against the hover solver's 300, and a profile share of 40.7
+percent against 36.9. Two standard treatments of the same rotor, three percent
+apart on power and four points apart on the split. Every forward-flight number
+above is a comparison within one of them, which is why that gap does not
+propagate into the 1.7.
+
 ### 3.6 Peak performance against a wing that holds up everywhere
 
 | Airfoil | Goal | Peak L/D | Worst-case L/D | Max thickness |
@@ -1011,7 +1054,10 @@ a 2.9 percent power error; then through a design loop, where battery mass
 feeds back into weight and weight back into power, and that same error becomes
 15 percent of hover power at the tail of the distribution but only 12 percent
 of take-off weight. The chain both dilutes and compounds, in different places,
-and neither effect is visible from the section number alone. Uncertainty
+and neither effect is visible from the section number alone. And hover is the
+friendly case: fly the same rotor forward and the profile share of shaft power
+climbs from 41 to 68 percent, so the same section error costs 1.7 times as
+much at cruise as it does hovering. Uncertainty
 quantification earns its keep exactly here: it says how much of what is
 unknown early survives to the end. For this aircraft the answer is about two
 thirds of a percent of take-off weight per percent of section drag, and a
@@ -1093,9 +1139,13 @@ nothing in predicted performance.
   meant to carry weight. The rotor is also idealised: no hub, no blade-root
   fittings, no interference between rotors, and a figure of merit of 0.57
   that BEMT most likely flatters.
-- **Hover only.** The profile share of power rises with airspeed, so hover is
-  the mild case for this question and forward flight would be worse. No
-  forward-flight numbers are claimed here because none were run.
+- **Forward flight is a coarser model than hover.** It uses uniform inflow, no
+  cyclic pitch, no blade flapping, and a bluff-body treatment of the
+  reverse-flow disk, and it stops at μ = 0.2 for that reason. Run at zero
+  speed it disagrees with the hover solver by 3 percent on power and 4 points
+  on the induced-profile split, so forward-flight results are only quoted as
+  ratios within that solver. Climb, descent, manoeuvre and gusts are not
+  covered at all.
 - **The error model was fitted to a wind tunnel, not to a blade.** The Gamma
   model draws on two-dimensional, non-rotating residuals. Rotational effects
   on the boundary layer, radial flow and centrifugal pumping among them, are
@@ -1145,8 +1195,12 @@ error is diluted by the two thirds of hover power that is induced, compounded
 by the battery feeding back into the weight, and diluted again by a payload
 and a structure that do not care about drag. The propagated number belongs to
 the rotor as much as to the surrogate, and across 28 rotors spanning a factor
-of four in propagated error the mechanism is the same one: hover power error
-is 0.93 times the profile share of hover power times the section drag error. For this 15.7 kg aircraft the
+of four in propagated error the mechanism is the same one: power error is 0.93
+times the profile share of shaft power times the section drag error. That
+holds in forward flight too, where the profile share climbs from 41 percent in
+hover to 68 percent at 14 m/s and the same drag error costs 1.7 times as much.
+The speed this aircraft would cruise at for endurance is within two metres per
+second of the speed where the surrogate's error does the most damage. For this 15.7 kg aircraft the
 90 percent interval of the measured drag error is worth about three
 kilograms of take-off mass.
 

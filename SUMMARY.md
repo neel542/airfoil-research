@@ -122,6 +122,14 @@ One detail I liked. The least trustworthy part of a rotor blade turns out to
 be the part closest to the hub, because that's where the air moves slowest,
 and slow air is exactly where this model struggles. The tip is fine.
 
+And hovering, it turns out, is the easy case. Fly the same rotor forward and
+the friction share of the power climbs from 41 percent to 68, because the
+blade is doing less work pushing air down and more work dragging itself
+through the air. The same drag error hurts 1.7 times as much at 14 metres per
+second as it does hovering. Worse, that's almost exactly the speed the
+aircraft would choose to cruise at, because it's the cheapest. The speed you'd
+pick for endurance is the speed where this uncertainty bites hardest.
+
 ## The design side
 
 On the design side, a wing tuned for a single condition posts a spectacular
