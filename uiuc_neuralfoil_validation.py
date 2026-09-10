@@ -24,6 +24,7 @@ Outputs
   data/uiuc_validation_by_airfoil.csv         clean runs, NeuralFoil large
   data/uiuc_validation_by_Re.csv              clean runs, both models
   data/uiuc_validation_tripped.csv            tripped runs, free vs forced
+  data/uiuc_validation_tripped_subsets.csv    the two tripped subsets the paper quotes
   data/uiuc_validation_confidence_bins.csv    calibration table
 """
 
@@ -191,11 +192,20 @@ print(tripped[["asb_name", "volume", "NF_mode", "n", "mean_abs_dCL", "mean_abs_e
                "mean_err_CD", "mean_conf"]].round(3).to_string(index=False))
 v4 = trip[trip.volume == "vol4"]
 both = trip[np.isfinite(trip.xtr_upper) & np.isfinite(trip.xtr_lower) & trip.asb_name.isin(OK)]
+# These two subsets are what the paper quotes, so they get written out rather
+# than only printed: every n in the text has to trace to a file.
+sub_rows = []
 for lab, d in [("Vol 4 tripped, three airfoils", v4), ("all both-surface trips, benchmark airfoils", both)]:
     for mode in ("free", "forced"):
         s = summarise(d[d.NF_mode == mode])
+        s["subset"], s["NF_mode"], s["n_airfoils"] = lab, mode, d.asb_name.nunique()
+        sub_rows.append(s)
         print(f"  {lab}, {mode:>6}: n={int(s.n)} airfoils={d.asb_name.nunique()} mean|dCD/CD| = {s.mean_abs_err_CD:.1%}"
               f"  bias {s.mean_err_CD:+.1%}   mean|dCL| = {s.mean_abs_dCL:.3f}")
+cols = ["subset", "NF_mode", "n", "n_airfoils"]
+sub = pd.DataFrame(sub_rows)
+sub = sub[cols + [c for c in sub.columns if c not in cols]]
+sub.to_csv(os.path.join(DATA, "uiuc_validation_tripped_subsets.csv"), index=False)
 
 
 # ─────────────────────────────────────────────────────────────────────────────

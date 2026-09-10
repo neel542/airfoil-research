@@ -154,6 +154,16 @@ def summarise(d):
     ok = d.dropna(subset=["XF_CD"])
     r = dict(n=len(d), n_xfoil_converged=len(ok), frac_converged=len(ok) / max(len(d), 1),
              mean_conf=d.NF_conf.mean())
+    # NeuralFoil vs tunnel needs no XFoil run, so it is defined at every clean
+    # point and is reported on all n. The two comparisons that involve XFoil
+    # exist only where XFoil converged, so they are computed on
+    # n_xfoil_converged. Columns without a suffix are the converged subset;
+    # the _all columns are every clean point.
+    r["mean_abs_errCD_NF_WT_all"] = d.err_CD_NF_WT.abs().mean()
+    r["median_abs_errCD_NF_WT_all"] = d.err_CD_NF_WT.abs().median()
+    r["bias_CD_NF_WT_all"] = d.err_CD_NF_WT.mean()
+    r["mean_abs_dCL_NF_WT_all"] = d.dCL_NF_WT.abs().mean()
+    r["bias_CL_NF_WT_all"] = d.dCL_NF_WT.mean()
     for tag, col in [("NF_WT", "err_CD_NF_WT"), ("XF_WT", "err_CD_XF_WT"), ("NF_XF", "err_CD_NF_XF")]:
         r[f"mean_abs_errCD_{tag}"] = ok[col].abs().mean()
         r[f"median_abs_errCD_{tag}"] = ok[col].abs().median()
@@ -207,6 +217,10 @@ def main():
     print(f"\nXFoil converged at {pts.xf_converged.sum()} of {len(pts)} points "
           f"({100 * pts.xf_converged.mean():.1f}%)")
 
+    write_summaries(pts)
+
+
+def write_summaries(pts):
     by_re = pts.groupby(["tunnel", "Re_bin"]).apply(summarise).reset_index()
     by_re["Re_order"] = by_re.Re_bin.map({b: i for i, b in enumerate(RE_ORDER)})
     by_re = by_re.sort_values(["tunnel", "Re_order"]).drop(columns="Re_order")
@@ -222,9 +236,11 @@ def main():
     cb.to_csv(os.path.join(DATA, "xfoil_decomposition_confidence.csv"), index=False)
 
     pd.set_option("display.width", 200)
-    show = ["tunnel", "Re_bin", "n", "frac_converged", "mean_abs_errCD_NF_WT", "mean_abs_errCD_XF_WT",
+    show = ["tunnel", "Re_bin", "n", "n_xfoil_converged", "mean_abs_errCD_NF_WT_all",
+            "mean_abs_errCD_NF_WT", "mean_abs_errCD_XF_WT",
             "mean_abs_errCD_NF_XF", "bias_CD_NF_WT", "bias_CD_XF_WT", "bias_CD_NF_XF", "frac_NF_closer_than_XF"]
-    print("\nDrag error three ways, by tunnel and Re bin (converged points):")
+    print("\nDrag error three ways, by tunnel and Re bin "
+          "(_all = every clean point, the rest = the XFoil-converged subset):")
     print(by_re[show].to_string(index=False, float_format=lambda x: f"{x:.3f}"))
     print("\nSummary:")
     print(summ.T.to_string(float_format=lambda x: f"{x:.3f}"))
@@ -233,5 +249,14 @@ def main():
               "mean_abs_dCL_NF_WT", "mean_abs_dCL_NF_XF"]].to_string(index=False, float_format=lambda x: f"{x:.3f}"))
 
 
+def recompute():
+    """Rebuild the summary CSVs from the cached per-point file, no XFoil needed."""
+    pts = pd.read_csv(os.path.join(DATA, "xfoil_decomposition.csv"))
+    print(f"{len(pts)} cached points, XFoil converged at {int(pts.XF_CD.notna().sum())} "
+          f"({100 * pts.XF_CD.notna().mean():.1f}%)")
+    write_summaries(pts)
+
+
 if __name__ == "__main__":
-    main()
+    import sys
+    recompute() if "--recompute" in sys.argv else main()

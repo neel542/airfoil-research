@@ -4,13 +4,15 @@
 answers in a fraction of a second. People use it to design slow-flying wings.
 Nobody had checked it against a real wind tunnel at those speeds.
 
-So this repo checks it. 9,100 wind-tunnel measurements, 94 airfoils, two
+So this repo checks it. 9,130 wind-tunnel measurements, 94 airfoils, two
 separate tunnels (UIUC and Princeton), Re 60k-500k. XFoil itself gets run at
 every one of those points too, which splits the error into XFoil's share and
 the network's share. Fifteen airfoils appear in both tunnels, so the tunnels
 can be checked against each other. Every number gets an error bar built by
 resampling whole airfoils, and a fitted model turns any prediction into an
-expected drag error.
+expected drag error. Then the measured error is carried through a hovering
+rotor and a weight-closure loop, so the benchmark says what it costs a design
+and not just what it is.
 
 The other half is the design pipeline this was built for: robust,
 multi-objective, build-tolerant airfoil optimization with **AeroSandbox**
@@ -24,7 +26,10 @@ only 2.8%. It even lands closer to the tunnel than XFoil does, on 55% of
 points. The two tunnels disagree with each other by 12% in drag, so from
 Re = 200k up the model is already as close as the experiments can resolve.
 The confidence score warns about drag, and about XFoil's physics, but not
-about lift.
+about lift. Carried into a rotor, the error arrives divided by three, because
+two thirds of hover power is induced and untouchable. Close the design loop
+and the power error doubles again, but take-off weight still moves only 0.63%
+per percent of section drag.
 
 Full paper: `PAPER.md` or `PAPER.html`. Short version: `SUMMARY.md`. Methods:
 `METHODS.md`.
@@ -36,7 +41,7 @@ Full paper: `PAPER.md` or `PAPER.html`. Short version: `SUMMARY.md`. Methods:
 | **A** single-point | max L/D at Re=200k, AoA=4° | **232.9** † | 7.1 | 86.6 | 13% |
 | **B** robust       | max **worst-case** L/D over the envelope | 105.1 | **38.2** | 64.2 | 9% |
 
-† Every L/D here is a model estimate, not a measurement. Against the 9,100
+† Every L/D here is a model estimate, not a measurement. Against the 9,130
 wind-tunnel points below, NeuralFoil's L/D is typically **15% off** and **15%
 too high on average**, so the real value is at or under what's shown. Airfoil
 A's peak is worse than that. It sits where NeuralFoil reports **confidence
@@ -235,8 +240,11 @@ summaries; raw files in `data/soartech8/`.
 
 - **Where the error comes from.** Headless XFoil at all 9,130 clean conditions
   of both tunnels on the same Kulfan geometry NeuralFoil saw (converged at
-  8,814, 96.5%). Mean |ΔCD/CD|: **NeuralFoil-vs-tunnel 11.2%, XFoil-vs-tunnel
-  12.1%, NeuralFoil-vs-XFoil 2.8%** (median 1.7%). Signed errors correlate at
+  8,814, 96.5%). NeuralFoil-vs-tunnel on all 9,130 points is **11.7%**, the
+  same figure the clustered statistics report. On the 8,814 points where XFoil
+  also ran, so that the three can be compared like for like, mean |ΔCD/CD| is
+  **NeuralFoil-vs-tunnel 11.2%, XFoil-vs-tunnel 12.1%, NeuralFoil-vs-XFoil
+  2.8%** (median 1.7%). Signed errors correlate at
   r = 0.95; XFoil explains 86% of the variance of NeuralFoil's error; the
   network's own part is < 4% in every Re band of both tunnels, including 60k.
   NeuralFoil is *closer* to experiment than XFoil on 55% of points and has the
@@ -266,6 +274,46 @@ summaries; raw files in `data/soartech8/`.
   percentile bands cover 80%/95%; transfers UIUC→Princeton (0.071 vs 0.085)
   and back (0.077 vs 0.089). Coefficients + worked examples in
   `data/error_model_fit.json`. Figure `31`.
+
+## What the error costs a design (`rotor_uncertainty.py`, `repeatability.py`)
+
+- **The noise floor.** Two Princeton models were mounted and run a second time
+  in the same tunnel by the same builder. Over 95 matched points they disagree
+  with themselves by **3.7%** in drag and 0.009 in lift, against 12% between
+  the two tunnels and 11.7% for NeuralFoil. So the model error is three times
+  the repeatability of the experiment, and about the same size as the gap
+  between the two laboratories. The floor is not flat: 1.5-2.0% at Re = 300k,
+  4.7-8.3% at Re = 100k.
+- **Into a rotor.** A four-rotor lift configuration, R = 0.50 m, two blades,
+  E387 section, 1,910 rpm, 38.5 N per rotor, 15.7 kg all-up. Every one of 24
+  blade stations sits inside the benchmark's Re = 60k-500k (117.5k at the root
+  cut, 405.7k at 75% span, 475.5k at the tip). Hover power splits **63.1%
+  induced / 36.9% profile**, which matches the ~60% a rotorcraft reviewer
+  quoted and is the check that the rotor is representative at all.
+- **Correlated or independent decides the answer.** 1,000 Monte Carlo draws
+  per case, error drawn from the fitted Gamma model at each station's own
+  conditions, re-trimmed to constant thrust every draw. Correlated along the
+  blade (the honest case: it is one airfoil) gives a power-error spread of
+  **3.3%**; independent gives **1.0%**. A factor of 3.4 rides on an assumption
+  most studies leave unstated.
+- **The rule that generalises.** Across all 28 in-envelope rotors in the
+  48-rotor sizing sweep, the propagated hover-power error is
+  **0.93 x (profile share of hover power) x (section drag error)**, with a
+  standard deviation of 0.009 on that coefficient. The profile share runs from
+  14% to 52% across those rotors, so the propagated error runs from 1.5% to
+  5.8% for the same 11.7% section error. The number belongs to the rotor as
+  much as to the surrogate; the mechanism belongs to everyone.
+- **Diluted, then compounded, then diluted.** At fixed weight a 7.4% section
+  drag error (what the model expects on *this* blade, not the 11.7% pooled)
+  arrives as a **2.9%** hover-power error, because two thirds of hover power is
+  induced. Close the design loop, letting battery mass feed back into weight,
+  and the power error roughly **doubles (1.9-2.5x)**. Take-off weight still
+  moves less than the drag error: the **amplification factor is 0.62-0.68**,
+  steady across the distribution. In grams, the 90% interval of the measured
+  error is worth about **3 kg on a 15.7 kg aircraft**.
+- BEMT is a model with its own unquantified error, this is hover only, and the
+  Gamma model was fitted to non-rotating two-dimensional residuals. The study
+  propagates uncertainty; it does not predict a rotor.
 
 ## Uncertainty-aware optimizer (`uncertainty_aware_design.py`)
 
@@ -441,6 +489,10 @@ python e387_neuralfoil_validation.py  # E387 in detail, with XFoil
 python xfoil_decomposition.py       # XFoil at all 9,130 clean points: physics vs network error (~25 min, 8 procs)
 python clustered_statistics.py      # airfoil-cluster bootstrap intervals + correlation anatomy
 python fit_error_model.py           # cross-validated Gamma GLM error model -> data/error_model_fit.json
+python repeatability.py             # same model, same tunnel, twice: the 3.7% noise floor
+python rotor_uncertainty.py         # the drag error through a hover rotor and a weight loop (~17 min)
+python rotor_uncertainty.py --explore     # just the rotor sizing sweep
+python rotor_uncertainty.py --from-cache  # redo the closure and figures, reuse the Monte Carlo
 python uncertainty_aware_design.py  # confidence-aware optimizer sweep
 python rebuild_all_figures.py       # every figure, from the saved CSVs
 ```
@@ -471,6 +523,11 @@ data/
   xfoil_decomposition*.csv # XFoil at every clean point: NF-vs-tunnel, XFoil-vs-tunnel, NF-vs-XFoil
   clustered_statistics.csv / confidence_correlation_decomposition.csv   # cluster-bootstrap CIs, correlation anatomy
   error_model_fit.json / error_model_cv.csv / error_model_calibration.csv  # fitted error model + CV
+  repeatability_same_model.csv   # same model, same tunnel, twice: the 3.7% noise floor
+  rotor_design.csv         # blade stations of the design rotor at the hover trim point
+  rotor_sizing_sweep.csv   # 48 rotors: why Reynolds position and figure of merit trade
+  rotor_propagation.csv / rotor_propagation_summary.csv  # 4,000 Monte Carlo rotor trims
+  rotor_weight_closure.csv # power -> battery -> weight, and the amplification factor
   uncertainty_aware_sweep.csv
 figures/
   1_shapes.png             # overlaid optimized shapes
@@ -484,4 +541,6 @@ figures/
   24-25_uiuc_*.png         # CLmax / stall-angle parity, lift curves through stall
   26-28_*.png              # two tunnels + n_crit, tunnel vs tunnel, measured vs design geometry
   29_xfoil_decomposition.png / 30_clustered_statistics.png / 31_error_model.png
+  32_error_vs_reynolds.png # drag error vs Re, both archives, network and XFoil separated
+  33_rotor_power_uncertainty.png / 34_weight_amplification.png   # the rotor and the weight loop
 ```

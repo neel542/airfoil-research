@@ -55,7 +55,7 @@ FIGURE_INSERTS = [
          "NeuralFoil; grey band: NeuralFoil's confidence, which collapses past "
          "the stall."),
     ]),
-    ("Section 3.8 uses the score inside the optimizer.", [
+    ("Section 3.9 uses the score inside the optimizer.", [
         ("22_uiuc_confidence_calibration.png",
          "Figure 8. What NeuralFoil's confidence score tracks in the UIUC data. Left: "
          "lift error is flat across confidence bins. Middle: drag error falls "
@@ -86,9 +86,17 @@ FIGURE_INSERTS = [
          "moves NeuralFoil's drag; the dotted line is the 0.5% chord build-error "
          "scale used in section 2.5."),
     ]),
+    ("next to NeuralFoil's 0.079.", [
+        ("32_error_vs_reynolds.png",
+         "Figure 12. Mean drag error against Reynolds number in both archives, with "
+         "XFoil's error and the network's own emulation error separated. Both tools "
+         "improve steadily as the air speeds up, by a factor of 2.4 in the UIUC set "
+         "and 1.9 in the Princeton set, while the part contributed by the network "
+         "stays flat and small at every speed."),
+    ]),
     ("relies on that.", [
         ("29_xfoil_decomposition.png",
-         "Figure 12. Where the drag error comes from. Left and middle: mean drag "
+         "Figure 13. Where the drag error comes from. Left and middle: mean drag "
          "error by Reynolds number in each tunnel for NeuralFoil versus tunnel "
          "(blue), XFoil versus tunnel (green) and NeuralFoil versus XFoil (grey, "
          "the network's own contribution), on the points where XFoil converged. "
@@ -98,7 +106,7 @@ FIGURE_INSERTS = [
     ]),
     ("score itself.", [
         ("30_clustered_statistics.png",
-         "Figure 13. Honest uncertainty. Left and middle: point estimates with "
+         "Figure 14. Honest uncertainty. Left and middle: point estimates with "
          "airfoil-cluster bootstrap intervals (thin) and naive point-bootstrap "
          "intervals (thick), with the width ratio labelled; clustered intervals "
          "are two to five times wider, and every headline result survives. Right: "
@@ -108,7 +116,7 @@ FIGURE_INSERTS = [
     ]),
     ("model without this paper.", [
         ("31_error_model.png",
-         "Figure 14. The fitted error model. Left: held-out calibration by decile "
+         "Figure 15. The fitted error model. Left: held-out calibration by decile "
          "of predicted drag error, whole airfoils held out. Middle: multiplicative "
          "effect of each feature. Right: expected drag error (solid) and its 80th "
          "percentile (dotted) against confidence at four Reynolds numbers for a "
@@ -116,23 +124,47 @@ FIGURE_INSERTS = [
     ]),
     ("sits on a razor-thin peak.", [
         ("18_LD_vs_AoA_uncertainty.png",
-         "Figure 15. Lift-to-drag ratio versus angle of attack for airfoil A "
+         "Figure 16. Lift-to-drag ratio versus angle of attack for airfoil A "
          "(single-point) and B (robust) at three Reynolds numbers. Hatched bands "
          "show the measured 15% surrogate uncertainty; both airfoils sit below "
          "NeuralFoil's validated confidence range, so the band is a lower bound."),
         ("19_tradeoff_uncertainty.png",
-         "Figure 16. Peak versus worst-case L/D across the design family. Error "
+         "Figure 17. Peak versus worst-case L/D across the design family. Error "
          "bars are one-sided (true values trend downward at low Re). Airfoil A's "
          "peak near 233 is produced where NeuralFoil reports near-zero confidence."),
     ]),
+    ("and no drag error can touch it.", [
+        ("33_rotor_power_uncertainty.png",
+         "Figure 18. Left: every blade station of the design rotor sits inside the "
+         "benchmark's Reynolds range, and the fitted error model's expectation "
+         "(dotted) is worst on the inboard blade. Centre: only the 37 percent of "
+         "hover power that is profile power can respond to a drag error. Right: "
+         "1,000 Monte Carlo draws of the measured error through the rotor, with the "
+         "error correlated along the blade and independent along it."),
+    ]),
+    ("cares about drag.", [
+        ("34_weight_amplification.png",
+         "Figure 19. Left: the take-off mass that closes the design loop, against the "
+         "section drag error carried into it. Right: the same three cases as a chain. "
+         "The closure loop roughly doubles the hover-power error, and take-off weight "
+         "still moves about two thirds of a percent per percent of section drag."),
+    ]),
     ("the two extremes are shown in the figure.", [
         ("20_trust_vs_performance.png",
-         "Figure 17. The confidence-aware optimizer. Left: worst-case L/D against "
+         "Figure 20. The confidence-aware optimizer. Left: worst-case L/D against "
          "mean confidence as the weight w_conf is turned up; the first step, from "
          "confidence 0.16 to 0.96, costs 2% of predicted L/D. Right: the two "
          "extreme shapes."),
     ]),
 ]
+
+
+def check_markers(text):
+    """A renamed section silently drops a figure, so refuse to build instead."""
+    missing = [m for m, _ in FIGURE_INSERTS if m not in text]
+    if missing:
+        raise SystemExit("unknown figure marker, the paper no longer contains:\n  "
+                         + "\n  ".join(missing))
 
 
 def img_tag(fname, caption):
@@ -144,7 +176,9 @@ def img_tag(fname, caption):
 
 
 # Read markdown, insert figure blocks after the marker lines.
-lines = open(MD, encoding="utf-8").read().split("\n")
+_raw = open(MD, encoding="utf-8").read()
+check_markers(_raw)
+lines = _raw.split("\n")
 out_lines = []
 for line in lines:
     out_lines.append(line)
