@@ -153,8 +153,11 @@ Kulfan geometry NeuralFoil saw (viscous, n_crit = 9, free transition, polars
 swept outward from 0° in 0.5° steps with the measured angles inserted so each
 point warm-starts from its neighbour; `xfoil_decomposition.py`, 8 processes,
 about 25 min). XFoil converges at 8,814 points (96.5%); failures cluster at
-low confidence (56% convergence below 0.5 vs 99% above 0.95). *Results
-(converged points):* mean |ΔCD/CD| NeuralFoil-vs-tunnel 11.2%, XFoil-vs-tunnel
+low confidence (56% convergence below 0.5 vs 99% above 0.95). NeuralFoil needs
+no solver run, so its error against the tunnels is reported on all 9,130
+points, 11.7%, matching the clustered statistics. *Results on the 8,814
+converged points, the only basis on which the three can be compared:* mean
+|ΔCD/CD| NeuralFoil-vs-tunnel 11.2%, XFoil-vs-tunnel
 12.1%, NeuralFoil-vs-XFoil 2.8% (median 1.7%); the signed NeuralFoil and XFoil
 errors correlate at r = 0.95 and XFoil's error explains 86% of the variance of
 NeuralFoil's; the network's contribution is < 4% in every Re band of both
@@ -198,12 +201,53 @@ predicted 29.2% / actual 28.7%. Coefficients and worked examples in
 `data/error_model_fit.json`; `data/error_model.json` points to it;
 `figures/31`.
 
+**Same-model repeatability.** Two Princeton models were mounted and run a
+second time in the same tunnel by the same builder (E387A, SD7003;
+`repeatability.py`). Runs are matched at the same nominal Re (within 6%), the
+second run interpolated onto the first run's angles over the overlapping
+range. Over 95 matched points the repeats disagree by **3.7%** in drag and
+0.009 in lift, against 12% between the two tunnels and 11.7% for NeuralFoil.
+The floor is Re-dependent: 1.5–2.0% at Re = 300k, 4.7–8.3% at Re = 100k. That
+3.7% mixes genuine run-to-run flow unsteadiness with measurement scatter, and
+neither archive is time-resolved, so they cannot be separated here. Data
+`data/repeatability_same_model.csv`.
+
+**Propagation into a rotor and an aircraft.** `rotor_uncertainty.py` carries the
+measured drag error through a blade-element momentum rotor in hover and then
+through a weight-closure loop. Section lift and drag come from NeuralFoil on a
+fixed (α, Re) table (141 × 45, linear interpolation), so the nominal and
+perturbed runs differ only by the perturbation. Each annulus solves
+blade-element thrust against momentum thrust 4πρv<sub>i</sub>²Fr dr with
+Prandtl tip and root loss, by Brent root-find on v<sub>i</sub>; collective is
+then trimmed to a target thrust. Induced and profile power are separated by
+splitting the in-plane force into its C<sub>L</sub> sin φ and C<sub>D</sub> cos φ
+parts. Design point: 4 rotors, R = 0.50 m, 2 blades, chord 99→71 mm, linear
+washout 15°/(r/R) about 0.75R, 1,910 rpm (V<sub>tip</sub> = 100 m/s, M = 0.29),
+E387 section, 38.51 N per rotor, 15.71 kg all-up; every one of 24 stations
+inside Re = 60k–500k (117.5k root, 405.7k at 0.75R, 475.5k tip); induced share
+63.1%, FM 0.574. A 48-configuration sizing sweep
+(`data/rotor_sizing_sweep.csv`) shows why: Re at a station scales with chord
+while blade loading scales inversely, so Reynolds position and figure of merit
+trade against each other. Errors are drawn from the fitted Gamma model at each
+station's own confidence, Re and α, 1,000 draws in each of four cases
+(correlated or independent along the blade × signed from the measured Re-wise
+bias or symmetric), re-trimming to constant thrust every draw. The weight loop
+iterates payload + structure fraction + battery to a fixed point (2.5 kg
+payload, 0.40 structure fraction, 45 min hover, 180 Wh/kg pack, 85% usable,
+85% drivetrain). Across the 28 in-envelope sweep configurations the propagated power error is
+0.93 x (profile share) x (section drag error), SD 0.009, while the propagated
+error itself ranges 1.5-5.8% for a fixed 11.7% section error. Results in
+section 3.5 of PAPER.md; data
+`data/rotor_design.csv`, `data/rotor_propagation.csv`,
+`data/rotor_propagation_summary.csv`, `data/rotor_weight_closure.csv`;
+`figures/33-34`.
+
 ## 8. Reproducibility
 
 Pinned dependencies in `requirements.txt`; fixed RNG seeds for all perturbation
 ensembles and bootstraps; every study writes its data to CSV before plotting;
 `tests/test_claims.py` pins every number quoted in PAPER.md, README.md and this
-file to the data files (16 tests). The config-driven
+file to the data files (19 tests). The config-driven
 tool (`airfoil_designer.py` + `configs/*.yaml`) reproduces any mission design
 from a single spec.
 

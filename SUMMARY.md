@@ -22,11 +22,11 @@ use it? And did that confidence score mean anything? Nobody knew.
 
 ## The test
 
-Two wind tunnels. 94 airfoils. 9,100 measurements.
+Two wind tunnels. 94 airfoils. 9,130 measurements.
 
 Every published low-speed measurement from the Illinois archive and from an
 older Princeton data set went head to head with NeuralFoil's prediction at
-the exact same condition. Then XFoil itself got run at all 9,100 of those
+the exact same condition. Then XFoil itself got run at all 9,130 of those
 points too. That part matters. NeuralFoil is a copy of XFoil, so its error
 is really two errors stacked on top of each other: whatever XFoil gets
 wrong, plus whatever goes missing in the copying. Running the original pulls
@@ -55,6 +55,15 @@ percent. Above medium speeds NeuralFoil sits as close to each tunnel as the
 tunnels sit to each other, which means no model can be shown to beat it
 there. The experiments just can't tell the difference.
 
+How good is a wind tunnel at agreeing with itself, though? Princeton took two
+of its models down and ran them again. Same tunnel, same builder, second
+mounting. Those repeats disagree with themselves by 3.7 percent. So there's a
+ladder: 3.7 percent is one experiment repeating itself, 12 percent is two
+laboratories, and 11.7 percent is the model. The model error is three times
+the noise floor, so it isn't hiding inside the measurement error. But it's no
+bigger than the gap between the two labs, and that gap is the real ceiling on
+what any benchmark like this can resolve.
+
 The confidence score turned out to be a drag warning and nothing else. High
 confidence, drag error around 9 percent. Low confidence, around 32 percent.
 Lift error? Ignores the score completely. And what the score is really
@@ -82,6 +91,39 @@ them, and running NeuralFoil on the real shape instead of the drawing wipes
 out about a sixth of the drag error. The wing in the tunnel was never quite
 the wing on paper.
 
+## So what does 11 percent actually cost you
+
+A benchmark number is a scoreboard entry until somebody asks what it does to
+a design. So I followed it.
+
+Put that section into a hovering rotor. Two thirds of the power a rotor
+spends in hover goes into pushing air downward, and no drag error can touch
+that part. Only the third that fights the blade's own friction can move. So a
+7 percent drag error on the section, which is what the model expects on this
+particular blade, shows up as a 3 percent error in hover power. Diluted.
+
+Then close the design loop, which is where it gets interesting. More power
+means a bigger battery. A bigger battery means a heavier aircraft. A heavier
+aircraft needs more thrust, which needs more power, which needs more battery.
+Go round that loop until it settles and the same drag error is now a 15
+percent power error instead of an 8 percent one. It roughly doubles.
+
+And yet the take-off weight, which is the thing you were actually sizing,
+moves less than the drag error did: about two thirds of a percent for every
+percent of drag uncertainty. Payload and structure make up most of the
+aircraft and neither of them cares about drag.
+
+Both halves matter. Read only the weight number and you'd think the error was
+harmless. Read only the doubling and you'd panic. In grams, for a 15.7 kg
+aircraft, the measured drag uncertainty is worth about three kilograms of
+take-off mass. That is a number a design review can use.
+
+One detail I liked. The least trustworthy part of a rotor blade turns out to
+be the part closest to the hub, because that's where the air moves slowest,
+and slow air is exactly where this model struggles. The tip is fine.
+
+## The design side
+
 On the design side, a wing tuned for a single condition posts a spectacular
 number and falls apart everywhere else. The robust wing gives up half that
 peak and holds five times the worst-case performance. And nudging the
@@ -92,7 +134,9 @@ optimizer to stay where NeuralFoil is confident costs about 2 percent.
 What's new here: the two-tunnel benchmark, and splitting the error into
 XFoil's share and the network's. The experimental noise floor. Pulling build
 error out of model error. Honest error bars with a fitted model behind them.
-And an actual measured meaning for that confidence score.
+An actual measured meaning for that confidence score. And carrying the
+measured error all the way through to take-off weight, so the benchmark says
+what it costs instead of only what it is.
 
 What isn't: the wing-shape math, NeuralFoil, XFoil, and the robust and
 multi-objective optimization methods. Standard tools. Applied carefully, but

@@ -3,7 +3,7 @@ rebuild_all_figures.py
 =============================================================================
 Re-render every figure in the project with one clean, consistent, presentation
 style: readable fonts, a fixed color palette, light gridlines, no top/right
-border clutter, and higher resolution. All 31 figures are rebuilt straight
+border clutter, and higher resolution. All 32 figures are rebuilt straight
 from the already-saved CSV/coordinate data in data/ -- nothing is re-optimized,
 so this runs in well under a minute except for one quick NeuralFoil forward
 sweep (fast; not an optimization) needed for the multi-objective stall plot.
@@ -676,7 +676,7 @@ ax.set_ylim(0, ge.geom_effect_CD.max() * 100 + 2.5)
 ax.set_title("How much a real build error moves the prediction"); ax.legend(fontsize=8.5, loc="lower right"); clean(ax)
 save(fig, "28_measured_vs_design_geometry.png", "Running NeuralFoil on the measured shape of each Princeton model instead of its design coordinates")
 
-print("\nAll figures rebuilt with a single consistent style.")
+print("\nFigures 1-28 rebuilt with a single consistent style.")
 
 # ═════════════════════════════════════════════════════════════════════════
 # 29-31: xfoil_decomposition.py, clustered_statistics.py, fit_error_model.py
@@ -790,3 +790,50 @@ ax.legend(fontsize=8.5); clean(ax)
 save(fig, "31_error_model.png", "A fitted, cross-validated error model: what drag error to expect from a NeuralFoil prediction")
 
 print("Figures 29-31 rebuilt.")
+
+
+# ═════════════════════════════════════════════════════════════════════════
+# 32: the Reynolds trend
+#     Both tools get better as the air speeds up, and the part that is the
+#     network's own stays small and flat while XFoil's physics error climbs.
+# ═════════════════════════════════════════════════════════════════════════
+from matplotlib.ticker import NullFormatter
+
+dec = pd.read_csv(os.path.join(DATA, "xfoil_decomposition.csv"))
+byre = pd.read_csv(os.path.join(DATA, "xfoil_decomposition_by_Re.csv"))
+re_mid = dec.groupby(["tunnel", "Re_bin"]).Re.mean()
+
+fig, axes = plt.subplots(1, 2, figsize=(11.4, 4.5), sharey=True)
+for ax, tun, label in zip(axes, ["UIUC", "Princeton"],
+                          ["UIUC low-speed archive, 55 airfoils",
+                           "Princeton, Airfoils at Low Speeds, 54 airfoils"]):
+    d = byre[byre.tunnel == tun].copy()
+    d["Re"] = [re_mid[(tun, b)] for b in d.Re_bin]
+    d = d.sort_values("Re")
+    ax.plot(d.Re, d.mean_abs_errCD_XF_WT * 100, "s-", color=C_XF, lw=2, ms=6,
+            label="XFoil vs tunnel (the physics)")
+    ax.plot(d.Re, d.mean_abs_errCD_NF_WT_all * 100, "o-", color=C_NF_L, lw=2.2, ms=6.5,
+            label="NeuralFoil vs tunnel (all points)")
+    ax.plot(d.Re, d.mean_abs_errCD_NF_XF * 100, "^-", color=C_NF_XL, lw=2, ms=6,
+            label="NeuralFoil vs XFoil (the network's own)")
+    for _, r in d.iterrows():
+        ax.annotate(f"{r.mean_abs_errCD_NF_WT_all * 100:.1f}",
+                    (r.Re, r.mean_abs_errCD_NF_WT_all * 100),
+                    textcoords="offset points", xytext=(0, -13), ha="center", va="top", fontsize=9,
+                    color=C_NF_L, fontweight="bold")
+    hi, lo = d.mean_abs_errCD_NF_WT_all.iloc[0] * 100, d.mean_abs_errCD_NF_WT_all.iloc[-1] * 100
+    ax.annotate(f"{hi / lo:.1f}x worse at the slow end", xy=(d.Re.iloc[1], 1.1),
+                fontsize=9.5, color="#555555", ha="center")
+    ax.set_xscale("log")
+    ax.set_xlabel("Chord Reynolds number")
+    ax.set_title(label, fontsize=11)
+    ax.set_xticks([60e3, 100e3, 200e3, 300e3, 500e3])
+    ax.set_xticklabels(["60k", "100k", "200k", "300k", "500k"])
+    ax.xaxis.set_minor_formatter(NullFormatter())
+    ax.set_ylim(0, 26)
+    clean(ax)
+axes[0].set_ylabel("Mean |\u0394CD / CD|  (%)")
+axes[0].legend(loc="upper right", fontsize=9)
+save(fig, "32_error_vs_reynolds.png",
+     "Drag error against Reynolds number: both tools improve with speed, and the network's own share stays flat")
+print("\nAll 32 figures rebuilt.")

@@ -71,6 +71,109 @@ def test_tripped_forced_transition():
     _close(t[t.NF_mode == "free"].err_CD.mean(), -0.19, 0.01, "tripped, free-transition CD bias")
     _close(t[t.NF_mode == "forced"].err_CD.mean(), -0.02, 0.01, "tripped, forced-transition CD bias")
     assert t[t.NF_mode == "forced"].dCL.abs().mean() < 0.6 * t[t.NF_mode == "free"].dCL.abs().mean()
+    # the 885-point subset the paper quotes: both-surface trips on the
+    # benchmark airfoils, written out so the number traces to a file
+    sub = _csv("uiuc_validation_tripped_subsets.csv").set_index(["subset", "NF_mode"])
+    b = "all both-surface trips, benchmark airfoils"
+    assert int(sub.loc[(b, "free"), "n"]) == 885 and int(sub.loc[(b, "free"), "n_airfoils"]) == 15
+    _close(sub.loc[(b, "free"), "mean_err_CD"], -0.147, 0.01, "885 tripped, free-transition CD bias")
+    _close(sub.loc[(b, "forced"), "mean_err_CD"], -0.059, 0.01, "885 tripped, forced-transition CD bias")
+    # and the two tunnels' tripped sets together are the 2,629 the abstract quotes
+    pr = _csv("soartech8_validation_tripped.csv")
+    assert int(sub.loc[(b, "free"), "n"]) + int(pr[pr.NF_mode == "free"].n.sum()) == 2629
+
+
+def test_rotor_propagation():
+    """Section 3.5: the drag error through a rotor and then through a design loop."""
+    d = _csv("rotor_design.csv")
+    assert len(d) == 24 and bool(d.inside_envelope.all()), \
+        "every blade station must sit inside the benchmark's Reynolds range"
+    _close(d.Re.min(), 117.5e3, 2e3, "root-cut Reynolds number")
+    _close(d.Re.max(), 475.5e3, 3e3, "tip Reynolds number")
+    _close(float(np.interp(0.75, d.x, d.Re)), 405.7e3, 3e3, "Reynolds number at 0.75R")
+
+    # the verification gate: the induced share Govindarajan quoted
+    P_i, P_p = d.dQ_i.sum(), d.dQ_p.sum()
+    induced_frac = P_i / (P_i + P_p)
+    _close(induced_frac, 0.631, 0.02, "induced share of hover power")
+    assert 0.50 <= induced_frac <= 0.75, "rotor is not representative of the class"
+
+    # the error the blade actually inherits, which is not the pooled headline
+    _close(d.expected_errCD.mean(), 0.074, 0.004, "blade-average expected drag error")
+    _close(d.expected_errCD.max(), 0.123, 0.006, "worst blade station (the root)")
+    _close(d.expected_errCD.min(), 0.063, 0.004, "best blade station (mid-span)")
+    assert d.expected_errCD.iloc[0] == d.expected_errCD.max(), \
+        "the root cut should be the least trustworthy station"
+
+    s = _csv("rotor_propagation_summary.csv").set_index("case")
+    # correlated errors do not cancel along the blade; independent ones do
+    assert s.loc["correlated_signed"].sd_dP > 3 * s.loc["independent_signed"].sd_dP
+    _close(s.loc["correlated_signed"].mean_abs, 2.87, 0.25, "correlated mean power error")
+    # and it agrees with the arithmetic: profile share x mean section drag error
+    assert abs(s.loc["correlated_signed"].mean_abs - (1 - induced_frac) * 7.4) < 1.0, \
+        "Monte Carlo disagrees with the analytic profile-share estimate"
+
+    # the mechanism generalises across rotors even though the number does not
+    sw = _csv("rotor_sizing_sweep.csv")
+    ok = sw[sw.all_inside_envelope]
+    assert len(sw) == 48 and len(ok) == 28
+    ratio = ok.dP_pct_at_11p7 / ((1 - ok.induced_frac) * 11.7)
+    _close(ratio.mean(), 0.93, 0.02, "power error / (profile share x drag error)")
+    assert ratio.std() < 0.03, "the propagation law should hold across every rotor tested"
+    assert ok.dP_pct_at_11p7.max() / ok.dP_pct_at_11p7.min() > 3, \
+        "the propagated error should vary strongly with the rotor"
+
+    # the deterministic rule sits about a tenth below the Monte Carlo, because
+    # drawing the whole distribution is not the same as perturbing by its mean
+    rule = 0.93 * (1 - induced_frac) * 100 * d.expected_errCD.mean()
+    mc_sym = s.loc["correlated_symmetric"].mean_abs
+    assert 1.0 < mc_sym / rule < 1.25, "the rule and the draw have drifted apart"
+
+    w = _csv("rotor_weight_closure.csv").set_index("label")
+    _close(w.loc["model"].m_total_kg, 15.71, 0.05, "take-off mass the model predicts")
+    for lab in ["5th percentile", "median", "95th percentile"]:
+        r = w.loc[lab]
+        assert 0.55 < r.amplification < 0.80, f"{lab}: amplification outside the reported band"
+        assert abs(r.d_power_pct) > abs(r.d_power_pct_fixed_mass), \
+            f"{lab}: the closure loop must grow the power error, not shrink it"
+        assert 1.5 < r.loop_gain < 3.0, f"{lab}: loop gain outside the reported band"
+        assert abs(r.d_mass_pct) < abs(r.e_pct), f"{lab}: weight error must be below drag error"
+    _close(w.loc["5th percentile"].d_mass_g, -2096, 60, "5th-percentile take-off mass miss")
+
+
+def test_same_model_repeatability():
+    """The tightest error bar the archives give: one model, one tunnel, twice."""
+    r = _csv("repeatability_same_model.csv")
+    p = r[r.model == "pooled"].iloc[0]
+    assert int(p.n) == 95
+    _close(p.mean_abs_errCD, 0.037, 0.003, "same-model drag repeatability")
+    _close(p.mean_abs_dCL, 0.0087, 0.002, "same-model lift repeatability")
+    pairs = r[r.model != "pooled"]
+    # the tunnel repeats itself better as the air speeds up, same as the models do
+    assert pairs[pairs.Re_run1 < 120e3].mean_abs_errCD.mean() > \
+           pairs[pairs.Re_run1 > 280e3].mean_abs_errCD.mean()
+    # and it is far tighter than the model error it is being compared against
+    s = _csv("xfoil_decomposition_summary.csv").set_index("tunnel")
+    assert p.mean_abs_errCD < 0.4 * s.loc["pooled"].mean_abs_errCD_NF_WT_all
+
+
+def test_error_distribution():
+    """Section 3.4 quotes the shape of the error, not only its mean."""
+    d = _csv("xfoil_decomposition.csv")
+    e = d.err_CD_NF_WT.abs() * 100
+    for q, want in [(0.25, 3.6), (0.50, 7.8), (0.75, 14.8), (0.90, 26.6)]:
+        _close(np.quantile(e, q), want, 0.3, f"drag error p{int(q * 100)}")
+    _close(e.mean(), 11.7, 0.3, "drag error mean")
+    _close((e < 10).mean(), 0.604, 0.02, "share within 10%")
+    _close((e < 20).mean(), 0.838, 0.02, "share within 20%")
+    _close((e > 30).mean(), 0.077, 0.02, "share above 30%")
+    s = d.err_CD_NF_WT * 100
+    _close(s.mean(), 0.85, 0.3, "signed drag bias")
+    _close(np.quantile(s, 0.05), -21.6, 1.0, "signed drag error p05")
+    _close(np.quantile(s, 0.95), 30.8, 1.0, "signed drag error p95")
+    l = d.dCL_NF_WT.abs()
+    for q, want in [(0.25, 0.035), (0.50, 0.069), (0.75, 0.110), (0.90, 0.154)]:
+        _close(np.quantile(l, q), want, 0.004, f"lift error p{int(q * 100)}")
 
 
 def test_confidence_tracks_drag_not_lift():
@@ -230,7 +333,22 @@ def test_xfoil_decomposition():
     s = _csv("xfoil_decomposition_summary.csv").set_index("tunnel")
     p = s.loc["pooled"]
     assert int(p.n_xfoil_converged) == 8814
-    _close(p.mean_abs_errCD_NF_WT, 0.112, 0.004, "NF vs tunnel drag error")
+    _close(p.mean_abs_errCD_NF_WT, 0.112, 0.004, "NF vs tunnel drag error (converged subset)")
+    # NeuralFoil needs no XFoil run, so its error is also defined on all 9,130
+    # points. That figure, not the converged one, is what the paper's headline
+    # and the clustered statistics report.
+    _close(p.mean_abs_errCD_NF_WT_all, 0.117, 0.004, "NF vs tunnel drag error (all 9,130)")
+    _close(p.median_abs_errCD_NF_WT_all, 0.078, 0.004, "NF vs tunnel median drag error (all 9,130)")
+    assert p.mean_abs_errCD_NF_WT_all > p.mean_abs_errCD_NF_WT, \
+        "the points XFoil dropped are harder, so the all-points error must exceed the converged one"
+    # the all-points figure must be the same number the clustered statistics
+    # report on the same 9,130 points, or the paper carries two headlines
+    cl = _csv("clustered_statistics.csv").set_index(["tunnel", "statistic"])
+    for t in ["UIUC", "Princeton", "pooled"]:
+        row = s.loc[t] if t != "pooled" else p
+        _close(row.mean_abs_errCD_NF_WT_all, cl.loc[(t, "mean_abs_errCD"), "estimate"], 0.001,
+               f"{t}: decomposition all-points mean vs clustered statistics")
+        assert int(row.n) == int(cl.loc[(t, "mean_abs_errCD"), "n_points"])
     _close(p.mean_abs_errCD_XF_WT, 0.121, 0.004, "XFoil vs tunnel drag error")
     _close(p.mean_abs_errCD_NF_XF, 0.028, 0.003, "NF vs XFoil drag error (network only)")
     _close(p.median_abs_errCD_NF_XF, 0.017, 0.003, "median NF vs XFoil drag error")
