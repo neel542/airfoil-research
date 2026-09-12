@@ -92,7 +92,9 @@ FIGURE_INSERTS = [
          "XFoil's error and the network's own emulation error separated. Both tools "
          "improve steadily as the air speeds up, by a factor of 2.4 in the UIUC set "
          "and 1.9 in the Princeton set, while the part contributed by the network "
-         "stays flat and small at every speed."),
+         "stays flat and small at every speed. The shaded band is the Reynolds range "
+         "the rotor blade of section 3.5 spans, root at its left edge and tip at its "
+         "right."),
     ]),
     ("relies on that.", [
         ("29_xfoil_decomposition.png",

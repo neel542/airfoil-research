@@ -803,6 +803,12 @@ dec = pd.read_csv(os.path.join(DATA, "xfoil_decomposition.csv"))
 byre = pd.read_csv(os.path.join(DATA, "xfoil_decomposition_by_Re.csv"))
 re_mid = dec.groupby(["tunnel", "Re_bin"]).Re.mean()
 
+# where the rotor of section 3.5 actually sits on this axis, so the trend is
+# a position along a blade rather than an abstraction. Optional: the figure
+# still builds if the rotor study has not been run.
+_blade_path = os.path.join(DATA, "rotor_design.csv")
+blade = pd.read_csv(_blade_path) if os.path.exists(_blade_path) else None
+
 fig, axes = plt.subplots(1, 2, figsize=(11.4, 4.5), sharey=True)
 for ax, tun, label in zip(axes, ["UIUC", "Princeton"],
                           ["UIUC low-speed archive, 55 airfoils",
@@ -824,6 +830,15 @@ for ax, tun, label in zip(axes, ["UIUC", "Princeton"],
     hi, lo = d.mean_abs_errCD_NF_WT_all.iloc[0] * 100, d.mean_abs_errCD_NF_WT_all.iloc[-1] * 100
     ax.annotate(f"{hi / lo:.1f}x worse at the slow end", xy=(d.Re.iloc[1], 1.1),
                 fontsize=9.5, color="#555555", ha="center")
+    if blade is not None:
+        ax.axvspan(blade.Re.min(), blade.Re.max(), color="#6a51a3", alpha=0.07, zorder=0)
+        for re_val, tag in [(blade.Re.min(), "blade root"), (blade.Re.max(), "tip")]:
+            ax.axvline(re_val, color="#6a51a3", lw=1, ls=":", alpha=0.55, zorder=0)
+        if tun == "Princeton":
+            ax.annotate("the rotor blade of section 3.5 spans this band,\n"
+                        "root at the left edge, tip at the right",
+                        xy=(float(np.sqrt(blade.Re.min() * blade.Re.max())), 19.5),
+                        ha="center", fontsize=8.5, color="#6a51a3")
     ax.set_xscale("log")
     ax.set_xlabel("Chord Reynolds number")
     ax.set_title(label, fontsize=11)
