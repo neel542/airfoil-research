@@ -581,6 +581,15 @@ over-prediction, the bias flipping sign with speed, and the high-camber lift
 error in section 3.1 are all XFoil's behaviour, copied faithfully. XFoil's
 own lift error against the tunnels is 0.082, next to NeuralFoil's 0.079.
 
+**The Reynolds trend is the finding, not the table.** Both tools get steadily
+better as the air speeds up, by a factor of 2.4 across the UIUC set and 1.9
+across the Princeton set, while the part the network adds stays flat and small
+at every speed. That trend is not an abstraction: it is a position along a
+blade. The rotor of section 3.5 spans 118,000 at its root cut to 475,000 at
+its tip, which is most of this axis, so the inboard third of that blade is the
+least trustworthy part of it and the outboard two thirds are the best. Section
+3.5 puts numbers on what that costs.
+
 **And NeuralFoil is slightly closer to reality than XFoil is.** On 55
 percent of points the network lands nearer the measurement. Comparing the two
 on the points where both ran, its average drag error is lower in every band:
