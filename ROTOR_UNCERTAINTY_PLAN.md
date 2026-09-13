@@ -19,7 +19,7 @@ Three replies, 2026-09-09 and 2026-09-10.
 | G5 | XFoil and NeuralFoil carry modelling assumptions that limit them against tunnel data, and both do better at higher Reynolds number. | **Data exists, not stated as a finding.** Phase 2 |
 | G6 | "Uncertainty quantification is an important aspect of design, and it tells you how much of the unknowns early-on will propagate till the end." Twice called this a worthwhile effort in itself. | Framing for Discussion and Conclusion. Phase 3 |
 
-**Nachiketa Khobragade**, IIT Madras. Replies 2026-09-06 to 2026-09-07.
+**Nikhil Khobragade**, IIT Madras. Replies 2026-09-06 to 2026-09-07.
 
 | # | What he said | Status |
 |---|---|---|

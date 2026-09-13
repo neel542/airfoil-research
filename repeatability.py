@@ -7,7 +7,7 @@ facilities, and the plain repeatability of a slow-speed drag measurement. The
 Princeton set contains models that were mounted and run a second time in the
 same tunnel by the same builder, and those pairs isolate the second part.
 
-Nachiketa Khobragade (IIT Madras) asked whether the model errors sit inside
+Nikhil Khobragade (IIT Madras) asked whether the model errors sit inside
 the measurement error bars. This is the tightest error bar the archives can
 give, and the answer is no: the same model measured twice in the same tunnel
 agrees to 3.7 percent, while NeuralFoil disagrees with the tunnels by 11.7.
