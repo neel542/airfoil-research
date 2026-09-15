@@ -299,7 +299,11 @@ summaries; raw files in `data/soartech8/`.
   over-rewards an added blade by about 3%. Below Re 40k NeuralFoil's section
   polar stalls early and the solver under-predicts thrust by 14-37%. Nothing
   in that database reaches this rotor's Re 118k-475k. Doing this also found
-  and fixed a silent inflow-bracket failure in the solver.
+  and fixed a silent inflow-bracket failure in the solver. Rerunning the whole
+  test with **XFoil** filling the section table instead of NeuralFoil moves the
+  answer by 0.2-1.0 points, and the two disagree on thrust by a median 0.9%
+  point-by-point, so the residual is the blade-element model or the geometry,
+  not the network's emulation of XFoil.
 - **Correlated or independent decides the answer.** 1,000 Monte Carlo draws
   per case, error drawn from the fitted Gamma model at each station's own
   conditions, re-trimmed to constant thrust every draw. Correlated along the
