@@ -138,7 +138,9 @@ def xfoil_section():
     sec.af = asb.Airfoil(name="SDA1075", coordinates=sda1075())
     sec.camber_pct = float(sec.af.max_camber()) * 100
     sec.thickness_pct = float(sec.af.max_thickness()) * 100
-    alphas = np.linspace(-10.0, 24.0, 160)            # XFoil has no business past 24
+    # 0.5 degree spacing, which is the step run_polar warm-starts along anyway,
+    # so asking for anything finer just doubles the solve count for nothing
+    alphas = np.linspace(-10.0, 24.0, 69)             # XFoil has no business past 24
     Res = np.geomspace(15e3, 300e3, 36)               # nor below 15,000 on this section
     coords = xd.panel_coords(sec.af.to_kulfan_airfoil())
     jobs = [(f"Re{int(Re)}", coords, float(Re), alphas) for Re in Res]
