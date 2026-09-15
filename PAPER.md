@@ -856,6 +856,80 @@ the profile share is the only part a drag error can touch, and the whole
 question is what a drag error does, the split Govindarajan named is the right
 place to answer it.
 
+**Is the solver any good? Checked against measured propellers.** Govindarajan's
+second reply was blunt: validate the tools before putting them inside a sizing
+loop. Until this paragraph the blade-element solver had been checked against
+nothing. The check uses the UIUC Propeller Database, from the same group that
+ran both airfoil archives. Deters designed and 3D-printed a set of propellers
+so that their geometry could be specified, which means their airfoil section
+is known exactly: the SDA1075, 12 percent thick, over the whole blade, with
+coordinates published in the paper. Two blade families, the DA4002 with c/R
+0.18 at four pitches and the DA4022 with c/R 0.23 with two, three and four
+blades, each at 5 and 9 inch diameter, with static thrust and power measured
+across an RPM sweep: 242 measured points on 14 propellers. Each one is built
+in the solver from its measured chord and pitch distribution, the section is
+looked up in NeuralFoil exactly as the rotor above looks up the E387, and it
+is run at every measured RPM. Nothing is tuned. One honest detail on the
+section: the SDA1075 fits its 17-number Kulfan description to 0.13 percent of
+chord, coarser than the 0.07 percent every benchmark airfoil meets, because
+its trailing edge was thickened to 1.1 percent of chord so the 5 inch blades
+could be printed. NeuralFoil sees that fitted shape.
+
+Two things came out. The first was a defect in the solver. Its inflow
+root-finder capped induced velocity at a quarter of the local rotational
+speed, which a lightly twisted rotor never reaches (the design rotor above sat
+at 0.977 of the cap) but a fixed-pitch propeller root at 36 degrees exceeds.
+Past the cap an element fell back to zero inflow and sat fully stalled, with
+no warning. It is fixed, and no number in this section moved by more than one
+part in ten thousand.
+
+The second is the result. Inside a window of Re 40,000 to 98,000 at 75
+percent span, over 87 points on the seven 9 inch propellers, the solver lands
+within 1 percent of measured thrust on average and 4 percent high on power,
+with mean absolute errors of 9 and 13 percent. The two families miss in
+opposite directions, which is why the bias is small and the scatter is not:
+
+| Propeller | Blades | Thrust error | Power error |
+|---|---:|---:|---:|
+| DA4002 9x2.85 | 2 | −3 percent | −2 percent |
+| DA4002 9x4.76 | 2 | +2 percent | +8 percent |
+| DA4002 9x6.75 | 2 | −8 percent | −14 percent |
+| DA4002 9x8.95 | 2 | −20 percent | −20 percent |
+| DA4022 9x6.75 | 2 | +6 percent | +14 percent |
+| DA4022 9x6.75 | 3 | +10 percent | +16 percent |
+| DA4022 9x6.75 | 4 | +12 percent | +17 percent |
+
+Mean signed error, predicted over measured, inside the window. Geometry is
+not what drives this: rerunning the DA4002 on its drawing instead of the
+built article moves thrust by 3 percent.
+
+The blade-count series is the cleanest test, because the section and the
+pitch are identical across it and only the number of blades changes, so the
+section error is held fixed and what moves is the inflow and tip-loss model.
+Measured thrust rises by a factor of 1.35 from two blades to three and 1.21
+from three to four; the solver says 1.38 and 1.24. It over-rewards solidity by
+about 3 percent per added blade, and its over-prediction of the DA4022 grows
+with blade count for the same reason.
+
+Two limits carry into everything that follows. These propellers reach Re
+98,000 at 75 percent span; the rotor above sits at 118,000 to 475,000.
+Nothing in the database reaches it, so this validates the solver below its
+operating point, in the harder regime, not at it. And below Re 40,000 the
+comparison stops being about the solver: every propeller under-predicts
+thrust by 14 to 37 percent there, the measured thrust barely moves with RPM,
+and NeuralFoil's SDA1075 polar stalls at CL 0.78 near 6 degrees at Re 40,000
+then recovers to 1.26 at 12 degrees by 60,000. That early stall sits below the
+60,000 floor of the benchmark, so this paper has no measurement to say
+whether it is right. The 5 inch propellers never leave that regime; they are
+in the figure and out of the numbers.
+
+One more thing to say plainly. At the top of their sweeps six of these seven
+propellers are 77 to 89 percent induced power; only the steepest-pitched, the
+DA4002 9x8.95, comes down to 54 percent, and it is also the worst predicted.
+The rotor above is 63 percent. So this data tests the thrust and inflow side
+of the solver hard, and the profile-power side, which is the channel the drag
+error travels through in the rest of this section, rather less.
+
 **The blade does not inherit the headline number.** Averaged over the blade,
 the fitted error model of section 3.4 expects 7.4 percent drag error, not 11.7
 percent. The blade runs at NeuralFoil confidence 0.94 to 0.98, at moderate
@@ -1134,7 +1208,13 @@ a 2.9 percent power error; then through a design loop, where battery mass
 feeds back into weight and weight back into power, and that same error becomes
 15 percent of hover power at the tail of the distribution but only 12 percent
 of take-off weight. The chain both dilutes and compounds, in different places,
-and neither effect is visible from the section number alone. And hover is the
+and neither effect is visible from the section number alone. The solver those
+ratios come out of was checked against 14 measured propellers with a known
+section before any of this was run. Inside Re 40,000 to 98,000 it lands within
+a percent of measured thrust on average and 4 percent high on power, with 9 and
+13 percent scatter, and nothing in that database reaches the Reynolds numbers
+this rotor runs at, so the check sits below the operating point rather than on
+it. And hover is the
 friendly case: fly the same rotor forward and the profile share of shaft power
 climbs from 41 to 68 percent, so the same section error costs 1.7 times as
 much at cruise as it does hovering. Uncertainty
@@ -1224,14 +1304,20 @@ nothing in predicted performance.
   archive is time-resolved, so this paper cannot tell them apart and does
   not try. Separating them needs measurements nobody has published at these
   speeds.
-- **The rotor study propagates uncertainty, it does not predict a rotor.**
-  Blade-element momentum theory is itself a model with its own error, and
-  that error is not quantified here. The absolute power numbers in section
-  3.5 should not be read as a prediction of what this rotor would draw on a
-  test stand; only the ratios between the perturbed and unperturbed runs are
-  meant to carry weight. The rotor is also idealised: no hub, no blade-root
-  fittings, no interference between rotors, and a figure of merit of 0.57
-  that BEMT most likely flatters.
+- **The rotor solver has been checked below its operating point, not at it.**
+  Blade-element momentum theory is itself a model with its own error. Against
+  seven measured propellers with a known section, inside Re 40,000 to 98,000,
+  it lands within 1 percent of thrust on average and 4 percent high on power,
+  with 9 and 13 percent scatter and the two blade families missing in
+  opposite directions. No propeller in that database reaches the Re 118,000
+  to 475,000 this rotor runs at, and six of the seven are 77 to 89 percent
+  induced against this rotor's 63, so the profile-power channel the drag
+  error travels through is the less exercised half. The absolute power
+  numbers in section 3.5 should still not be read as a prediction of what
+  this rotor would draw on a test stand; the ratios between perturbed and
+  unperturbed runs are what carry weight. The rotor is also idealised: no
+  hub, no blade-root fittings, no interference between rotors, and a figure
+  of merit of 0.57 that BEMT most likely flatters.
 - **Forward flight is a coarser model than hover.** It uses uniform inflow, no
   cyclic pitch, no blade flapping, and a bluff-body treatment of the
   reverse-flow disk, and it stops at μ = 0.2 for that reason. Run at zero
@@ -1286,7 +1372,10 @@ a percent of section drag error arrives as 0.63 percent of take-off weight,
 after the loop has roughly doubled the hover-power error along the way. The
 error is diluted by the two thirds of hover power that is induced, compounded
 by the battery feeding back into the weight, and diluted again by a payload
-and a structure that do not care about drag. The propagated number belongs to
+and a structure that do not care about drag. The rotor solver itself was
+checked against measured propellers with a known section, and lands within a
+percent of thrust and 4 percent of power on average, below the Reynolds numbers
+this rotor runs at rather than at them. The propagated number belongs to
 the rotor as much as to the surrogate, and across 28 rotors spanning a factor
 of four in propagated error the mechanism is the same one: power error is 0.93
 times the profile share of shaft power times the section drag error. That
@@ -1297,8 +1386,10 @@ second of the speed where the surrogate's error does the most damage. For this 1
 90 percent interval of the measured drag error is worth about three
 kilograms of take-off mass.
 
-Three things would push this further. A third tunnel, with documented
-turbulence and flapped configurations. A training set for the surrogate that
+Four things would push this further. A third tunnel, with documented
+turbulence and flapped configurations. A measured rotor or propeller in the
+Re 100,000 to 500,000 range with a published section, so the solver can be
+checked where this rotor runs; no public database has one. A training set for the surrogate that
 includes experimental or higher-fidelity slow-speed data, since the split
 here shows more XFoil won't help. And a real wind-tunnel test of 3D-printed
 robust and peak-tuned airfoils, with their built shapes measured, which

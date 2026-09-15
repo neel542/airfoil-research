@@ -183,6 +183,25 @@ def test_bemt_inflow_bracket():
     assert out["T"] > 0 and out["P"] > 0
 
 
+def test_every_data_input_is_tracked():
+    """A .gitignore rule meant for XFoil build artifacts (*.dat) silently
+    swallowed data/uiuc_propdb/sda1075.dat, so validate_bemt.py worked here
+    and would have crashed on a fresh clone. Nothing under data/ that a
+    script reads may be untracked."""
+    import subprocess
+    r = subprocess.run(["git", "ls-files"], cwd=ROOT, capture_output=True, text=True)
+    if r.returncode != 0:                      # not a git checkout, nothing to check
+        return
+    tracked = set(r.stdout.split())
+    untracked = []
+    for dirpath, _, names in os.walk(DATA):
+        for n in names:
+            rel = os.path.relpath(os.path.join(dirpath, n), ROOT)
+            if not n.startswith(".") and rel not in tracked:
+                untracked.append(rel)
+    assert not untracked, "untracked files under data/: " + ", ".join(sorted(untracked))
+
+
 def test_bemt_validation():
     """Section 3.5: the rotor solver against measured propellers with a known
     section. Pinned so the honest parts cannot drift: the clean window, the

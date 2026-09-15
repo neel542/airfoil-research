@@ -12,6 +12,8 @@ runs/
 Xfoil/
 *.dat
 polar.txt
+# but airfoil coordinates under data/ are research inputs, not build output
+!data/**/*.dat
 
 # Local editor/tooling config
 .claude/
