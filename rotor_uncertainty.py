@@ -191,7 +191,13 @@ class Rotor:
                 F = self._tip_loss(i, phi)
                 return dT - 4 * np.pi * RHO * vi ** 2 * F * self.r[i]
 
-            vi_hi = 0.25 * self.omega * self.r[i] + 1e-3
+            # Bracket on the induced velocity. This was 0.25 of the local
+            # rotational speed, which a lightly twisted rotor never reaches
+            # (the design point sat at 0.977 of it) but a fixed-pitch
+            # propeller root at 36 degrees exceeds. Past the cap brentq found
+            # no sign change and the element fell back to zero inflow, fully
+            # stalled, with no warning.
+            vi_hi = 0.95 * self.omega * self.r[i] + 1e-3
             try:
                 if residual(1e-4) <= 0:
                     vi = 1e-4                                  # element makes no thrust
