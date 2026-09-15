@@ -275,7 +275,7 @@ summaries; raw files in `data/soartech8/`.
   and back (0.077 vs 0.089). Coefficients + worked examples in
   `data/error_model_fit.json`. Figure `31`.
 
-## What the error costs a design (`rotor_uncertainty.py`, `repeatability.py`)
+## What the error costs a design (`rotor_uncertainty.py`, `validate_bemt.py`, `repeatability.py`)
 
 - **The noise floor.** Two Princeton models were mounted and run a second time
   in the same tunnel by the same builder. Over 95 matched points they disagree
@@ -290,6 +290,16 @@ summaries; raw files in `data/soartech8/`.
   cut, 405.7k at 75% span, 475.5k at the tip). Hover power splits **63.1%
   induced / 36.9% profile**, which matches the ~60% a rotorcraft reviewer
   quoted and is the check that the rotor is representative at all.
+- **The solver, checked.** Before trusting any of that, the blade-element
+  solver was run against 242 measured static points on 14 UIUC propellers
+  whose airfoil is known exactly (Deters' 3D-printed DA4002 and DA4022,
+  SDA1075 section). Inside Re = 40k-98k at 75% span it lands within **1%** of
+  measured thrust on average and **4% high** on power, with 9% and 13%
+  scatter; the two blade families miss in opposite directions, and it
+  over-rewards an added blade by about 3%. Below Re 40k NeuralFoil's section
+  polar stalls early and the solver under-predicts thrust by 14-37%. Nothing
+  in that database reaches this rotor's Re 118k-475k. Doing this also found
+  and fixed a silent inflow-bracket failure in the solver.
 - **Correlated or independent decides the answer.** 1,000 Monte Carlo draws
   per case, error drawn from the fitted Gamma model at each station's own
   conditions, re-trimmed to constant thrust every draw. Correlated along the
@@ -503,6 +513,7 @@ python repeatability.py             # same model, same tunnel, twice: the 3.7% n
 python rotor_uncertainty.py         # the drag error through a hover rotor and a weight loop (~17 min)
 python rotor_uncertainty.py --explore     # just the rotor sizing sweep
 python rotor_uncertainty.py --from-cache  # redo the closure and figures, reuse the Monte Carlo
+python validate_bemt.py             # the solver against 14 measured UIUC propellers (~2 min); --xfoil for the XFoil split
 python uncertainty_aware_design.py  # confidence-aware optimizer sweep
 python rebuild_all_figures.py       # every figure, from the saved CSVs
 ```
@@ -555,4 +566,5 @@ figures/
   32_error_vs_reynolds.png # drag error vs Re, both archives, network and XFoil separated
   33_rotor_power_uncertainty.png / 34_weight_amplification.png   # the rotor and the weight loop
   35_forward_flight.png    # the power bucket, and the profile share rising with airspeed
+  36_bemt_validation.png   # the solver against measured propellers with a known section
 ```

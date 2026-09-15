@@ -144,16 +144,28 @@ FIGURE_INSERTS = [
          "1,000 Monte Carlo draws of the measured error through the rotor, with the "
          "error correlated along the blade and independent along it."),
     ]),
+    ("built article moves thrust by 3 percent.", [
+        ("36_bemt_validation.png",
+         "Figure 19. The rotor solver against 14 measured UIUC propellers whose "
+         "section is known exactly (SDA1075). Left and centre: thrust and power "
+         "coefficients against Reynolds number at 75 percent span, measured as "
+         "points and predicted as lines, the 5 inch propellers in grey; the shaded "
+         "band is the Re 40,000 to 98,000 window inside which the section polar is "
+         "trustworthy. Right: the error of every 9 inch propeller, thrust solid and "
+         "power dotted. The two blade families miss in opposite directions, and "
+         "below Re 40,000 the comparison is dominated by the section polar rather "
+         "than the solver."),
+    ]),
     ("cares about drag.", [
         ("34_weight_amplification.png",
-         "Figure 19. Left: the take-off mass that closes the design loop, against the "
+         "Figure 20. Left: the take-off mass that closes the design loop, against the "
          "section drag error carried into it. Right: the same three cases as a chain. "
          "The closure loop roughly doubles the hover-power error, and take-off weight "
          "still moves about two thirds of a percent per percent of section drag."),
     ]),
     ("propagate into the 1.7.", [
         ("35_forward_flight.png",
-         "Figure 20. The same rotor in level forward flight. Left: shaft power and "
+         "Figure 21. The same rotor in level forward flight. Left: shaft power and "
          "its three parts against speed, showing the power bucket with its minimum "
          "at 12 m/s. Right: the profile share of shaft power climbs from 41 percent "
          "in hover to 68 percent at 14 m/s, and the power error caused by a fixed "
@@ -162,7 +174,7 @@ FIGURE_INSERTS = [
     ]),
     ("the two extremes are shown in the figure.", [
         ("20_trust_vs_performance.png",
-         "Figure 21. The confidence-aware optimizer. Left: worst-case L/D against "
+         "Figure 22. The confidence-aware optimizer. Left: worst-case L/D against "
          "mean confidence as the weight w_conf is turned up; the first step, from "
          "confidence 0.16 to 0.96, costs 2% of predicted L/D. Right: the two "
          "extreme shapes."),

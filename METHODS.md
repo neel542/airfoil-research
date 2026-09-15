@@ -238,6 +238,39 @@ payload, 0.40 structure fraction, 45 min hover, 180 Wh/kg pack, 85% usable,
 0.93 x (profile share) x (section drag error), SD 0.009, while the propagated
 error itself ranges 1.5-5.8% for a fixed 11.7% section error.
 
+**Solver validation.** `validate_bemt.py` runs the same blade-element solver
+against static thrust and power measured on 14 propellers from Volume 2 of the
+UIUC Propeller Database (`data/uiuc_propdb/`), chosen because Deters designed
+and 3D-printed them so their airfoil section is known exactly: SDA1075 over
+the whole blade, coordinates from Table 4 of Deters, Ananda and Selig (2014),
+Kulfan fit RMS 0.13% chord. DA4002 (c/R 0.18, four pitches) and DA4022
+(c/R 0.23, two, three and four blades), each at 5 and 9 in diameter, 242
+measured points (261 rows in the CSV: the DA4002 9x6.75 is run twice, on its
+built and drawn geometry). Each propeller is built from its PropellerScanner-measured
+chord and pitch distribution from r/R = 0.30 outward (the printed hub sits
+inboard), on 24 elements, with the section looked up in NeuralFoil on a
+197 × 45 (α, Re) table spanning −10° to 32° and Re 6k–300k, run at collective
+zero at every measured RPM, and reduced to propeller-convention
+C<sub>T</sub> = T/(ρn²D⁴) and C<sub>P</sub> = P/(ρn³D⁵). Nothing is tuned.
+Errors are reported inside a window Re<sub>0.75</sub> ≥ 40k, below which
+NeuralFoil's SDA1075 polar stalls early (C<sub>L,max</sub> 0.78 at Re 40k
+against 1.26 at 60k) in a regime the benchmark does not cover. Inside the
+window, over 87 points on the seven 9 in propellers: thrust bias +0.6%, mean
+absolute error 8.8%; power bias +3.9%, mean absolute error 12.8%; the two
+families miss in opposite directions (DA4002 −3 to −20% thrust, DA4022 +6 to
++12%), the drawn and built DA4002 geometries differ by 3% in thrust, and the
+solver over-predicts the thrust gain from an added blade by about 3% (measured
+×1.35 and ×1.21 for 2→3→4 blades at 4,900 rpm, predicted ×1.38 and ×1.24). No
+propeller reaches the design rotor's Re 118k–475k, and these propellers are
+54–89% induced at the top of their sweeps (six of seven above 77%) against
+the rotor's 63%. The run
+also exposed a defect in the solver's inflow root-finder, which capped
+v<sub>i</sub> at 0.25Ωr and fell back silently to zero inflow above it; the cap
+is now 0.95Ωr, every published rotor number is unchanged to 1 part in 10⁴, and
+a regression test drives a 38° root through the solver. Outputs:
+`data/bemt_validation.csv`, `data/bemt_validation_summary.csv`,
+`data/bemt_validation_blades.csv`, `figures/36_bemt_validation.png`.
+
 **Forward flight.** The same rotor in level flight, trimmed at each speed
 against an airframe flat-plate area of 0.05 m2, blade elements integrated over
 36 azimuth stations as well as span, uniform inflow from Glauert
