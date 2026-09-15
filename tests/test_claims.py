@@ -183,6 +183,46 @@ def test_bemt_inflow_bracket():
     assert out["T"] > 0 and out["P"] > 0
 
 
+def test_bemt_validation():
+    """Section 3.5: the rotor solver against measured propellers with a known
+    section. Pinned so the honest parts cannot drift: the clean window, the
+    two families disagreeing in sign, the low-Re failure, and zero fallbacks."""
+    p = _csv("bemt_validation.csv")
+    s = _csv("bemt_validation_summary.csv").set_index("label")
+    assert (p.section == "neuralfoil").all()
+    assert int(p.n_fallback.sum()) == 0, "an element fell back to zero inflow"
+    assert (p.in_window == (p.Re_75 >= 40e3)).all(), "window definition drifted"
+    assert len(p) == 261 and p.label.nunique() == 15
+
+    nine = s.loc["all 9 in"]
+    assert int(nine.n) == 130 and int(nine.n_window) == 87
+    _close(nine.err_CT_mean_window, 0.01, 0.02, "9 in thrust bias, window")
+    _close(nine.err_CT_abs_window, 0.09, 0.015, "9 in thrust mean abs error, window")
+    _close(nine.err_CP_mean_window, 0.04, 0.02, "9 in power bias, window")
+    _close(nine.err_CP_abs_window, 0.13, 0.015, "9 in power mean abs error, window")
+    assert nine.Re75_max < 118e3, "no propeller reaches the rotor study's Reynolds range"
+
+    # the two families miss in opposite directions, so the pooled bias is not the story
+    for lab in ["DA4022 9x6.75 2b", "DA4022 9x6.75 3b", "DA4022 9x6.75 4b"]:
+        assert s.loc[lab].err_CP_mean_window > 0.08, f"{lab} should over-predict power"
+    assert s.loc["DA4002 9x8.95 2b"].err_CT_mean_window < -0.15, "steepest pitch should under-predict"
+    # geometry is not what drives it: drawing and built article agree to a few percent
+    assert abs(s.loc["DA4002 9x6.75 2b"].err_CT_mean_window
+               - s.loc["DA4002 9x6.75 2b (drawn)"].err_CT_mean_window) < 0.05
+    # below the window the section polar takes over and the solver fails badly
+    five = s.loc["all 5 in"]
+    assert int(five.n_window) <= 1 and five.err_CT_mean_all < -0.20
+
+    # the blade-count series: same section, same pitch, the solver over-rewards
+    # solidity by a few percent per added blade
+    b = _csv("bemt_validation_blades.csv").set_index("blades")
+    _close(b.loc[3].CT_meas_ratio, 1.353, 0.01, "measured 3/2 thrust ratio")
+    _close(b.loc[3].CT_pred_ratio, 1.383, 0.01, "predicted 3/2 thrust ratio")
+    for nb in [3, 4]:
+        assert b.loc[nb].CT_pred_ratio > b.loc[nb].CT_meas_ratio
+        assert b.loc[nb].CT_pred_ratio - b.loc[nb].CT_meas_ratio < 0.05
+
+
 def test_laminar_run_length():
     """Section 3.3 is a null result and the point of pinning it is to keep it
     one. The correlation is NEGATIVE: longer laminar run, smaller drag error,
