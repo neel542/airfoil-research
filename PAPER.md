@@ -504,6 +504,16 @@ either: the repeat runs agree to 1.5 and 2.0 percent at Re = 300,000 and to
 4.7 and 8.3 percent at Re = 100,000, the same Reynolds trend the model errors
 follow.
 
+One thing that 3.7 percent is not. It is repeatability, which is precision:
+the same model, the same tunnel, the same builder, mounted and measured
+twice. It says nothing about whether the balance was reading the right
+number in the first place. A calibration offset repeats perfectly every
+time, so it would sit inside all three of these figures and never show up in
+any of them. Accuracy and precision are different quantities and only the
+second one can be recovered from repeat runs. Read 3.7 percent as a floor on
+the random part of the experimental error, not as a bound on the whole of
+it.
+
 **Build error hides inside the model error.** For the 56 models with both
 sets of coordinates, the built shape differs from the drawing by 0.22
 percent of chord in a typical case and up to 0.68 percent for the E387B.
@@ -626,6 +636,67 @@ same conditions where XFoil's physics is wrong. So the score warns about the
 physics as well as the copying, which is more than it was built to do, and
 it's the reason it works as a stand-in for real drag error. Section 3.9
 relies on that.
+
+**Does the error follow the length of the laminar run?** Nikhil Khobragade
+(IIT Madras) proposed this test after the n_crit result in section 3.2, where
+dropping n_crit to 7 helps at Re = 60,000 and hurts everywhere else. That
+implies the flow wants more freestream turbulence at low speed than at high
+speed. One reading is that a tunnel running slower genuinely has a higher
+turbulence intensity, since intensity is a fluctuation divided by a mean
+speed. The other is that e^N is being asked for something it does not carry:
+it predicts where transition starts, not how long a separation bubble runs or
+when it bursts, and at these speeds the bubble is most of the drag. On the
+second reading the drag error should grow with the length of the laminar run,
+which XFoil reports at every point as a transition location on each surface.
+
+It does not grow with it. It shrinks.
+
+Laminar run length and drag error are both governed by Reynolds number, and
+run length is close to a restatement of angle of attack, so the test holds
+log(Re) and |alpha| fixed and clusters the bootstrap on the airfoil. Against
+the suction-side laminar run the partial rank correlation is −0.17 pooled and
+negative in every Reynolds band but the highest:
+
+| Re band | Points | Partial rho | 95% interval |
+|---|---:|---:|---|
+| 40,000 to 80,000 | 1,287 | −0.28 | −0.35 to −0.21 |
+| 80,000 to 130,000 | 1,954 | −0.26 | −0.32 to −0.19 |
+| 130,000 to 180,000 | 1,089 | −0.21 | −0.30 to −0.14 |
+| 180,000 to 250,000 | 2,067 | −0.18 | −0.24 to −0.11 |
+| 250,000 to 550,000 | 2,417 | −0.02 | −0.10 to 0.05 |
+| all | 8,814 | −0.17 | −0.21 to −0.12 |
+
+A longer laminar run goes with a smaller drag error, and the effect is
+largest at exactly the Reynolds numbers where the bubble argument said the
+error should be largest. Quartiles say the same without a correlation: in the
+40,000 to 80,000 band the mean drag error runs 32.0, 18.3, 12.9 and 13.9
+percent from the shortest-run quartile to the longest. Absolute error in drag
+counts falls the same way, 0.0106 to 0.0026, so it is not an artefact of
+dividing by a small drag.
+
+**One warning about the variable, because it nearly fooled this paper.** The
+bubble sits on the suction side, and below zero lift the suction side is the
+lower surface. Run the identical test against the *upper* surface regardless
+of the sign of lift, and a positive correlation appears at negative
+incidence, +0.19 in the 40,000 to 130,000 band, which is precisely the result
+the hypothesis predicts. Choose the surface by the sign of lift instead and
+the same points give −0.22. The disagreement is confined to the alpha window
+from −3 to 0 degrees, where 336 of 599 points sit below zero lift; from 0
+degrees upward the two definitions agree to three decimal places. The
+positive version of this finding is a property of the variable, not of the
+flow.
+
+So the bubble reading of the n_crit result is not supported here, and the
+evidence points the other way. Khobragade's other explanation, that the
+tunnel's own turbulence intensity rises as the tunnel slows, is untouched by
+this test and remains the live one. Separating the two needs a tunnel whose
+turbulence level was recorded, which neither archive provides.
+
+What the negative correlation means in its own right is a further question
+this paper does not answer. A short laminar run marks conditions where the
+flow has already gone turbulent or separated near the leading edge, and the
+solver is worst there. That is a statement about where XFoil struggles, not
+about the bubble.
 
 ### 3.4 The spread, and how sure the numbers are
 
@@ -1132,6 +1203,19 @@ nothing in predicted performance.
   not in nailing individual points.
 - **The "expected drag error" attached to the optimized designs is a
   population statistic**, not a measurement of those designs.
+- **The laminar-run test is a null result and is reported as one.** Drag
+  error does not grow with laminar run length; it falls, and section 3.3
+  gives no mechanism for that. The test also uses XFoil's own predicted
+  transition location rather than a measured one, so it asks whether XFoil
+  errs more where XFoil itself puts transition early. A solver that places
+  transition in the wrong spot would not reveal that here, and nothing in
+  either archive measures where transition actually happened.
+- **The 3.7 percent floor is precision, not accuracy.** Repeat runs bound
+  the random part of a tunnel measurement and nothing else. A systematic
+  error cannot appear in them, because a miscalibrated balance repeats its
+  own offset exactly. Neither archive publishes a calibration uncertainty
+  budget, so the total experimental error at any point is larger than 3.7
+  percent by an amount this paper cannot quantify.
 - **Unsteadiness and measurement scatter are not separated here.** Lift and
   drag at these Reynolds numbers are genuinely unsteady, so a single
   time-averaged number may not be the right target in the first place. The

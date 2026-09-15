@@ -74,14 +74,19 @@ def _sweep(d, Re, alphas, tag):
             p = line.split()
             if len(p) >= 5:
                 try:
-                    rows.append((float(p[0]), float(p[1]), float(p[2])))
+                    # cols 5 and 6 are Top_Xtr and Bot_Xtr, where transition
+                    # happens on each surface, so the length of the laminar run
+                    xtr = (float(p[5]), float(p[6])) if len(p) >= 7 else (np.nan, np.nan)
+                    rows.append((float(p[0]), float(p[1]), float(p[2])) + xtr)
                 except ValueError:
                     pass
     return rows
 
 
 def run_polar(job):
-    """job = (key, coords, Re, alphas). Returns (key, {alpha: (CL, CD)})."""
+    """job = (key, coords, Re, alphas).
+
+    Returns (key, {alpha: (CL, CD, Top_Xtr, Bot_Xtr)})."""
     key, coords, Re, alphas = job
     alphas = np.asarray(alphas, float)
     up = np.unique(np.round(np.concatenate([np.arange(0.0, alphas.max() + 0.25, 0.5),
@@ -97,10 +102,10 @@ def run_polar(job):
         if len(down):
             rows += _sweep(d, Re, down, "down")
     out = {}
-    for a, cl, cd in rows:
+    for a, cl, cd, xtr_t, xtr_b in rows:
         for a0 in alphas:
             if abs(a - a0) < 2e-3:
-                out[float(a0)] = (cl, cd)
+                out[float(a0)] = (cl, cd, xtr_t, xtr_b)
     return key, out
 
 
@@ -199,13 +204,20 @@ def main():
             if i % 50 == 0 or i == len(jobs):
                 print(f"  {i}/{len(jobs)} polars done", flush=True)
 
-    xf_cl, xf_cd = [], []
+    xf_cl, xf_cd, xtr_t, xtr_b = [], [], [], []
     for _, r in pts.iterrows():
         v = results.get(r.polar, {}).get(float(r.alpha))
         xf_cl.append(v[0] if v else np.nan)
         xf_cd.append(v[1] if v else np.nan)
+        xtr_t.append(v[2] if v else np.nan)
+        xtr_b.append(v[3] if v else np.nan)
     pts["XF_CL"] = xf_cl
     pts["XF_CD"] = xf_cd
+    # Nikhil Khobragade (IIT Madras) suggested checking the drag error against
+    # the length of the laminar run. Top_Xtr is that length on the upper
+    # surface, which is the one that carries the separation bubble.
+    pts["XF_xtr_top"] = xtr_t
+    pts["XF_xtr_bot"] = xtr_b
     pts["xf_converged"] = pts.XF_CD.notna()
     pts["err_CD_NF_WT"] = (pts.NF_CD - pts.WT_CD) / pts.WT_CD
     pts["err_CD_XF_WT"] = (pts.XF_CD - pts.WT_CD) / pts.WT_CD

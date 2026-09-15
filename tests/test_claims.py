@@ -156,6 +156,51 @@ def test_rotor_propagation():
     _close(w.loc["5th percentile"].d_mass_g, -2096, 60, "5th-percentile take-off mass miss")
 
 
+def test_laminar_run_length():
+    """Section 3.3 is a null result and the point of pinning it is to keep it
+    one. The correlation is NEGATIVE: longer laminar run, smaller drag error,
+    which is the opposite of the hypothesis that prompted the test."""
+    r = _csv("laminar_run_length.csv")
+    xf = r[r.error == "XF_vs_tunnel"].set_index("band")
+    _close(xf.loc["all"].rho_partial, -0.170, 0.02, "pooled partial rho")
+    assert xf.loc["all"].partial_hi < 0, "pooled interval must exclude zero, below it"
+    for band, quoted in [("40-80k", -0.28), ("80-130k", -0.26), ("130-180k", -0.21),
+                         ("180-250k", -0.18), ("250-550k", -0.02)]:
+        _close(xf.loc[band].rho_partial, quoted, 0.02, f"{band} partial rho")
+    # the effect is strongest at low Re, which is where the bubble argument
+    # predicted the opposite sign
+    assert xf.loc["40-80k"].rho_partial < xf.loc["250-550k"].rho_partial
+    assert xf.loc["250-550k"].partial_hi > 0, "top band should include zero"
+    # no bootstrap draw may be silently discarded, or the interval is biased
+    assert (r.boot_dropped == 0).all()
+
+    # quartiles, without a correlation: shortest run is worst, and the absolute
+    # error in counts falls too, so it is not a small-denominator effect
+    b = _csv("laminar_run_bands.csv").set_index(["band", "quartile"])
+    lo = b.loc["40-80k"]
+    _close(lo.loc["Q1 shortest"].err_XF, 0.320, 0.01, "40-80k shortest-run error")
+    _close(lo.loc["Q4 longest"].err_XF, 0.139, 0.01, "40-80k longest-run error")
+    assert lo.loc["Q1 shortest"].abs_CD_err > 3 * lo.loc["Q4 longest"].abs_CD_err
+
+    # the artefact guard: picking the upper surface regardless of the sign of
+    # lift manufactures the positive result the hypothesis wanted, and it does
+    # so only in the one window that contains points below zero lift
+    a = _csv("laminar_run_alpha.csv")
+    neg = a[(a.alpha_lo == -3) & (a.band == "40-130k")].iloc[0]
+    assert neg.rho_upper > 0.15 and neg.rho_suction < -0.15, "the sign flip must survive"
+    assert neg.n_negative_lift > 300
+    same = a[a.n_negative_lift == 0]
+    assert len(same) >= 6
+    assert (same.rho_upper - same.rho_suction).abs().max() < 1e-9, \
+        "with no negative-lift points the two definitions must be identical"
+
+    # transition location has to exist at every converged point for any of this
+    full = _csv("xfoil_decomposition.csv")
+    assert full.XF_xtr_top.notna().sum() == int(full.xf_converged.sum())
+    assert full.XF_xtr_bot.notna().sum() == int(full.xf_converged.sum())
+    assert full.XF_xtr_top.dropna().between(0, 1).all()
+
+
 def test_same_model_repeatability():
     """The tightest error bar the archives give: one model, one tunnel, twice."""
     r = _csv("repeatability_same_model.csv")
