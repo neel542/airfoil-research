@@ -242,6 +242,31 @@ def test_bemt_validation():
         assert b.loc[nb].CT_pred_ratio - b.loc[nb].CT_meas_ratio < 0.05
 
 
+def test_bemt_validation_xfoil_split():
+    """Section 3.5: swapping NeuralFoil for XFoil in the section table barely
+    moves the propeller error, so the residual is not the network's emulation
+    of XFoil. Pinned because it is the one candidate the paper rules out."""
+    n = _csv("bemt_validation_summary.csv").set_index("label").loc["all 9 in"]
+    x = _csv("bemt_validation_summary_xfoil.csv").set_index("label").loc["all 9 in"]
+    assert int(n.n_window) == int(x.n_window) == 87, "the two runs must cover the same points"
+    for col, quoted in [("err_CT_mean_window", 0.010), ("err_CT_abs_window", 0.090),
+                        ("err_CP_mean_window", 0.048), ("err_CP_abs_window", 0.138)]:
+        _close(x[col], quoted, 0.01, f"xfoil {col}")
+        assert abs(x[col] - n[col]) < 0.015, f"{col}: the two section models should nearly agree"
+
+    # point by point, not just in the mean
+    pn = _csv("bemt_validation.csv"); px = _csv("bemt_validation_xfoil.csv")
+    m = pn.merge(px, on=["label", "rpm"], suffixes=("_nf", "_xf"))
+    w = m[m.in_window_nf & (m.D_in_nf == 9) & ~m.drawn_nf]
+    assert len(w) == 87
+    _close((w.err_CT_nf - w.err_CT_xf).abs().median(), 0.009, 0.005, "median |NF-XF| thrust")
+
+    # the XFoil table pushes some low-Re elements past the inflow bracket; that
+    # is tolerable only because none of them are inside the reported window
+    assert int(px[px.in_window].n_fallback.sum()) == 0, "in-window fallback"
+    assert px[px.n_fallback > 0].Re_75.max() < _csv("bemt_validation.csv").Re_75.max()
+
+
 def test_laminar_run_length():
     """Section 3.3 is a null result and the point of pinning it is to keep it
     one. The correlation is NEGATIVE: longer laminar run, smaller drag error,

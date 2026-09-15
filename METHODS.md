@@ -267,9 +267,19 @@ the rotor's 63%. The run
 also exposed a defect in the solver's inflow root-finder, which capped
 v<sub>i</sub> at 0.25Ωr and fell back silently to zero inflow above it; the cap
 is now 0.95Ωr, every published rotor number is unchanged to 1 part in 10⁴, and
-a regression test drives a 38° root through the solver. Outputs:
+a regression test drives a 38° root through the solver. `validate_bemt.py --xfoil` repeats the whole test with the section table
+filled by XFoil (n_crit 9, free transition) on the same Kulfan geometry, 69
+angles from −10° to 24° × 36 Reynolds rows from 15k to 300k, rows with under
+40% convergence dropped. Inside the window the 9 in results shift by 0.2–1.0
+points (thrust bias +0.6→+1.0%, power bias +3.9→+4.8%, mean absolute 8.8→9.0
+and 12.8→13.8%), and point by point the two section models differ on thrust
+by a median 0.9%, so the residual is not the network's emulation of XFoil.
+With the XFoil table, 14 elements on two 5 in propellers below Re 13,600 hit
+the inflow bracket and fall back to zero inflow; all sit outside the reported
+window, and an in-window fallback is a hard failure. Outputs:
 `data/bemt_validation.csv`, `data/bemt_validation_summary.csv`,
-`data/bemt_validation_blades.csv`, `figures/36_bemt_validation.png`.
+`data/bemt_validation_blades.csv`, `figures/36_bemt_validation.png`, and the
+same three CSVs with an `_xfoil` suffix.
 
 **Forward flight.** The same rotor in level flight, trimmed at each speed
 against an airframe flat-plate area of 0.05 m2, blade elements integrated over

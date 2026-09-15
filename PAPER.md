@@ -913,6 +913,19 @@ from three to four; the solver says 1.38 and 1.24. It over-rewards solidity by
 2 to 3 percent per added blade, and its over-prediction of the DA4022 grows
 with blade count for the same reason.
 
+**So is it the solver, or the section?** Run the whole test again with XFoil
+filling the section table instead of NeuralFoil, on the same Kulfan geometry
+the network sees, and the answer barely moves. Inside the window the thrust
+bias goes from +0.6 to +1.0 percent and the power bias from +3.9 to +4.8;
+the mean absolute errors go from 8.8 and 12.8 percent to 9.0 and 13.8. Point
+by point across the same 87 points the two section models disagree about
+thrust by a median of 0.9 percent. So almost none of that 9 and 13 percent
+scatter is the network's emulation of XFoil, which is consistent with the 2.8
+percent emulation error of section 3.3 and is the one candidate this paper
+can rule out. What the swap cannot separate is the rest: the blade-element
+model, the measured blade geometry, and XFoil's own physics all survive it,
+because both section tables carry the same physics.
+
 Two limits carry into everything that follows. These propellers reach Re
 98,000 at 75 percent span; the rotor above sits at 118,000 to 475,000.
 Nothing in the database reaches it, so this validates the solver below its

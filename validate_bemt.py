@@ -352,7 +352,19 @@ def main(xfoil=False):
     print(f"\nDA4022 9x6.75 at {RPM_MATCH:.0f} RPM, two to four blades (same section, same pitch):\n")
     print(b.round(4).to_string(index=False))
 
-    assert int(pts.n_fallback.sum()) == 0, "an element fell back to zero inflow"
+    # A fallback inside the reported window would invalidate the headline, so
+    # that is fatal. Outside it, on the 5 in propellers whose tip sits near
+    # Re 10,000, the XFoil table is steep enough to push an element past the
+    # bracket; those points are already excluded, so report and carry on.
+    fb = pts[pts.n_fallback > 0]
+    if len(fb):
+        print(f"\n{int(fb.n_fallback.sum())} fallbacks to zero inflow on "
+              f"{fb.label.nunique()} propellers, up to Re {fb.Re_75.max():,.0f}:")
+        print(fb.groupby("label").agg(points=("n_fallback", "size"),
+                                      elements=("n_fallback", "sum"),
+                                      Re75_max=("Re_75", "max")).round(0).to_string())
+    bad = int(fb[fb.in_window].n_fallback.sum())
+    assert bad == 0, f"{bad} elements fell back to zero inflow inside the reported window"
     if not xfoil:
         figure(pts)
     print("\nDone.")
