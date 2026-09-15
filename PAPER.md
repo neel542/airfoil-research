@@ -871,9 +871,11 @@ in the solver from its measured chord and pitch distribution, the section is
 looked up in NeuralFoil exactly as the rotor above looks up the E387, and it
 is run at every measured RPM. Nothing is tuned. One honest detail on the
 section: the SDA1075 fits its 17-number Kulfan description to 0.13 percent of
-chord, coarser than the 0.07 percent every benchmark airfoil meets, because
-its trailing edge was thickened to 1.1 percent of chord so the 5 inch blades
-could be printed. NeuralFoil sees that fitted shape.
+chord, because its trailing edge was thickened to 1.1 percent of chord so the
+5 inch blades could be printed. That is coarser than every Princeton model,
+which all fit to better than 0.07 percent, but it sits inside the UIUC spread,
+whose median is 0.07 and whose worst is 0.23. NeuralFoil sees that fitted
+shape.
 
 Two things came out. The first was a defect in the solver. Its inflow
 root-finder capped induced velocity at a quarter of the local rotational
@@ -908,7 +910,7 @@ pitch are identical across it and only the number of blades changes, so the
 section error is held fixed and what moves is the inflow and tip-loss model.
 Measured thrust rises by a factor of 1.35 from two blades to three and 1.21
 from three to four; the solver says 1.38 and 1.24. It over-rewards solidity by
-about 3 percent per added blade, and its over-prediction of the DA4022 grows
+2 to 3 percent per added blade, and its over-prediction of the DA4022 grows
 with blade count for the same reason.
 
 Two limits carry into everything that follows. These propellers reach Re

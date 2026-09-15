@@ -259,7 +259,7 @@ window, over 87 points on the seven 9 in propellers: thrust bias +0.6%, mean
 absolute error 8.8%; power bias +3.9%, mean absolute error 12.8%; the two
 families miss in opposite directions (DA4002 −3 to −20% thrust, DA4022 +6 to
 +12%), the drawn and built DA4002 geometries differ by 3% in thrust, and the
-solver over-predicts the thrust gain from an added blade by about 3% (measured
+solver over-predicts the thrust gain from an added blade by 2-3% (measured
 ×1.35 and ×1.21 for 2→3→4 blades at 4,900 rpm, predicted ×1.38 and ×1.24). No
 propeller reaches the design rotor's Re 118k–475k, and these propellers are
 54–89% induced at the top of their sweeps (six of seven above 77%) against
