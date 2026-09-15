@@ -30,9 +30,13 @@ This script answers it in three steps.
      amplification factor, and it is the number the paper was missing.
 
 What this is not: a prediction of real rotor power. BEMT is itself a model with
-its own error, which is not quantified here, and the Gamma error model was
-fitted to two-dimensional wind-tunnel residuals, not to a rotating blade.
-This propagates a measured aerodynamic uncertainty through a simplified rotor.
+its own error. validate_bemt.py measures that error against propellers with a
+known section from the UIUC database: inside Re 40,000 to 98,000 the solver
+lands within a few percent of measured thrust on average and over-predicts
+power by about 4 percent, with a 13 percent scatter, and it has not been
+checked at the Reynolds numbers this rotor runs at. The Gamma error model was
+fitted to two-dimensional wind-tunnel residuals, not to a rotating blade. This
+propagates a measured aerodynamic uncertainty through a simplified rotor.
 
 Inputs  : data/error_model_fit.json          the fitted Gamma drag-error model
           data/xfoil_decomposition_by_Re.csv the measured signed bias by Re
@@ -93,13 +97,19 @@ class Section:
     difference between them is the perturbation and nothing else.
     """
 
-    def __init__(self, name=SECTION, n_alpha=141, n_Re=45):
+    def __init__(self, name=SECTION, n_alpha=141, n_Re=45, coordinates=None,
+                 alpha_range=(-10, 20), Re_range=(30e3, 900e3)):
         self.name = name
-        self.af = asb.Airfoil(name)
+        # a named airfoil from the AeroSandbox database, or explicit coordinates
+        # for one that is not in it, such as a propeller section from a paper
+        self.af = (asb.Airfoil(name) if coordinates is None
+                   else asb.Airfoil(name=name, coordinates=np.asarray(coordinates, float)))
         self.camber_pct = float(self.af.max_camber()) * 100
         self.thickness_pct = float(self.af.max_thickness()) * 100
-        self.alphas = np.linspace(-10, 20, n_alpha)
-        self.Res = np.geomspace(30e3, 900e3, n_Re)
+        # the defaults cover a lift rotor; a fixed-pitch propeller at zero
+        # airspeed runs its root well past 20 degrees and its tip below Re 30,000
+        self.alphas = np.linspace(*alpha_range, n_alpha)
+        self.Res = np.geomspace(*Re_range, n_Re)
         A, R = np.meshgrid(self.alphas, self.Res, indexing="ij")
         aero = self.af.get_aero_from_neuralfoil(
             alpha=A.ravel(), Re=R.ravel(), model_size=MODEL)
@@ -134,7 +144,7 @@ class Rotor:
 
     def __init__(self, R=0.30, n_blades=2, chord_root=0.060, taper=0.7,
                  rpm=4200, twist_rate_deg=15.0, root_cut=0.15, n_elem=24,
-                 section=None):
+                 section=None, blade=None):
         self.R, self.Nb, self.rpm = R, n_blades, rpm
         self.omega = rpm * 2 * np.pi / 60
         self.section = section if section is not None else Section()
@@ -144,9 +154,17 @@ class Rotor:
         self.dx = np.diff(x)
         self.r = self.x * R
         self.dr = self.dx * R
-        self.chord = chord_root * (1 - (1 - taper) * (self.x - root_cut) / (1 - root_cut))
         self.twist_rate_deg = twist_rate_deg
-        self.twist = np.deg2rad(twist_rate_deg) * (0.75 - self.x)      # zero at 0.75R
+        if blade is None:
+            self.chord = chord_root * (1 - (1 - taper) * (self.x - root_cut) / (1 - root_cut))
+            self.twist = np.deg2rad(twist_rate_deg) * (0.75 - self.x)      # zero at 0.75R
+        else:
+            # a measured or drawn blade: columns r/R, c/R and beta, the pitch
+            # angle in degrees from the plane of rotation. beta is the whole
+            # pitch, so run this rotor at collective = 0; trim() adds to it.
+            b = pd.DataFrame(blade)
+            self.chord = np.interp(self.x, b["r/R"], b["c/R"]) * R
+            self.twist = np.deg2rad(np.interp(self.x, b["r/R"], b["beta"]))
         self.area = np.pi * R ** 2
         self.solidity = self.Nb * np.trapz(self.chord, self.r) / self.area
 
@@ -184,6 +202,7 @@ class Rotor:
         """
         cd_scale = np.broadcast_to(np.atleast_1d(cd_scale), (len(self.x),))
         rows = []
+        self.n_fallback = 0
         for i in range(len(self.x)):
             def residual(vi):
                 dT = self._element(vi, i, collective, cd_scale[i])[0]
@@ -205,6 +224,7 @@ class Rotor:
                     vi = brentq(residual, 1e-4, vi_hi, xtol=1e-8, rtol=1e-10)
             except ValueError:
                 vi = 1e-4
+                self.n_fallback += 1                       # counted, never silent
             dT, dFx, dFx_i, dFx_p, alpha, Re, cl, cd, phi = self._element(
                 vi, i, collective, cd_scale[i])
             rows.append(dict(x=self.x[i], r=self.r[i], dr=self.dr[i], chord=self.chord[i],
@@ -227,6 +247,7 @@ class Rotor:
                    Re_min=d.Re.min(), Re_max=d.Re.max(),
                    FM=(T ** 1.5 / np.sqrt(2 * RHO * self.area)) / P if P > 0 else np.nan)
         out["CT_sigma"] = out["CT"] / self.solidity
+        out["n_fallback"] = self.n_fallback
         out["disk_loading"] = T / self.area
         return out, d
 
