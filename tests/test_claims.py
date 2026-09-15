@@ -156,6 +156,33 @@ def test_rotor_propagation():
     _close(w.loc["5th percentile"].d_mass_g, -2096, 60, "5th-percentile take-off mass miss")
 
 
+def test_bemt_inflow_bracket():
+    """The inflow root-finder used to cap induced velocity at a quarter of the
+    local rotational speed. The rotor study's design point sat at 0.977 of
+    that cap without ever crossing it, and a fixed-pitch propeller root at 36
+    degrees needs about twice it. An element that hit the cap fell back to
+    zero inflow and sat fully stalled, silently. This test uses an analytic
+    section so it runs in milliseconds rather than building a NeuralFoil table."""
+    sys.path.insert(0, ROOT)
+    import rotor_uncertainty as ru
+
+    class Analytic:
+        name, camber_pct, thickness_pct = "analytic", 0.0, 12.0
+        def __call__(self, alpha, Re):
+            cl = np.clip(2 * np.pi * np.deg2rad(np.atleast_1d(alpha)), -1.2, 1.2)
+            return cl, 0.02 + 0.05 * cl ** 2
+
+    rot = ru.Rotor(R=0.1143, n_blades=2, chord_root=0.02, taper=1.0, rpm=4000,
+                   twist_rate_deg=0.0, root_cut=0.30, n_elem=12, section=Analytic())
+    # a propeller-like pitch distribution, 38 degrees at the root and 13 at the tip
+    rot.twist = np.deg2rad(np.interp(rot.x, [0.30, 1.0], [38.0, 13.4]))
+    out, d = rot.solve(0.0)
+    old_cap = 0.25 * rot.omega * rot.r
+    assert (d.vi / old_cap).max() > 1.0, "the test blade must actually need more than the old cap"
+    assert (d.vi > 1e-3).all(), "an element fell back to zero inflow"
+    assert out["T"] > 0 and out["P"] > 0
+
+
 def test_laminar_run_length():
     """Section 3.3 is a null result and the point of pinning it is to keep it
     one. The correlation is NEGATIVE: longer laminar run, smaller drag error,
