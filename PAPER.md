@@ -687,10 +687,26 @@ positive version of this finding is a property of the variable, not of the
 flow.
 
 So the bubble reading of the n_crit result is not supported here, and the
-evidence points the other way. Khobragade's other explanation, that the
-tunnel's own turbulence intensity rises as the tunnel slows, is untouched by
-this test and remains the live one. Separating the two needs a tunnel whose
-turbulence level was recorded, which neither archive provides.
+evidence points the other way.
+
+Nor is the other reading. Khobragade, asked directly how much the turbulence
+intensity of a low-speed tunnel moves between 10 and 30 m/s, answered that it
+stays approximately the same, with a minor decrease that can be neglected over
+that range. Put a number on what the n_crit trend would need instead. Mack's
+correlation, n_crit = −8.43 − 2.4 ln(Tu), puts n_crit = 9 at a turbulence
+intensity of 0.070 percent and n_crit = 7 at 0.161 percent. Going from one to
+the other as the tunnel slows asks the intensity to rise by a factor of 2.3.
+A negligible drift cannot deliver a doubling, so the best-fit n_crit is not
+tracking the turbulence of the tunnel.
+
+That leaves both candidate explanations dead and the observation standing. At
+Re = 60,000 on the Princeton set, n_crit = 9 over-predicts drag by 11.6
+percent and n_crit = 7 brings the bias to −1.8; by Re = 300,000 the ordering
+has gone. Whatever n_crit is absorbing down there, it is neither the length of
+the laminar run nor the freestream turbulence, and this paper cannot name it.
+What it can say is that a single n_crit calibrated at one Reynolds number
+should not be trusted at another, and that the fitted value is a free
+parameter soaking up a drag error rather than a measurement of the flow.
 
 What the negative correlation means in its own right is a further question
 this paper does not answer. A short laminar run marks conditions where the
@@ -1304,7 +1320,10 @@ nothing in predicted performance.
   transition location rather than a measured one, so it asks whether XFoil
   errs more where XFoil itself puts transition early. A solver that places
   transition in the wrong spot would not reveal that here, and nothing in
-  either archive measures where transition actually happened.
+  either archive measures where transition actually happened. Ruling out
+  turbulence intensity as the alternative rests on one expert's estimate of
+  how a low-speed tunnel behaves, not on a measurement in either facility,
+  since neither archive recorded one.
 - **The 3.7 percent floor is precision, not accuracy.** Repeat runs bound
   the random part of a tunnel measurement and nothing else. A systematic
   error cannot appear in them, because a miscalibrated balance repeats its
