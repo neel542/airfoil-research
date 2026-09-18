@@ -475,6 +475,7 @@ their clean runs at matching speeds and angles gives 131 polar pairs and
 |---:|---:|---:|---:|---:|---:|---:|
 | 60,000 | 340 | 11 | 18 | 18 | 17 | 0.049 |
 | 100,000 | 519 | 15 | 16 | 14 | 12 | 0.048 |
+| 150,000 | 161 | 8 | 11 | 9 | 10 | 0.037 |
 | 200,000 | 636 | 15 | 9 | 9 | 7 | 0.048 |
 | 300,000 | 483 | 13 | 7 | 7 | 7 | 0.051 |
 | **All** | **2,139** | **15** | **12** | **11** | **10** | **0.048** |
@@ -483,9 +484,18 @@ The two experiments differ on drag by 12 percent, with UIUC reading about 6
 percent higher. NeuralFoil differs from each of them by 10 to 11 percent on
 those very same points. On 53 percent of them it lands closer to the
 Princeton value than the UIUC measurement does. And from Re = 200,000 up,
-all three numbers collapse to 7 to 9 percent. At those speeds NeuralFoil's
-drag error has hit the repeatability limit of slow-speed wind-tunnel testing
-itself, and no model can be shown to beat it without better experiments.
+all three numbers collapse to 7 to 9 percent. That is the level at which the
+two laboratories stop agreeing with each other, and it is a different quantity
+from the repeatability of either one of them. Jewel Barlow, who directs the
+Glenn L. Martin Wind Tunnel, put within-facility repeatability at a fraction
+of 1 percent for a model rigid enough that its surface varies by a small
+fraction of a millimetre, and said the differences between facilities are much
+larger, because of the number of details that cannot be duplicated from one to
+the next. The Princeton repeat runs below agree to 1.5 and 2.0 percent at
+Re = 300,000, so the 7 percent at that speed is a statement about two archives
+and not about one tunnel. A model that beat 7 percent could still be
+demonstrated against either archive on its own. What could not be settled is
+which of the two it should be scored against.
 Lift is a different story. The two tunnels agree with each other at 0.048,
 better than NeuralFoil agrees with either at 0.066 and 0.080, so the lift
 error is the model's.
@@ -513,6 +523,17 @@ any of them. Accuracy and precision are different quantities and only the
 second one can be recovered from repeat runs. Read 3.7 percent as a floor on
 the random part of the experimental error, not as a bound on the whole of
 it.
+
+It is not the instrument either. Asked what a tunnel should manage, Barlow
+gave a fraction of 1 percent on force and moment measurements for a rigid
+model, commonly a small fraction of that. The Princeton repeats sit above
+that everywhere they can be checked. What 3.7 percent measures is not the
+balance. It is what happens when a hand-built model is taken off the mount
+and put back on, at Reynolds numbers where forces are sensitive to small
+differences in surface detail and that sensitivity interacts with the
+freestream turbulence. For scoring a model against an archive that is the
+more useful of the two figures, because anyone using the archive inherits
+the remount and the surface finish along with the numbers.
 
 **Build error hides inside the model error.** For the 56 models with both
 sets of coordinates, the built shape differs from the drawing by 0.22
@@ -1323,7 +1344,10 @@ nothing in predicted performance.
   either archive measures where transition actually happened. Ruling out
   turbulence intensity as the alternative rests on one expert's estimate of
   how a low-speed tunnel behaves, not on a measurement in either facility,
-  since neither archive recorded one.
+  since neither archive recorded one. Intensity is also only one parameter of
+  a turbulent flow, and Barlow notes that its length scales matter too.
+  Mack's correlation takes intensity alone, so what is ruled out here is the
+  intensity of the freestream and not everything about its turbulence.
 - **The 3.7 percent floor is precision, not accuracy.** Repeat runs bound
   the random part of a tunnel measurement and nothing else. A systematic
   error cannot appear in them, because a miscalibrated balance repeats its

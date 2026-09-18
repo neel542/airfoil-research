@@ -209,7 +209,13 @@ range. Over 95 matched points the repeats disagree by **3.7%** in drag and
 0.009 in lift, against 12% between the two tunnels and 11.7% for NeuralFoil.
 The floor is Re-dependent: 1.5–2.0% at Re = 300k, 4.7–8.3% at Re = 100k. That
 3.7% mixes genuine run-to-run flow unsteadiness with measurement scatter, and
-neither archive is time-resolved, so they cannot be separated here. Data
+neither archive is time-resolved, so they cannot be separated here. It is not
+instrument noise: Jewel Barlow (Glenn L. Martin Wind Tunnel) puts
+within-facility repeatability on a rigid model at a fraction of 1 percent, so
+3.7% is the reproducibility of a remount at low Re rather than the precision
+of the balance. In absolute terms the repeats differ by 8.3 drag counts on
+average, on a CD of 0.013 to 0.027, with a pooled bias of -0.1%, so the
+disagreement is scatter and not an offset between the runs. Data
 `data/repeatability_same_model.csv`.
 
 **Propagation into a rotor and an aircraft.** `rotor_uncertainty.py` carries the
