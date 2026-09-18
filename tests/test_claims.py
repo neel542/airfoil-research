@@ -319,6 +319,12 @@ def test_same_model_repeatability():
     assert int(p.n) == 95
     _close(p.mean_abs_errCD, 0.037, 0.003, "same-model drag repeatability")
     _close(p.mean_abs_dCL, 0.0087, 0.002, "same-model lift repeatability")
+    # 3.7% is small in absolute terms and large only because CD is small. Barlow put
+    # within-facility repeatability on a rigid model at a fraction of 1 percent, so
+    # this figure is a remount at low Re and not the precision of the balance.
+    _close(p.mean_abs_dCD_counts, 8.3, 0.5, "same-model drag repeatability, counts")
+    _close(p.CD_mean, 0.0176, 0.001, "mean CD the repeatability is a fraction of")
+    assert abs(p.bias_errCD) < 0.01, "the repeat disagreement is scatter, not an offset"
     pairs = r[r.model != "pooled"]
     # the tunnel repeats itself better as the air speeds up, same as the models do
     assert pairs[pairs.Re_run1 < 120e3].mean_abs_errCD.mean() > \
@@ -468,6 +474,13 @@ def test_cross_tunnel():
     _close((ct.errCD_NF_vs_princeton.abs() < ct.errCD_tunnels.abs()).mean(), 0.53, 0.02, "fraction NF closer than other tunnel")
     hi = ct[ct.Re_princeton >= 175e3]
     assert hi.errCD_tunnels.abs().mean() < 0.09 and hi.errCD_NF_vs_princeton.abs().mean() < 0.08
+    # the Re = 150,000 row of the paper table, which the All row had always included
+    mid = ct[(ct.Re_princeton >= 126e3) & (ct.Re_princeton <= 156e3)]
+    assert len(mid) == 161 and mid.asb_name.nunique() == 8
+    _close(mid.errCD_tunnels.abs().mean(), 0.111, 0.005, "150k tunnel-vs-tunnel")
+    _close(mid.errCD_NF_vs_uiuc.abs().mean(), 0.087, 0.005, "150k NF vs UIUC")
+    _close(mid.errCD_NF_vs_princeton.abs().mean(), 0.099, 0.005, "150k NF vs Princeton")
+    _close(mid.dCL_tunnels.abs().mean(), 0.037, 0.003, "150k tunnel-vs-tunnel lift")
 
 
 def test_soartech8_trips_stall_confidence():
