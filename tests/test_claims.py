@@ -687,39 +687,191 @@ def test_fitted_error_model():
     assert top["fitted_error_model"] == "data/error_model_fit.json"
 
 
-def test_rotor_prose_matches_the_closure_table():
-    """The amplification factor, the loop gain and the take-off-mass spread are
-    quoted in three documents. The convergence fix moved all three (the old
-    60-iteration run stopped short of its 1e-6 tolerance), and PAPER.md's body
-    was updated while its introduction, README.md and SUMMARY.md were not."""
-    w = _csv("rotor_weight_closure.csv").set_index("label")
-    tail = w.drop("model")
-    amp_lo, amp_hi = tail.amplification.min(), tail.amplification.max()
-    gain_lo, gain_hi = tail.loop_gain.min(), tail.loop_gain.max()
-    spread = tail.m_total_kg.max() - tail.m_total_kg.min()
+# ─────────────────────────────────────────────────────────────────────────────
+# Exhaustive prose-claim checking
+#
+# `phrase in text` is not a regression test. A document can carry the corrected
+# sentence twice and a stale one a hundred lines later and still pass, which is
+# exactly how a "three kilograms" statement survived the weight-closure fix.
+#
+# A Claim instead matches the SENTENCE CONTEXT and captures the quoted value, so
+# a stale sentence still matches the pattern and fails on its value rather than
+# slipping past unmatched. Occurrence counts are declared per document, so a
+# claim that is deleted, duplicated or newly added also fails until the count is
+# updated deliberately.
+# ─────────────────────────────────────────────────────────────────────────────
+
+def _prose(doc):
+    """One normalised line: HTML tags dropped, Markdown emphasis dropped,
+    whitespace collapsed so a claim split across a line break still matches."""
+    text = open(os.path.join(ROOT, doc), encoding="utf-8").read()
+    if doc.endswith((".html", ".htm")):
+        # Drop <style>/<script> bodies first. Stripping only the tags would
+        # leave stylesheet text sitting in the "prose" that claim regexes scan.
+        text = re.sub(r"(?is)<(script|style)\b[^>]*>.*?</\1>", " ", text)
+        text = re.sub(r"<[^>]+>", " ", text)
+    text = re.sub(r"\*\*|__|`|\*", " ", text)
+    return re.sub(r"\s+", " ", text)
+
+
+def assert_claim(name, context, accepted, counts, stale=()):
+    """Every prose occurrence of one reported result must quote the current value.
+
+    name      what the claim is, for failure messages.
+    context   regex matching the claim's context with a named `value` group. It
+              must match stale wordings too, or they escape the check.
+    accepted  the value strings derived from the source CSV. Anything else fails.
+    counts    {document: exact number of occurrences}. Exhaustive by construction.
+    stale     (regex, why) pairs that must appear nowhere.
+    """
+    rx = re.compile(context, re.I)
+    accepted = {a.lower() for a in accepted}
+    total = 0
+    for doc, expected_n in counts.items():
+        text = _prose(doc)
+        found = list(rx.finditer(text))
+        assert len(found) == expected_n, (
+            f"{name}: {doc} has {len(found)} occurrences, expected {expected_n}. "
+            f"Found: {[m.group('value').strip() for m in found]}. "
+            "A new or deleted claim must be reflected here deliberately."
+        )
+        for m in found:
+            got = m.group("value").strip().lower()
+            assert got in accepted, (
+                f"{name}: {doc} quotes '{got}' but the data supports "
+                f"{sorted(accepted)}. Context: ...{text[max(0, m.start() - 70):m.end() + 30]}..."
+            )
+        total += len(found)
+        for pattern, why in stale:
+            hit = re.search(pattern, text, re.I)
+            assert hit is None, f"{name}: {doc} still carries {why} ('{hit.group(0)}')"
+    assert total == sum(counts.values())
+    return total
+
+
+# The rotor weight-closure claims, one regex each. A claim that is stated in two
+# different shapes needs one pattern per shape, or the shape nobody wrote a
+# pattern for is the one that goes stale. These are shared by the count checks
+# and by the PAPER.html synchronisation check so the two cannot drift apart.
+CLAIM_MASS_SPREAD = (r"worth\s+(?:about\s+)?(?P<value>[A-Za-z0-9. ]{1,24}?)\s*"
+                     r"(?:kilograms|kg)\b\s*(?:of take-off mass|on a)")
+CLAIM_AMP_RANGE = (r"amplification factor(?:[^.]{0,80}?)\bis\s+"
+                   r"(?P<value>[0-9.]+\s*(?:-|to)\s*[0-9.]+)")
+CLAIM_AMP_PERCENTILE = (r"percent error in section drag is\s+"
+                        r"(?P<value>[0-9.]+ at the 5th percentile,"
+                        r" [0-9.]+ at the median and [0-9.]+ at the 95th)")
+CLAIM_GAIN_PAREN = r"doubles\s*\((?P<value>[0-9.]+\s*-\s*[0-9.]+)x\)"
+CLAIM_GAIN_PROSE = (r"multiplies the power error by\s+"
+                    r"(?P<value>[0-9.]+\s*(?:-|to)\s*[0-9.]+)\s*times")
+
+
+def test_rotor_mass_spread_claim_is_current_everywhere():
+    """The 90 percent take-off-mass interval, checked at every occurrence.
+
+    The convergence fix moved this from 3.05 kg to 3.53 kg. PAPER.md's body was
+    updated, its introduction was not, and a third sentence near the end kept
+    the old wording through an earlier presence-only test.
+    """
+    w = _csv("rotor_weight_closure.csv").set_index("label").drop("model")
+    spread = w.m_total_kg.max() - w.m_total_kg.min()
+    _close(spread, 3.527, 0.06, "90 percent take-off-mass interval, kg")
+
+    halves = {3.0: "three", 3.5: "three and a half", 4.0: "four",
+              4.5: "four and a half", 2.5: "two and a half", 3.0 - 0.0: "three"}
+    worded = halves[round(spread * 2) / 2]
+    numeric = f"{spread:.1f}"
+    assert worded == "three and a half" and numeric == "3.5", \
+        "the spread no longer rounds to the wording these documents use"
+
+    assert_claim(
+        "rotor take-off-mass spread",
+        # "worth about <value> kilograms of take-off mass" / "<value> kg on a".
+        # The trailing clause keeps this off "three and a half TIMES", which is
+        # a different result in the same paper.
+        CLAIM_MASS_SPREAD,
+        accepted={worded, numeric},
+        counts={"PAPER.md": 3, "README.md": 1, "SUMMARY.md": 1,
+                "METHODS.md": 0, "PAPER.html": 3},
+        stale=[(r"worth\s+(?:about\s+)?three\s+kilograms", "the unconverged 3.05 kg spread"),
+               (r"worth\s+(?:about\s+)?3(?:\.0)?\s*kg\b", "the unconverged 3.0 kg spread")],
+    )
+
+
+def test_paper_html_is_synchronized_with_paper_md():
+    """PAPER.html is generated from PAPER.md, so every rotor claim must read
+    identically in both, in the same order. If PAPER.md is edited and the HTML
+    is not rebuilt, the two value lists diverge here. This pins the claims, not
+    the whole document: it is a staleness guard, not a rebuild."""
+    seen = 0
+    for name, pattern in [("mass spread", CLAIM_MASS_SPREAD),
+                          ("amplification range", CLAIM_AMP_RANGE),
+                          ("amplification per percentile", CLAIM_AMP_PERCENTILE),
+                          ("loop gain, parenthesised", CLAIM_GAIN_PAREN),
+                          ("loop gain, paper wording", CLAIM_GAIN_PROSE)]:
+        rx = re.compile(pattern, re.I)
+        md = [m.group("value").strip().lower() for m in rx.finditer(_prose("PAPER.md"))]
+        html = [m.group("value").strip().lower() for m in rx.finditer(_prose("PAPER.html"))]
+        assert md == html, (
+            f"{name}: PAPER.html is out of date with PAPER.md: {html} vs {md}. "
+            "Run `python build_paper_html.py`."
+        )
+        seen += len(md)
+    assert seen >= 6, \
+        "the rotor claims vanished from both files, which the count checks should have caught"
+
+
+def test_rotor_amplification_and_loop_gain_claims_are_current():
+    """The same paragraph carried two more ranges that the convergence fix moved."""
+    w = _csv("rotor_weight_closure.csv").set_index("label").drop("model")
+    amp_lo, amp_hi = w.amplification.min(), w.amplification.max()
+    gain_lo, gain_hi = w.loop_gain.min(), w.loop_gain.max()
     _close(amp_lo, 0.633, 0.01, "amplification factor, low end")
     _close(amp_hi, 0.738, 0.01, "amplification factor, high end")
     _close(gain_lo, 2.272, 0.03, "closure loop gain, low end")
     _close(gain_hi, 2.536, 0.03, "closure loop gain, high end")
-    _close(spread, 3.527, 0.06, "90 percent take-off-mass interval, kg")
+    amp_p05, amp_med, amp_p95 = (float(w.loc[l].amplification)
+                                 for l in ["5th percentile", "median", "95th percentile"])
 
-    def _doc(name):
-        return open(os.path.join(ROOT, name), encoding="utf-8").read()
+    assert_claim(
+        "amplification factor range",
+        CLAIM_AMP_RANGE,
+        accepted={f"{amp_lo:.2f}-{amp_hi:.2f}", f"{amp_lo:.2f} to {amp_hi:.2f}"},
+        counts={"PAPER.md": 1, "README.md": 1, "SUMMARY.md": 0,
+                "METHODS.md": 0, "PAPER.html": 1},
+        stale=[(r"0\.62\s*(?:-|to)\s*0\.68", "the unconverged amplification range")],
+    )
+    # The paper states the same three numbers a second time, one per percentile,
+    # in a sentence the range pattern above cannot see. That is how a stale value
+    # survives an update to the sentence beside it, so it gets its own pattern,
+    # pinned per label rather than to the min and max.
+    assert_claim(
+        "amplification factor, per percentile",
+        CLAIM_AMP_PERCENTILE,
+        accepted={f"{amp_p05:.2f} at the 5th percentile, {amp_med:.2f} at the median "
+                  f"and {amp_p95:.2f} at the 95th"},
+        counts={"PAPER.md": 1, "README.md": 0, "SUMMARY.md": 0,
+                "METHODS.md": 0, "PAPER.html": 1},
+        stale=[(r"0\.72 at the 5th percentile", "the unconverged 5th-percentile amplification")],
+    )
+    assert_claim(
+        "closure loop gain range",
+        CLAIM_GAIN_PAREN,
+        accepted={f"{gain_lo:.1f}-{gain_hi:.1f}"},
+        counts={"README.md": 1, "PAPER.md": 0, "SUMMARY.md": 0,
+                "METHODS.md": 0, "PAPER.html": 0},
+        stale=[(r"1\.9\s*-\s*2\.5x", "the unconverged loop gain range")],
+    )
+    # and the paper's own wording of the loop gain, which the parenthesised
+    # README form does not match
+    assert_claim(
+        "closure loop gain, paper wording",
+        CLAIM_GAIN_PROSE,
+        accepted={f"{gain_lo:.1f} to {gain_hi:.1f}", f"{gain_lo:.1f}-{gain_hi:.1f}"},
+        counts={"PAPER.md": 1, "README.md": 0, "SUMMARY.md": 0,
+                "METHODS.md": 0, "PAPER.html": 1},
+        stale=[(r"power error by\s+1\.9\s*(?:-|to)\s*2\.5", "the unconverged loop gain range")],
+    )
 
-    readme = _doc("README.md")
-    assert f"{amp_lo:.2f}-{amp_hi:.2f}" in readme, \
-        f"README.md must quote the amplification range {amp_lo:.2f}-{amp_hi:.2f}"
-    assert f"{gain_lo:.1f}-{gain_hi:.1f}x" in readme, \
-        f"README.md must quote the loop gain {gain_lo:.1f}-{gain_hi:.1f}x"
-    assert f"{spread:.1f} kg" in readme, \
-        f"README.md must quote the mass spread as {spread:.1f} kg"
-    # The narrative documents round the same spread to words; 3.53 kg reads as
-    # "three and a half", and the older "three kilograms" belonged to the
-    # unconverged 3.05 kg run.
-    assert 3.4 <= spread < 3.75, "the worded mass spread no longer rounds to three and a half"
-    for name in ("SUMMARY.md", "PAPER.md"):
-        assert "three and a half" in _doc(name), \
-            f"{name} must quote the corrected take-off-mass spread in words"
 
 def test_pytest_is_a_declared_dependency():
     """The suite is the only guard on every number in the paper, so the runner
