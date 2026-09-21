@@ -1,7 +1,7 @@
 """
 The noise floor of a single wind tunnel: the same model, measured twice.
 
-The two-tunnel comparison in this repository puts 12 percent between UIUC and
+The cross-archive comparison in this repository puts about 11 percent between UIUC and
 Princeton on drag. That number mixes two things: real disagreement between
 facilities, and the plain repeatability of a slow-speed drag measurement. The
 Princeton set contains models that were mounted and run a second time in the
@@ -89,7 +89,7 @@ def main():
     print(f"In absolute terms that is {p.mean_abs_dCD_counts:.1f} drag counts on a mean "
           f"CD of {p.CD_mean:.4f}, with a bias of {100 * p.bias_errCD:+.1f}%, so it is "
           f"scatter and not an offset between the runs.")
-    print("For comparison: 12% between the two tunnels, 11.7% between NeuralFoil "
+    print("For comparison: 10.9% between the two archives, 11.7% between NeuralFoil "
           "and the tunnels.")
     print("Not instrument noise. Jewel Barlow (Glenn L. Martin Wind Tunnel) puts "
           "within-facility\nrepeatability on a rigid model at a fraction of 1 percent, "

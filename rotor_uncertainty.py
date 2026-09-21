@@ -447,7 +447,7 @@ def monte_carlo(rotor, nominal, stations, err, n=N_DRAWS, seed=SEED):
 # ═════════════════════════════════════════════════════════════════════════
 # Weight closure: power to battery to weight, iterated to a fixed point
 # ═════════════════════════════════════════════════════════════════════════
-def closure(rotor, cd_scale=1.0, cfg=None, tol=1e-6, max_iter=60):
+def closure(rotor, cd_scale=1.0, cfg=None, tol=1e-6, max_iter=200):
     """Take-off mass that closes on itself for a given section drag.
 
     Heavier battery needs more thrust, which needs more power, which needs a
@@ -455,6 +455,7 @@ def closure(rotor, cd_scale=1.0, cfg=None, tol=1e-6, max_iter=60):
     """
     c = dict(CLOSURE if cfg is None else cfg)
     m = c["payload_kg"] / (1 - c["struct_frac"]) * 2.0          # a starting guess
+    converged = False
     for it in range(max_iter):
         T = m * G / N_ROTORS
         o, _ = rotor.trim(T, cd_scale=cd_scale)
@@ -463,13 +464,16 @@ def closure(rotor, cd_scale=1.0, cfg=None, tol=1e-6, max_iter=60):
         m_new = (c["payload_kg"] + m_batt) / (1 - c["struct_frac"])
         if abs(m_new - m) < tol:
             m = m_new
+            converged = True
             break
         m = m + 0.6 * (m_new - m)                                # damped, it converges quickly
+    if not converged:
+        raise RuntimeError(f"weight closure did not converge in {max_iter} iterations")
     T = m * G / N_ROTORS
     o, _ = rotor.trim(T, cd_scale=cd_scale)
     p_elec = N_ROTORS * o["P"] / c["drivetrain_eff"]
     m_batt = p_elec * c["endurance_h"] / (c["pack_Wh_per_kg"] * c["usable_frac"])
-    return dict(iterations=it + 1, m_total_kg=m, m_battery_kg=m_batt,
+    return dict(iterations=it + 1, converged=True, m_total_kg=m, m_battery_kg=m_batt,
                 m_structure_kg=c["struct_frac"] * m, payload_kg=c["payload_kg"],
                 thrust_per_rotor_N=T, power_rotor_W=o["P"], power_elec_W=p_elec,
                 energy_Wh=p_elec * c["endurance_h"], induced_frac=o["induced_frac"],
@@ -896,13 +900,14 @@ class ForwardFlight:
         n = len(self.psi)
         return T / n, Qi / n, Qp / n, rev / n
 
-    def solve(self, V, collective, cd_scale=1.0, tol=1e-7, max_iter=60):
+    def solve(self, V, collective, cd_scale=1.0, tol=1e-7, max_iter=300):
         """Thrust and power at one speed and collective, inflow converged."""
         D, T_target, tau = self._trim_state(V)
         om, R, A = self.r.omega, self.r.R, self.r.area
         lam_i = np.sqrt(T_target / (2 * RHO * A)) / (om * R)      # hover value as a start
         mu_x = V * np.cos(tau) / (om * R)
         mu_z = V * np.sin(tau) / (om * R)
+        converged = False
         for _ in range(max_iter):
             T, Qi, Qp, rev = self._integrate(V, collective, lam_i, tau, cd_scale)
             CT = T / (RHO * A * (om * R) ** 2)
@@ -910,8 +915,11 @@ class ForwardFlight:
             lam_new = CT / (2 * np.sqrt(mu_x ** 2 + lam ** 2)) if (mu_x or lam) else lam_i
             if abs(lam_new - lam_i) < tol:
                 lam_i = lam_new
+                converged = True
                 break
             lam_i = lam_i + 0.5 * (lam_new - lam_i)
+        if not converged:
+            raise RuntimeError(f"forward-flight inflow did not converge in {max_iter} iterations")
         T, Qi, Qp, rev = self._integrate(V, collective, lam_i, tau, cd_scale)
         P_lift, P_profile = om * Qi, om * Qp           # shaft power, the whole of it
         # the lift vector's in-plane work splits into propulsion and induced
@@ -919,6 +927,7 @@ class ForwardFlight:
         P_induced = P_lift - P_propulsive
         P_shaft = P_lift + P_profile
         return dict(V=V, mu=mu_x, tilt_deg=np.rad2deg(tau), T=T,
+                    inflow_converged=True,
                     T_target=T_target, lam_i=lam_i, reverse_flow_frac=rev,
                     P_induced=P_induced, P_profile=P_profile,
                     P_propulsive=P_propulsive, P_shaft=P_shaft,
@@ -956,7 +965,8 @@ def forward_flight_sweep(rotor, weight_N,
             **{k: base[k] for k in ["V", "mu", "tilt_deg", "reverse_flow_frac",
                                     "collective_deg", "P_induced", "P_profile",
                                     "P_propulsive", "P_shaft", "profile_frac",
-                                    "induced_frac", "propulsive_frac"]},
+                                    "induced_frac", "propulsive_frac",
+                                    "inflow_converged"]},
             dP_pct=100 * (base["P_shaft"] - hi["P_shaft"]) / hi["P_shaft"],
             e_test_pct=100 * e_test))
     return pd.DataFrame(rows)

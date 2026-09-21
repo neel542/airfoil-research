@@ -11,6 +11,7 @@ casadi==3.7.2
 scipy==1.13.1
 # Markdown is only needed by build_paper_html.py (PAPER.md -> PAPER.html).
 Markdown==3.9
+pytest==8.4.2
 
 # Optional: true-XFoil validation needs an `xfoil` binary on PATH.
 # There is no pip package; build a headless binary per THIRD_PARTY_XFOIL.md.

@@ -71,8 +71,12 @@ community-friendly (quiet, gentle-stall, structurally deep).
 
 ## 6. Manufacturing-tolerance robustness
 
-Build error is modeled as bounded Gaussian perturbations of the Kulfan weights
-(σ calibrated to ~0.5% chord RMS surface error). Using **sample-based robust
+Build error is modeled as independently truncated Gaussian perturbations of the
+Kulfan weights (hard bound ±2.5σ; realized mean 0.565% chord RMS surface
+error). A draw belongs to the declared validation population only when both
+compared designs retain at least 0.4% chord local thickness on a 60-point
+chordwise grid. Rejection is recorded before aerodynamic evaluation: 40 paired
+valid draws required 145 attempts, and no accepted draw is dropped. Using **sample-based robust
 optimization**, a fixed ensemble of error realizations is drawn once; the
 epigraph worst-case is taken over both the operating grid and the ensemble, so
 the inner problem stays deterministic and differentiable. Designs are then
@@ -81,9 +85,10 @@ optimizer never saw.
 
 ## 7. Validation
 
-**Independent ground truth.** Finalists are re-analyzed in true **XFoil 6.99**
+**Parent-solver consistency check.** Finalists are re-analyzed in **XFoil 6.99**
 (a headless binary built from source; see `THIRD_PARTY_XFOIL.md`). NeuralFoil
-agrees with XFoil to ~3-8% of L/D across most of the envelope. A *trust map* over
+emulates XFoil, so this is not independent physical ground truth. It agrees
+with XFoil to ~3-8% of L/D across most of the envelope. A *trust map* over
 (Re, α) localizes where the surrogate is reliable and where XFoil itself fails to
 converge (separated flow), flagging where finalists need higher-fidelity CFD or
 wind-tunnel testing. NeuralFoil's `analysis_confidence` is reported throughout
@@ -134,11 +139,13 @@ each; all 68 fit to < 0.07% chord). Because the tunnel's turbulence level is
 undocumented, n_crit is swept over 5-11 (9 is best: 11.1% vs 11.3 / 13.0 /
 20.8%). *Results:* drag error 11% mean / 8% median, L/D 15% typical and +15%
 biased, lift 0.086 with the same +0.04-0.05 bias, i.e. the UIUC numbers
-replicate. On the 15 airfoils common to both tunnels (2,139 matched points),
-the two experiments differ by 12% in drag (UIUC ~6% higher) and 0.048 in CL,
-while NeuralFoil differs from them by 11% / 10% and 0.066 / 0.080: at
-Re ≥ 200k the drag error is at the reproducibility limit of the experiments,
-the lift error is not. As-built deviations are 0.22% chord RMS typically (max
+replicate. On the 15 airfoils common to both archives, each Princeton polar is
+paired with one deterministic nearest-Re UIUC polar (87 pairs, 1,241 unique
+matched points). The archives differ by 10.9% in drag (95% airfoil-cluster
+interval 9.1-12.9%; UIUC 4.8% higher) and 0.044 in CL, while NeuralFoil differs
+from them by 10.5% / 9.7% and 0.069 / 0.080. This is cross-archive disagreement,
+not pure tunnel repeatability: model construction, geometry records, dates and
+data reduction differ. As-built deviations are 0.22% chord RMS typically (max
 0.68%); using the measured shape lowers drag error 12.8% → 11.1% and lift error
 0.091 → 0.081, and the shape change alone moves NeuralFoil's drag by 5%. The
 point-level confidence result replicates at the extremes (30% → 10%) but the
@@ -159,8 +166,8 @@ points, 11.7%, matching the clustered statistics. *Results on the 8,814
 converged points, the only basis on which the three can be compared:* mean
 |ΔCD/CD| NeuralFoil-vs-tunnel 11.2%, XFoil-vs-tunnel
 12.1%, NeuralFoil-vs-XFoil 2.8% (median 1.7%); the signed NeuralFoil and XFoil
-errors correlate at r = 0.95 and XFoil's error explains 86% of the variance of
-NeuralFoil's; the network's contribution is < 4% in every Re band of both
+errors correlate at r = 0.95; the explicitly computed centered simple-regression
+R² is 0.895. The network's contribution is < 4% in every Re band of both
 tunnels; NeuralFoil is closer to the tunnel than XFoil on 55% of points and
 has the lower mean error in every band. Lift: 0.079 / 0.082 / 0.011. The
 confidence score correlates with |XFoil − tunnel| (r = −0.40) at least as
@@ -206,7 +213,7 @@ second time in the same tunnel by the same builder (E387A, SD7003;
 `repeatability.py`). Runs are matched at the same nominal Re (within 6%), the
 second run interpolated onto the first run's angles over the overlapping
 range. Over 95 matched points the repeats disagree by **3.7%** in drag and
-0.009 in lift, against 12% between the two tunnels and 11.7% for NeuralFoil.
+0.009 in lift, against 10.9% between the two archives and 11.7% for NeuralFoil.
 The floor is Re-dependent: 1.5–2.0% at Re = 300k, 4.7–8.3% at Re = 100k. That
 3.7% mixes genuine run-to-run flow unsteadiness with measurement scatter, and
 neither archive is time-resolved, so they cannot be separated here. It is not
@@ -314,7 +321,7 @@ Results in section 3.5 of PAPER.md; data
 Pinned dependencies in `requirements.txt`; fixed RNG seeds for all perturbation
 ensembles and bootstraps; every study writes its data to CSV before plotting;
 `tests/test_claims.py` pins every number quoted in PAPER.md, README.md and this
-file to the data files (19 tests). The config-driven
+file to the data files (25 tests). The config-driven
 tool (`airfoil_designer.py` + `configs/*.yaml`) reproduces any mission design
 from a single spec.
 
@@ -329,5 +336,6 @@ from a single spec.
 - Aggressive high-lift sections sit near NeuralFoil's training-distribution edge
   and near XFoil's convergence limit - treat their absolute numbers with caution.
 - 2-D sectional analysis only: no 3-D, rotational, or unsteady effects.
-- XFoil validation is steady, fully-turbulent-transition-modeled RANS-free panel
-  + integral-BL; it is ground truth *relative to NeuralFoil*, not flight test.
+- XFoil is the parent low-order solver NeuralFoil emulates (steady panel method
+  plus integral boundary layer), so agreement is a consistency check, not
+  independent ground truth or flight test.

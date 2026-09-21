@@ -39,10 +39,9 @@ At Re = 60,000 the drag error grows to 17 to 22 percent. Almost none of that
 belongs to the network. XFoil misses the same points by 12 percent, and
 NeuralFoil differs from XFoil by only 2.8 percent. The two errors track each
 other at r = 0.95. NeuralFoil even lands closer to the tunnel than XFoil
-does, on 55 percent of points. The two tunnels disagree with each other by
-12 percent in drag, so from Re = 200,000 up the model is already as close as
-the
-experiments can resolve. The confidence score warns about drag but not lift,
+does, on 55 percent of points. A one-to-one nearest-polar comparison between
+the two archives differs by 10.9 percent in drag. That is cross-archive
+disagreement, not a pure tunnel-reproducibility limit. The confidence score warns about drag but not lift,
 and it tracks XFoil's error more strongly than the network's. Honest error
 bars run two to five times wider than naive ones, and every headline result
 survives them. One result doesn't: a link between an airfoil's average
@@ -56,8 +55,8 @@ blade sits entirely inside the benchmark's Reynolds range, the drag error
 arrives divided by three, because two thirds of hover power is induced. Close
 the design loop, letting battery mass feed back into take-off weight, and it
 doubles again: the amplification factor from section drag to take-off weight
-is 0.63, and the 90 percent interval of the measured error is worth three
-kilograms on a 15.7 kg aircraft. Hover is the mild case: in forward flight the
+is 0.63 to 0.74, and the 90 percent interval of the measured error is worth
+three and a half kilograms on a 15.7 kg aircraft. Hover is the mild case: in forward flight the
 profile share of shaft power climbs from 41 to 68 percent and the same error
 costs 1.7 times as much. Finally, a design pipeline uses all
 of this: a small reward for staying where NeuralFoil is confident moves a
@@ -466,27 +465,30 @@ same three numbers as the UIUC set. Lift is a bit worse, 0.086 against
 at Re = 60,000 but adds a 5 percent under-prediction everywhere else, and 11
 doubles the error.
 
-**Two tunnels disagree with each other by about as much as NeuralFoil
-disagrees with either one.** Fifteen airfoils were measured in both. Pairing
-their clean runs at matching speeds and angles gives 131 polar pairs and
-2,139 matched points:
+**The two archives disagree by about as much as NeuralFoil disagrees with
+either one.** Fifteen airfoils were measured in both. Each Princeton polar is
+assigned to exactly one UIUC polar: nearest Reynolds number within 15%, then
+largest angle overlap and stable provenance fields as deterministic tie-breaks.
+This gives 87 polar pairs and 1,241 unique matched points:
 
 | Re | Points | Airfoils | UIUC vs Princeton, drag (%) | NeuralFoil vs UIUC (%) | NeuralFoil vs Princeton (%) | UIUC vs Princeton, lift (ΔCL) |
 |---:|---:|---:|---:|---:|---:|---:|
-| 60,000 | 340 | 11 | 18 | 18 | 17 | 0.049 |
-| 100,000 | 519 | 15 | 16 | 14 | 12 | 0.048 |
+| 60,000 | 185 | 11 | 16 | 19 | 16 | 0.053 |
+| 100,000 | 288 | 15 | 14 | 12 | 11 | 0.046 |
 | 150,000 | 161 | 8 | 11 | 9 | 10 | 0.037 |
-| 200,000 | 636 | 15 | 9 | 9 | 7 | 0.048 |
-| 300,000 | 483 | 13 | 7 | 7 | 7 | 0.051 |
-| **All** | **2,139** | **15** | **12** | **11** | **10** | **0.048** |
+| 200,000 | 332 | 15 | 9 | 8 | 7 | 0.044 |
+| 300,000 | 275 | 13 | 6 | 7 | 7 | 0.040 |
+| **All** | **1,241** | **15** | **10.9** | **10.5** | **9.7** | **0.044** |
 
-The two experiments differ on drag by 12 percent, with UIUC reading about 6
-percent higher. NeuralFoil differs from each of them by 10 to 11 percent on
-those very same points. On 53 percent of them it lands closer to the
+The two archives differ on drag by 10.9 percent, with an airfoil-cluster
+bootstrap interval of 9.1 to 12.9 percent and UIUC reading 4.8 percent higher.
+NeuralFoil differs from each of them by 9.7 to 10.5 percent on those same
+points. On 52 percent of them it lands closer to the
 Princeton value than the UIUC measurement does. And from Re = 200,000 up,
-all three numbers collapse to 7 to 9 percent. That is the level at which the
-two laboratories stop agreeing with each other, and it is a different quantity
-from the repeatability of either one of them. Jewel Barlow, who directs the
+all three numbers collapse to 6 to 8 percent. That is the level at which these
+two archives stop agreeing, but it is a different quantity from the
+repeatability of either tunnel. The physical models, recorded geometries,
+dates and data-reduction pipelines also differ. Jewel Barlow, who directs the
 Glenn L. Martin Wind Tunnel, put within-facility repeatability at a fraction
 of 1 percent for a model rigid enough that its surface varies by a small
 fraction of a millimetre, and said the differences between facilities are much
@@ -496,8 +498,8 @@ Re = 300,000, so the 7 percent at that speed is a statement about two archives
 and not about one tunnel. A model that beat 7 percent could still be
 demonstrated against either archive on its own. What could not be settled is
 which of the two it should be scored against.
-Lift is a different story. The two tunnels agree with each other at 0.048,
-better than NeuralFoil agrees with either at 0.066 and 0.080, so the lift
+Lift is a different story. The two archives agree with each other at 0.044,
+better than NeuralFoil agrees with either at 0.069 and 0.080, so the lift
 error is the model's.
 
 **How tight is that limit?** The Princeton archive holds two models that were
@@ -505,11 +507,11 @@ mounted and run a second time in the same tunnel by the same builder, the
 E387A and the SD7003. Across 95 matched points those repeats disagree with
 themselves by 3.7 percent in drag and 0.009 in lift. So there are three
 numbers stacked on top of each other: 3.7 percent is what one experiment does
-to itself, 12 percent is what two tunnels do to each other, and 11.7 percent
+to itself, 10.9 percent is what these two archives do to each other, and 11.7 percent
 is what NeuralFoil does against them. The model error is three times the
 repeatability, so it is not hiding inside the measurement noise. It is also
-no larger than the disagreement between the two laboratories, which is the
-real ceiling on what this benchmark can resolve. The floor is not flat
+no larger than the disagreement between the two archives. That is useful
+external context, not a pure tunnel-reproducibility ceiling. The floor is not flat
 either: the repeat runs agree to 1.5 and 2.0 percent at Re = 300,000 and to
 4.7 and 8.3 percent at Re = 100,000, the same Reynolds trend the model errors
 follow.
@@ -604,8 +606,8 @@ other, because only they are computed on the same points.
 **It's XFoil's.** The network differs from the solver it copies by 2.8
 percent in drag on average, 1.7 percent in a typical case, and by 0.011 in
 lift. That's about a quarter of its disagreement with the tunnels. The two
-signed errors track each other at r = 0.95, and XFoil's error alone accounts
-for 86 percent of the variation in NeuralFoil's. In every speed band of both
+signed errors track each other at r = 0.95; the centered simple regression of
+NeuralFoil error on XFoil error has R² = 0.895. In every speed band of both
 tunnels the network's own share stays under 4 percent, including at Re =
 60,000 where the total error runs 17 to 22 percent. So the Re = 60,000
 over-prediction, the bias flipping sign with speed, and the high-camber lift
@@ -776,14 +778,14 @@ survives:
 
 | Statistic | UIUC | Princeton | Both tunnels |
 |---|---|---|---|
-| Mean drag error (%) | 12.3 [11.3, 13.4] | 11.1 [10.3, 12.0] | 11.7 [11.0, 12.4] |
+| Mean drag error (%) | 12.3 [11.3, 13.4] | 11.1 [10.3, 12.0] | 11.7 [11.1, 12.3] |
 | Median drag error (%) | 8.1 [7.4, 8.8] | 7.5 [6.8, 8.2] | 7.8 [7.3, 8.3] |
-| Drag bias (%) | +0.4 [−1.4, +2.1] | +1.3 [0.0, +2.6] | +0.9 [−0.2, +2.0] |
+| Drag bias (%) | +0.4 [−1.4, +2.1] | +1.3 [0.1, +2.6] | +0.9 [−0.3, +2.0] |
 | Mean lift error (ΔCL) | 0.072 [0.064, 0.081] | 0.086 [0.080, 0.092] | 0.079 [0.073, 0.085] |
-| L/D bias (%) | +15.1 [12.4, 18.0] | +15.0 [12.2, 18.2] | +15.1 [13.0, 17.2] |
+| L/D bias (%) | +15.1 [12.4, 18.0] | +15.0 [12.1, 18.1] | +15.1 [13.0, 17.4] |
 | r(confidence, drag error) | −0.43 [−0.50, −0.35] | −0.27 [−0.33, −0.20] | −0.37 [−0.43, −0.31] |
 | r(confidence, lift error) | 0.00 [−0.07, 0.07] | −0.03 [−0.07, 0.02] | 0.01 [−0.04, 0.05] |
-| Airfoil-level rank correlation | −0.65 [−0.80, −0.46] | −0.10 [−0.32, 0.15] | −0.39 [−0.54, −0.23] |
+| Airfoil-level rank correlation | −0.65 [−0.80, −0.46] | −0.10 [−0.34, 0.14] | −0.41 [−0.59, −0.22] |
 | Drag error, confidence below 0.5 (%) | 32 [26, 41] | 30 [24, 39] | 32 [27, 38] |
 | Drag error, confidence above 0.95 (%) | 9.1 [8.3, 10.0] | 9.6 [8.9, 10.4] | 9.4 [8.9, 9.9] |
 
@@ -1067,7 +1069,7 @@ the true drag rather than the predicted drag moves the whole aircraft:
 | Drag error carried in | Take-off mass | Miss, in grams | Hover power error, fixed mass | Hover power error, after closure | Take-off weight error |
 |---|---:|---:|---:|---:|---:|
 | None, what the model predicts | 15.71 kg | 0 | 0 | 0 | 0 |
-| −19.1 percent, 5th percentile | 17.81 kg | +2,096 g | 8.0 percent | 15.4 percent | 11.8 percent |
+| −19.1 percent, 5th percentile | 18.28 kg | +2,573 g | 8.0 percent | 18.2 percent | 14.1 percent |
 | −4.5 percent, median | 16.20 kg | +492 g | 1.7 percent | 4.1 percent | 3.0 percent |
 | +10.2 percent, 95th percentile | 14.76 kg | −954 g | 3.6 percent | 9.0 percent | 6.5 percent |
 
@@ -1075,11 +1077,11 @@ Read the last two columns together and the compounding Govindarajan warned
 about is visible and measured. Holding the aircraft's weight fixed, a 19
 percent drag error is an 8 percent power error. Let the battery grow to feed
 that power and the aircraft grow to carry the battery, and the same drag error
-becomes a 15 percent power error. The loop multiplies the power error by 1.9
+becomes an 18 percent power error. The loop multiplies the power error by 2.3
 to 2.5 times. That is the build-up, and it is real.
 
 **The amplification factor.** The ratio of percent error in take-off weight to
-percent error in section drag is 0.62 at the 5th percentile, 0.68 at the
+percent error in section drag is 0.74 at the 5th percentile, 0.68 at the
 median and 0.63 at the 95th. It is below one at every point of the
 distribution, and remarkably steady across it. The error compounds inside the
 loop and still arrives at the aircraft smaller than it started, because
@@ -1096,7 +1098,7 @@ number in the middle of the calculation to be about twice as wrong as the
 aerodynamics alone would suggest.
 
 In grams, for this aircraft, the 90 percent interval on the drag error is
-worth about three kilograms of take-off mass, from 14.76 to 17.81 kg on a
+worth about three and a half kilograms of take-off mass, from 14.76 to 18.28 kg on a
 15.71 kg design. That is the number a design review would want, and it comes
 from a wind tunnel rather than from a rule of thumb.
 
@@ -1174,13 +1176,17 @@ before the stall and a thinner boundary layer at the trailing edge.
 
 | Design | On paper, worst-case L/D | As built, average | As built, worst 5% |
 |--------|---------------------------:|------------:|----------------------:|
-| B, robust to conditions only | 34.3 | 20.3 | 9.3 |
-| B, robust to conditions and build error | 33.7 | 26.5 | **19.5** |
+| B, robust to conditions only | 38.0 | **19.4** | **9.7** |
+| B, robust to conditions and build error | 30.5 | 19.2 | 8.7 |
 
-On paper these two look almost identical. Add realistic build error, tested
-on shapes the optimizer never saw, and the design that expected the error
-keeps more than double the reliable worst-case performance. The cost on
-paper is almost nothing.
+The perturbations are truncated at ±2.5σ and accepted only when both designs
+retain at least 0.4 percent chord local thickness. Forty paired valid draws
+(mean 0.565 percent chord RMS error) required 145 attempts; every accepted
+shape is reported. Under that declared physical population, the build-robust
+design gives up substantial on-paper performance and does not improve the
+held-out mean, fifth percentile or minimum. This is a null/negative result.
+The earlier twofold claim was produced by scoring self-crossing geometries and
+is withdrawn.
 
 ### 3.9 Putting the measured confidence inside the optimizer
 
@@ -1294,9 +1300,9 @@ reach the same conclusion about the confidence score for different reasons,
 and only the breakdown in section 3.4 shows that the airfoil-level version
 belonged to one sample.
 
-The design results point the same way from another angle. Designs picked for
-robustness, whether against changing conditions or against build error, tend
-to keep the flow attached instead of separated. And the confidence-aware
+The design results add an important qualification. Robustness against changing
+operating conditions remains useful, but this small-ensemble manufacturing
+robustification did not generalize once invalid geometries were excluded. The confidence-aware
 optimizer shows that staying inside NeuralFoil's checked region costs almost
 nothing in predicted performance.
 
@@ -1319,9 +1325,10 @@ nothing in predicted performance.
   and it covers their plain form only. Flapped and gurney-flap versions and
   UIUC Volume 5 aren't in it. Two UIUC airfoils were dropped because the
   17-number description couldn't reproduce them. The Princeton data are
-  older, that tunnel's turbulence level isn't recorded, and the two tunnels
-  disagree with each other by 12 percent in drag, which bounds every number
-  in this paper. Where only design coordinates exist, which is all of the
+  older, that tunnel's turbulence level isn't recorded, and the two archives
+  differ by 10.9 percent in drag on matched points. That number includes more
+  than tunnel repeatability and does not bound every result in this paper.
+  Where only design coordinates exist, which is all of the
   UIUC set, part of every reported error belongs to whoever built the model.
   The Princeton comparison puts that part at roughly 2 percentage points of
   drag error. Part belongs to the shape description too. These are pipeline

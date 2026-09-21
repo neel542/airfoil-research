@@ -4,9 +4,11 @@ and data cannot drift apart silently. Run with `python tests/test_claims.py`
 or `pytest tests/`.
 """
 import os
+import re
 import sys
 import numpy as np
 import pandas as pd
+import pytest
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DATA = os.path.join(ROOT, "data")
@@ -131,6 +133,7 @@ def test_rotor_propagation():
 
     # forward flight: the profile share, and the error with it, rise with speed
     ff = _csv("rotor_forward_flight.csv")
+    assert ff.inflow_converged.all()
     assert ff.mu.max() <= 0.21, "the forward-flight model is not defensible past mu = 0.2"
     assert (ff.P_induced > 0).all(), "a negative induced power means the model has left its range"
     hover, peak = ff.iloc[0], ff.loc[ff.dP_pct.idxmax()]
@@ -145,6 +148,7 @@ def test_rotor_propagation():
     assert 0.92 < ff.law_coeff.min() and ff.law_coeff.max() < 0.98
 
     w = _csv("rotor_weight_closure.csv").set_index("label")
+    assert w.converged.all()
     _close(w.loc["model"].m_total_kg, 15.71, 0.05, "take-off mass the model predicts")
     for lab in ["5th percentile", "median", "95th percentile"]:
         r = w.loc[lab]
@@ -153,7 +157,7 @@ def test_rotor_propagation():
             f"{lab}: the closure loop must grow the power error, not shrink it"
         assert 1.5 < r.loop_gain < 3.0, f"{lab}: loop gain outside the reported band"
         assert abs(r.d_mass_pct) < abs(r.e_pct), f"{lab}: weight error must be below drag error"
-    _close(w.loc["5th percentile"].d_mass_g, -2096, 60, "5th-percentile take-off mass miss")
+    _close(w.loc["5th percentile"].d_mass_g, -2573, 60, "5th-percentile take-off mass miss")
 
 
 def test_bemt_inflow_bracket():
@@ -181,6 +185,41 @@ def test_bemt_inflow_bracket():
     assert (d.vi / old_cap).max() > 1.0, "the test blade must actually need more than the old cap"
     assert (d.vi > 1e-3).all(), "an element fell back to zero inflow"
     assert out["T"] > 0 and out["P"] > 0
+
+    # Iterative solvers must fail loudly when their iteration budget is
+    # exhausted; returning the last iterate would make downstream CSVs look
+    # converged when they are not.
+    with pytest.raises(RuntimeError, match="weight closure did not converge"):
+        ru.closure(rot, max_iter=0)
+    ff = ru.ForwardFlight(rot, weight_N=100.0)
+    with pytest.raises(RuntimeError, match="forward-flight inflow did not converge"):
+        ff.solve(0.0, collective=0.0, max_iter=0)
+
+
+def test_manufacturing_samples_are_physical_and_complete():
+    """The declared validation population is paired and conditioned on a
+    physical local-thickness constraint; no bad geometry may be scored or
+    silently dropped after aerodynamic evaluation."""
+    v = _csv("manufacturing_validation.csv")
+    p = _csv("manufacturing_perturbations.csv")
+    pert = v[v["sample"] == "perturbed"]
+    assert len(p) == 40 and len(pert) == 80
+    assert p.sample_id.tolist() == list(range(40))
+    assert set(pert.design) == {"B_nominal", "B_mfg"}
+    for _, g in pert.groupby("design"):
+        assert g.sample_id.tolist() == list(range(40))
+    assert pert.geometry_valid.all()
+    assert pert.min_local_thickness.min() >= 0.004 - 1e-12
+    assert p.min_thickness_B_nominal.min() >= 0.004 - 1e-12
+    assert p.min_thickness_B_mfg.min() >= 0.004 - 1e-12
+    assert p.total_attempts.nunique() == 1 and int(p.total_attempts.iloc[0]) == 145
+    _close(p.acceptance_rate.iloc[0], 40 / 145, 1e-12, "manufacturing draw acceptance rate")
+    _close(p.perturbation_rms_pct.mean(), 0.565, 0.01, "manufacturing perturbation RMS")
+    b = pert.groupby("design").worst_case_LD
+    _close(np.percentile(b.get_group("B_nominal"), 5), 9.71, 0.15, "nominal-design built p05 L/D")
+    _close(np.percentile(b.get_group("B_mfg"), 5), 8.70, 0.15, "mfg-design built p05 L/D")
+    assert np.percentile(b.get_group("B_mfg"), 5) < np.percentile(b.get_group("B_nominal"), 5), \
+        "the corrected experiment is a null/negative result, not a 2x robustness gain"
 
 
 def test_every_data_input_is_tracked():
@@ -462,16 +501,44 @@ def test_soartech8_geometry_effect():
 
 def test_cross_tunnel():
     ct = _csv("cross_tunnel_comparison.csv")
-    assert len(ct) == 2139 and ct.asb_name.nunique() == 15
-    assert ct.groupby(["asb_name", "Re_princeton", "uiuc_file"]).ngroups == 131
-    _close(ct.errCD_tunnels.abs().mean(), 0.118, 0.005, "tunnel-vs-tunnel |dCD/CD|")
-    _close(ct.errCD_tunnels.mean(), 0.063, 0.005, "tunnel-vs-tunnel CD bias (UIUC higher)")
-    _close(ct.dCL_tunnels.abs().mean(), 0.048, 0.003, "tunnel-vs-tunnel |dCL|")
-    _close(ct.errCD_NF_vs_uiuc.abs().mean(), 0.111, 0.005, "NF vs UIUC on matched points")
-    _close(ct.errCD_NF_vs_princeton.abs().mean(), 0.101, 0.005, "NF vs Princeton on matched points")
-    _close(ct.dCL_NF_vs_uiuc.abs().mean(), 0.066, 0.003, "NF vs UIUC |dCL|")
+    assert len(ct) == 1241 and ct.asb_name.nunique() == 15
+    assert ct.pair_id.nunique() == 87
+    assert not ct.duplicated(["princeton_label", "Re_princeton", "alpha"]).any(), \
+        "a Princeton point was repeated by matching it to multiple UIUC polars"
+    # Reconstruct the eligible UIUC candidates and verify that every Princeton
+    # polar was assigned to exactly one nearest-Re polar (with >=3 overlapping
+    # alpha points), including the documented deterministic tie-breaks.
+    uiuc = _csv("uiuc_neuralfoil_validation.csv")
+    uiuc = uiuc[(uiuc.config == "clean") & (uiuc.NF_mode == "free") &
+                (uiuc.model == "large") & uiuc.fit_ok]
+    princeton = _csv("soartech8_neuralfoil_validation.csv")
+    princeton = princeton[(princeton.config == "clean") & (princeton.NF_mode == "free") &
+                          (princeton.nf == "large") & princeton.primary & princeton.fit_ok]
+    for (name, label, re_p), chosen in ct.groupby(["asb_name", "princeton_label", "Re_princeton"]):
+        gp = princeton[(princeton.airfoil_label == label) & (princeton.Re == re_p)]
+        gp_alpha = np.sort(gp.alpha.unique())
+        cand = uiuc[(uiuc.asb_name == name) & (uiuc.Re > 0.85 * re_p) & (uiuc.Re < 1.15 * re_p)]
+        eligible = []
+        for (vol, file, re_u), gu in cand.groupby(["volume", "file", "Re"]):
+            a = np.sort(gu.alpha.unique())
+            lo, hi = max(a.min(), gp_alpha.min()), min(a.max(), gp_alpha.max())
+            n_overlap = int(((gp_alpha >= lo) & (gp_alpha <= hi)).sum())
+            if n_overlap >= 3:
+                eligible.append((abs(re_u - re_p) / re_p, -n_overlap,
+                                 str(vol), str(file), int(re_u)))
+        expected = min(eligible)
+        assert np.isclose(float(chosen.Re_relative_gap.iloc[0]), expected[0])
+        actual_tiebreak = (-len(chosen), str(chosen.uiuc_volume.iloc[0]),
+                           str(chosen.uiuc_file.iloc[0]), int(chosen.Re_uiuc.iloc[0]))
+        assert actual_tiebreak == expected[1:]
+    _close(ct.errCD_tunnels.abs().mean(), 0.109, 0.005, "cross-archive |dCD/CD|")
+    _close(ct.errCD_tunnels.mean(), 0.048, 0.005, "cross-archive CD bias (UIUC higher)")
+    _close(ct.dCL_tunnels.abs().mean(), 0.044, 0.003, "cross-archive |dCL|")
+    _close(ct.errCD_NF_vs_uiuc.abs().mean(), 0.105, 0.005, "NF vs UIUC on matched points")
+    _close(ct.errCD_NF_vs_princeton.abs().mean(), 0.097, 0.005, "NF vs Princeton on matched points")
+    _close(ct.dCL_NF_vs_uiuc.abs().mean(), 0.069, 0.003, "NF vs UIUC |dCL|")
     _close(ct.dCL_NF_vs_princeton.abs().mean(), 0.080, 0.003, "NF vs Princeton |dCL|")
-    _close((ct.errCD_NF_vs_princeton.abs() < ct.errCD_tunnels.abs()).mean(), 0.53, 0.02, "fraction NF closer than other tunnel")
+    _close((ct.errCD_NF_vs_princeton.abs() < ct.errCD_tunnels.abs()).mean(), 0.518, 0.02, "fraction NF closer than other archive")
     hi = ct[ct.Re_princeton >= 175e3]
     assert hi.errCD_tunnels.abs().mean() < 0.09 and hi.errCD_NF_vs_princeton.abs().mean() < 0.08
     # the Re = 150,000 row of the paper table, which the All row had always included
@@ -481,6 +548,10 @@ def test_cross_tunnel():
     _close(mid.errCD_NF_vs_uiuc.abs().mean(), 0.087, 0.005, "150k NF vs UIUC")
     _close(mid.errCD_NF_vs_princeton.abs().mean(), 0.099, 0.005, "150k NF vs Princeton")
     _close(mid.dCL_tunnels.abs().mean(), 0.037, 0.003, "150k tunnel-vs-tunnel lift")
+    ci = _csv("cross_tunnel_clustered.csv").set_index("statistic")
+    assert (ci.n_airfoils == 15).all() and (ci.n_points == 1241).all()
+    _close(ci.loc["tunnels_abs_errCD"].ci_lo, 0.091, 0.004, "cross-archive clustered CI low")
+    _close(ci.loc["tunnels_abs_errCD"].ci_hi, 0.129, 0.004, "cross-archive clustered CI high")
 
 
 def test_soartech8_trips_stall_confidence():
@@ -537,6 +608,7 @@ def test_xfoil_decomposition():
     _close(p.mean_abs_errCD_NF_XF, 0.028, 0.003, "NF vs XFoil drag error (network only)")
     _close(p.median_abs_errCD_NF_XF, 0.017, 0.003, "median NF vs XFoil drag error")
     _close(p.corr_signed_NF_WT_vs_XF_WT, 0.946, 0.02, "correlation of signed NF and XFoil errors")
+    _close(p.r2_signed_NF_WT_from_XF_WT, 0.895, 0.01, "centered R2 of signed NF error on XFoil error")
     _close(p.frac_NF_closer_than_XF, 0.549, 0.02, "fraction of points where NF is closer to tunnel than XFoil")
     _close(p.mean_abs_dCL_NF_WT, 0.079, 0.003, "NF lift error"); _close(p.mean_abs_dCL_XF_WT, 0.082, 0.003, "XFoil lift error")
     _close(p.mean_abs_dCL_NF_XF, 0.011, 0.002, "NF vs XFoil lift error")
@@ -561,7 +633,7 @@ def test_xfoil_decomposition():
 def test_clustered_statistics():
     cs = _csv("clustered_statistics.csv").set_index(["tunnel", "statistic"])
     u = cs.loc["UIUC"]; p = cs.loc["Princeton"]; a = cs.loc["pooled"]
-    assert int(u.n_clusters.iloc[0]) == 55 and int(p.n_clusters.iloc[0]) == 54 and int(a.n_clusters.iloc[0]) == 109
+    assert int(u.n_clusters.iloc[0]) == 55 and int(p.n_clusters.iloc[0]) == 54 and int(a.n_clusters.iloc[0]) == 94
     _close(u.loc["mean_abs_errCD"].cluster_ci_lo, 0.113, 0.004, "UIUC drag error CI low")
     _close(u.loc["mean_abs_errCD"].cluster_ci_hi, 0.134, 0.004, "UIUC drag error CI high")
     _close(p.loc["mean_abs_errCD"].cluster_ci_lo, 0.103, 0.004, "Princeton drag error CI low")
@@ -570,9 +642,11 @@ def test_clustered_statistics():
     _close(a.loc["mean_abs_errCD"].cluster_ci_hi, 0.124, 0.004, "pooled drag error CI high")
     for t in (u, p):
         assert t.loc["mean_abs_errCD"].ci_width_ratio > 2.0 and t.loc["mean_abs_dCL"].ci_width_ratio > 3.0
-        assert t.loc["bias_CD"].cluster_ci_lo < 0 < t.loc["bias_CD"].cluster_ci_hi + 0.001, "drag bias not distinguishable from zero"
         assert t.loc["bias_LD"].cluster_ci_lo > 0.10, "L/D over-prediction survives clustering"
         assert t.loc["r_conf_absDCL"].cluster_ci_lo < 0 < t.loc["r_conf_absDCL"].cluster_ci_hi, "lift correlation includes zero"
+    assert u.loc["bias_CD"].cluster_ci_lo < 0 < u.loc["bias_CD"].cluster_ci_hi
+    assert 0 < p.loc["bias_CD"].cluster_ci_lo < 0.002, \
+        "Princeton drag bias is weakly positive after physical-airfoil clustering"
     assert u.loc["r_conf_absErrCD"].cluster_ci_hi < -0.30 and p.loc["r_conf_absErrCD"].cluster_ci_hi < -0.15
     assert u.loc["rho_airfoil_conf_errCD"].cluster_ci_hi < -0.4
     assert p.loc["rho_airfoil_conf_errCD"].cluster_ci_lo < 0 < p.loc["rho_airfoil_conf_errCD"].cluster_ci_hi
@@ -611,6 +685,112 @@ def test_fitted_error_model():
     _close(ex.loc[0.98].iloc[0].expected_abs_errCD if hasattr(ex.loc[0.98], "iloc") and ex.loc[0.98].ndim == 2 else ex.loc[0.98].expected_abs_errCD, 0.067, 0.005, "worked example, conf 0.98 Re 200k")
     top = json.load(open(os.path.join(DATA, "error_model.json")))
     assert top["fitted_error_model"] == "data/error_model_fit.json"
+
+
+def test_rotor_prose_matches_the_closure_table():
+    """The amplification factor, the loop gain and the take-off-mass spread are
+    quoted in three documents. The convergence fix moved all three (the old
+    60-iteration run stopped short of its 1e-6 tolerance), and PAPER.md's body
+    was updated while its introduction, README.md and SUMMARY.md were not."""
+    w = _csv("rotor_weight_closure.csv").set_index("label")
+    tail = w.drop("model")
+    amp_lo, amp_hi = tail.amplification.min(), tail.amplification.max()
+    gain_lo, gain_hi = tail.loop_gain.min(), tail.loop_gain.max()
+    spread = tail.m_total_kg.max() - tail.m_total_kg.min()
+    _close(amp_lo, 0.633, 0.01, "amplification factor, low end")
+    _close(amp_hi, 0.738, 0.01, "amplification factor, high end")
+    _close(gain_lo, 2.272, 0.03, "closure loop gain, low end")
+    _close(gain_hi, 2.536, 0.03, "closure loop gain, high end")
+    _close(spread, 3.527, 0.06, "90 percent take-off-mass interval, kg")
+
+    def _doc(name):
+        return open(os.path.join(ROOT, name), encoding="utf-8").read()
+
+    readme = _doc("README.md")
+    assert f"{amp_lo:.2f}-{amp_hi:.2f}" in readme, \
+        f"README.md must quote the amplification range {amp_lo:.2f}-{amp_hi:.2f}"
+    assert f"{gain_lo:.1f}-{gain_hi:.1f}x" in readme, \
+        f"README.md must quote the loop gain {gain_lo:.1f}-{gain_hi:.1f}x"
+    assert f"{spread:.1f} kg" in readme, \
+        f"README.md must quote the mass spread as {spread:.1f} kg"
+    # The narrative documents round the same spread to words; 3.53 kg reads as
+    # "three and a half", and the older "three kilograms" belonged to the
+    # unconverged 3.05 kg run.
+    assert 3.4 <= spread < 3.75, "the worded mass spread no longer rounds to three and a half"
+    for name in ("SUMMARY.md", "PAPER.md"):
+        assert "three and a half" in _doc(name), \
+            f"{name} must quote the corrected take-off-mass spread in words"
+
+def test_pytest_is_a_declared_dependency():
+    """The suite is the only guard on every number in the paper, so the runner
+    itself has to be installable from the pinned requirements. It was missing,
+    which meant a clean checkout could not run the tests at all."""
+    req = open(os.path.join(ROOT, "requirements.txt"), encoding="utf-8").read()
+    lines = [l.split("#")[0].strip() for l in req.splitlines()]
+    assert any(l.lower().startswith("pytest") for l in lines if l), \
+        "pytest must be declared in requirements.txt"
+
+
+def test_withdrawn_claims_do_not_return():
+    """Regression guard for the four corrected claims. Each of these phrasings
+    was wrong for a different reason, and prose is the easiest place for a
+    corrected number to creep back in.
+
+      - the 2x manufacturing-robustness claim came from scoring self-crossing
+        geometries and is now a null/negative result;
+      - '86% of the variance' was an uncentred 1:1 score, not a variance share;
+      - XFoil is the parent solver NeuralFoil emulates, never ground truth;
+      - the UIUC-Princeton gap is cross-archive disagreement, not a pure
+        tunnel-reproducibility ceiling.
+    """
+    docs = ["README.md", "METHODS.md", "SUMMARY.md", "PAPER.md", "tutorial.ipynb"]
+    banned = [
+        ("2139", "superseded cross-archive point count"),
+        ("86% of the variance", "uncentred 1:1 score quoted as a variance share"),
+        ("86 percent of the variance", "uncentred 1:1 score quoted as a variance share"),
+        ("more than 2x", "withdrawn manufacturing-robustness claim"),
+        ("2x more reliable", "withdrawn manufacturing-robustness claim"),
+        ("twice as reliable", "withdrawn manufacturing-robustness claim"),
+    ]
+    # These may appear only when explicitly negated, so they are checked
+    # sentence by sentence rather than banned outright.
+    negated = [
+        ("independent ground truth", ("not ", "never ", "rather than", "no ")),
+        ("reproducibility ceiling", ("not ", "never ", "isn't", "is not")),
+    ]
+    for doc in docs:
+        text = open(os.path.join(ROOT, doc), encoding="utf-8").read()
+        # Collapse whitespace first: a negation and the phrase it governs are
+        # routinely split across a line break ("... check, not\n  independent
+        # ground truth"), which a raw search would read as un-negated.
+        low = re.sub(r"\s+", " ", text.lower())
+        for phrase, why in banned:
+            assert phrase.lower() not in low, f"{doc}: {why} ('{phrase}') has returned"
+        for phrase, allowed in negated:
+            idx = 0
+            while True:
+                i = low.find(phrase, idx)
+                if i < 0:
+                    break
+                window = low[max(0, i - 160):i]
+                assert any(a in window for a in allowed), \
+                    f"{doc}: '{phrase}' near offset {i} is not negated"
+                idx = i + len(phrase)
+
+
+def test_solver_convergence_is_reported_not_assumed():
+    """Every iterative result that reaches a published table must carry its own
+    convergence flag. The 60-iteration weight closure used to stop short of its
+    1e-6 mass tolerance and return the last iterate silently."""
+    w = _csv("rotor_weight_closure.csv")
+    ff = _csv("rotor_forward_flight.csv")
+    assert "converged" in w.columns and bool(w.converged.all())
+    assert "inflow_converged" in ff.columns and bool(ff.inflow_converged.all())
+    # the tail case needs more than the old budget, which is why it was silently wrong
+    assert int(w.set_index("label").loc["5th percentile"].iterations) > 60
+    tail = w.set_index("label").loc["5th percentile"]
+    _close(tail.d_power_pct, -18.23, 0.15, "converged tail power error")
+    _close(tail.d_mass_g / 1000.0, -2.573, 0.06, "converged tail take-off mass impact, kg")
 
 
 if __name__ == "__main__":
