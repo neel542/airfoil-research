@@ -3,8 +3,9 @@ True-XFoil validation of the finished designs.
 
 Drives a headless XFoil binary directly (bypassing AeroSandbox's polar parser,
 which is finicky about output-column formatting) and compares true viscous XFoil
-polars against the NeuralFoil surrogate used for optimization. This is the
-independent ground-truth check that closes the surrogate-confidence gap.
+polars against the NeuralFoil surrogate used for optimization. Because
+NeuralFoil emulates XFoil, this is a parent-solver consistency check rather
+than independent physical ground truth.
 """
 
 import os
@@ -21,7 +22,7 @@ XFOIL = os.path.join(OUT, ".venv", "bin", "xfoil")
 
 
 def run_xfoil_polar(coords, Re, alphas):
-    """Return DataFrame(alpha, CL, CD, CM) from a true XFoil viscous sweep.
+    """Return DataFrame(alpha, CL, CD, CM) from an XFoil viscous sweep.
 
     XFoil quirks handled: panel-node limit (repanel to ~160 pts), the airfoil
     name prompt (write a name header line), and inline path parsing (run from
@@ -86,18 +87,18 @@ df = pd.DataFrame(all_rows)
 df.to_csv(os.path.join(OUT, "data", "xfoil_validation.csv"), index=False)
 print("  wrote data/xfoil_validation.csv")
 
-# Quantify the surrogate gap vs ground truth
+# Quantify the surrogate gap versus its parent solver
 for name in designs:
     d = df[(df.design == name)].dropna(subset=["XFoil_LD"])
     if len(d):
         gap_l = (d.NF_large_LD - d.XFoil_LD).abs().mean()
         gap_x = (d.NF_xxlarge_LD - d.XFoil_LD).abs().mean()
         mean_xf = d.XFoil_LD.mean()
-        print(f"  {name}: NeuralFoil vs true XFoil  |large|={gap_l:.1f} "
+        print(f"  {name}: NeuralFoil vs parent XFoil  |large|={gap_l:.1f} "
               f"({100*gap_l/mean_xf:.0f}%)  |xxlarge|={gap_x:.1f} ({100*gap_x/mean_xf:.0f}%)  "
               f"[mean XFoil L/D={mean_xf:.0f}]")
 
-# Figure: surrogate vs ground truth
+# Figure: surrogate versus parent-solver reference
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
@@ -106,10 +107,10 @@ for ax, name in zip(axes, designs):
     d = df[df.design == name].sort_values("alpha")
     ax.plot(d.alpha, d.NF_large_LD, "-o", color="#1f77b4", ms=4, label="NeuralFoil large (opt model)")
     ax.plot(d.alpha, d.NF_xxlarge_LD, "--s", color="#ff7f0e", ms=4, label="NeuralFoil xxlarge")
-    ax.plot(d.alpha, d.XFoil_LD, ":^", color="#2ca02c", ms=6, label="XFoil (ground truth)")
+    ax.plot(d.alpha, d.XFoil_LD, ":^", color="#2ca02c", ms=6, label="XFoil (parent solver)")
     ax.set_title(f"{name}  @ Re=200k"); ax.set_xlabel("AoA [deg]"); ax.grid(alpha=0.3)
 axes[0].set_ylabel("L / D"); axes[0].legend()
-fig.suptitle("Fidelity validation: NeuralFoil surrogate vs true XFoil")
+fig.suptitle("Fidelity check: NeuralFoil surrogate vs parent XFoil solver")
 fig.tight_layout()
 fig.savefig(os.path.join(OUT, "figures", "9_fidelity_check.png"), dpi=160)
-print("  updated figures/9_fidelity_check.png with true XFoil")
+print("  updated figures/9_fidelity_check.png with parent XFoil reference")

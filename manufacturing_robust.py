@@ -6,8 +6,9 @@ A field-built or 3D-printed wing never matches the CAD shape. A design that is
 only operating-condition-robust can still lose most of its performance to build
 error. This module:
 
-  1. Models manufacturing error as bounded random perturbations of the Kulfan
-     weights (camber + thickness + LE errors).
+  1. Models manufacturing error as truncated-Gaussian perturbations of the
+     Kulfan weights (camber + thickness + LE errors), conditioned on physical
+     geometry validity.
   2. Optimizes TWO designs on the same operating envelope:
         B_nominal : robust to operating conditions only (no build error).
         B_mfg     : robust to operating conditions AND a fixed ensemble of
@@ -17,7 +18,8 @@ error. This module:
      distribution of realized worst-case L/D.
   4. FIDELITY cross-check: compares the optimization surrogate (NeuralFoil
      `large`) against a higher-fidelity model (`xxlarge`) and, if an XFoil
-     binary is available, against true XFoil -- quantifying the surrogate gap.
+     binary is available, against its parent XFoil solver -- quantifying the
+     emulation gap, not supplying independent physical truth.
 
 The manufacturing-robust formulation is sample-based robust optimization: the
 build-error distribution is approximated by a fixed ensemble drawn once (fixed
@@ -48,29 +50,44 @@ THK_MIN, THK_MAX, TE_THICKNESS = 0.08, 0.14, 0.0025
 SEEDS = ["naca4412", "naca6412"]
 
 # Manufacturing-error model: zero-mean Gaussian on every Kulfan weight.
-SIGMA_W = 0.040            # per-weight std-dev (calibrated to ~0.5% chord below)
+SIGMA_W = 0.040            # pre-truncation per-weight std-dev (~0.5% chord RMS)
+BOUND_SIGMA = 2.5          # hard coefficient bound; no clipped mass at the edge
 N_TRAIN = 8                # ensemble size used inside the optimizer
 N_TEST = 40               # fresh out-of-sample realizations for validation
 
 N_WEIGHTS = 8             # per surface
+MIN_LOCAL_THICKNESS = 0.004
+X_GEOM = np.linspace(0.02, 0.98, 60)
+
+
+def _truncated_normal(rng, sigma, size):
+    """Independent N(0,sigma) draws conditioned on +/- BOUND_SIGMA sigma."""
+    out = np.empty(size)
+    pending = np.ones(size, dtype=bool)
+    while pending.any():
+        draw = rng.normal(0, sigma, pending.sum())
+        accepted = np.abs(draw) <= BOUND_SIGMA * sigma
+        idx = np.flatnonzero(pending)
+        out[idx[accepted]] = draw[accepted]
+        pending[idx[accepted]] = False
+    return out
 
 
 def make_perturbations(n, seed):
-    """n perturbation dicts, each with upper/lower/le offsets. Fixed seed."""
+    """n bounded perturbation dicts. Fixed seed, no clipping at the bounds."""
     rng = np.random.default_rng(seed)
     out = []
     for _ in range(n):
         out.append(dict(
-            up=rng.normal(0, SIGMA_W, N_WEIGHTS),
-            lo=rng.normal(0, SIGMA_W, N_WEIGHTS),
-            le=rng.normal(0, SIGMA_W * 0.5),
+            up=_truncated_normal(rng, SIGMA_W, N_WEIGHTS),
+            lo=_truncated_normal(rng, SIGMA_W, N_WEIGHTS),
+            le=float(_truncated_normal(rng, SIGMA_W * 0.5, 1)[0]),
         ))
     return out
 
 
 TRAIN_PERTS = [dict(up=np.zeros(N_WEIGHTS), lo=np.zeros(N_WEIGHTS), le=0.0)] \
               + make_perturbations(N_TRAIN, seed=1)        # include nominal
-TEST_PERTS = make_perturbations(N_TEST, seed=999)          # out-of-sample
 
 
 def perturbed_airfoil(uw, lw, le, p):
@@ -91,6 +108,46 @@ def rms_surface_error(p, base="naca4412"):
     return float(np.sqrt(np.mean(np.concatenate([d_up, d_lo]) ** 2)) * 100)
 
 
+def geometry_metrics(af):
+    """Minimum local thickness and validity on the declared chordwise grid."""
+    th = np.asarray(af.local_thickness(x_over_c=X_GEOM), float)
+    mn = float(np.min(th))
+    return mn, bool(np.isfinite(th).all() and mn >= MIN_LOCAL_THICKNESS)
+
+
+def valid_test_perturbations(n, seed, airfoils, max_attempts=100000):
+    """Paired rejection sample conditioned on validity for every compared design.
+
+    Rejection is part of the declared manufacturing distribution, not a
+    post-hoc deletion from the performance table. Both designs receive exactly
+    the same accepted coefficient draws, so their percentiles remain paired.
+    Acceptance statistics and physical sizes are persisted for auditability.
+    """
+    rng = np.random.default_rng(seed)
+    accepted, meta = [], []
+    attempts = 0
+    while len(accepted) < n and attempts < max_attempts:
+        attempts += 1
+        p = dict(up=_truncated_normal(rng, SIGMA_W, N_WEIGHTS),
+                 lo=_truncated_normal(rng, SIGMA_W, N_WEIGHTS),
+                 le=float(_truncated_normal(rng, SIGMA_W * 0.5, 1)[0]))
+        mins, valid = {}, True
+        for name, af in airfoils.items():
+            a = perturbed_airfoil(af.upper_weights, af.lower_weights,
+                                  af.leading_edge_weight, p)
+            mins[name], ok = geometry_metrics(a)
+            valid &= ok
+        if not valid:
+            continue
+        accepted.append(p)
+        meta.append(dict(sample_id=len(accepted) - 1, accepted_at_attempt=attempts,
+                         perturbation_rms_pct=rms_surface_error(p),
+                         **{f"min_thickness_{k}": v for k, v in mins.items()}))
+    if len(accepted) != n:
+        raise RuntimeError(f"only found {len(accepted)} valid perturbations in {attempts} attempts")
+    return accepted, pd.DataFrame(meta), attempts
+
+
 def solve(robust_to_mfg, seed):
     af0 = asb.KulfanAirfoil(seed) if isinstance(seed, str) else seed
     opti = asb.Opti()
@@ -98,7 +155,9 @@ def solve(robust_to_mfg, seed):
     lw = opti.variable(init_guess=af0.lower_weights, lower_bound=-0.5, upper_bound=0.4)
     le = opti.variable(init_guess=af0.leading_edge_weight, lower_bound=-0.2, upper_bound=0.2)
 
-    # Geometry constraints on the NOMINAL (as-drawn) shape.
+    # Geometry constraints on the nominal shape and, for the robust design, on
+    # every training realization. Aerodynamic calls on crossed surfaces are not
+    # physically meaningful, even if NeuralFoil happens to return a number.
     nominal = asb.KulfanAirfoil(upper_weights=uw, lower_weights=lw,
                                 leading_edge_weight=le, TE_thickness=TE_THICKNESS)
     opti.subject_to(nominal.local_thickness(x_over_c=np.linspace(0.02, 0.98, 20)) > 0.004)
@@ -109,6 +168,7 @@ def solve(robust_to_mfg, seed):
     g = opti.variable(init_guess=20.0)
     for p in perts:
         af = perturbed_airfoil(uw, lw, le, p)
+        opti.subject_to(af.local_thickness(x_over_c=X_GEOM) >= MIN_LOCAL_THICKNESS)
         for Re in RE_OPT:
             aero = af.get_aero_from_neuralfoil(alpha=AOA_OPT, Re=Re, model_size=MODEL)
             opti.subject_to(g <= aero["CL"] / aero["CD"])   # vector over AoA
@@ -146,14 +206,24 @@ def worst_case_LD(af, perts=None):
 
 
 # --------------------------------------------------------------------------- #
-print(f"Manufacturing-error model: per-weight sigma={SIGMA_W}")
-rms = np.mean([rms_surface_error(p) for p in TEST_PERTS])
-print(f"  => mean RMS surface error ~ {rms:.2f}% chord across the test ensemble")
+print(f"Manufacturing-error model: truncated N(0,{SIGMA_W}) at +/-{BOUND_SIGMA} sigma")
 
 print("Optimizing B_nominal (operating-robust only) ...")
 B_nom = solve_best(robust_to_mfg=False)
 print("Optimizing B_mfg (operating + manufacturing-robust) ...")
 B_mfg = solve_best(robust_to_mfg=True, extra_seeds=(B_nom,))
+
+# The validation ensemble is a paired draw from the declared bounded
+# distribution conditioned on being a physical airfoil for both final designs.
+TEST_PERTS, perturb_meta, n_attempts = valid_test_perturbations(
+    N_TEST, seed=999, airfoils={"B_nominal": B_nom, "B_mfg": B_mfg})
+rms = perturb_meta.perturbation_rms_pct.mean()
+acceptance = N_TEST / n_attempts
+perturb_meta["total_attempts"] = n_attempts
+perturb_meta["acceptance_rate"] = acceptance
+perturb_meta.to_csv(os.path.join(OUT, "data", "manufacturing_perturbations.csv"), index=False)
+print(f"  accepted {N_TEST}/{n_attempts} paired physical draws ({acceptance:.1%}); "
+      f"mean RMS surface error {rms:.2f}% chord")
 
 # --------------------------------------------------------------------------- #
 # Out-of-sample validation: realized worst-case L/D under FRESH build errors.
@@ -163,17 +233,26 @@ rows = []
 for name, af in [("B_nominal", B_nom), ("B_mfg", B_mfg)]:
     as_designed = worst_case_LD(af)                       # perfect build
     realized = []
-    for p in TEST_PERTS:
+    for sample_id, p in enumerate(TEST_PERTS):
         a = perturbed_airfoil(af.upper_weights, af.lower_weights, af.leading_edge_weight, p)
+        min_thickness, valid = geometry_metrics(a)
+        if not valid:
+            raise RuntimeError(f"accepted sample {sample_id} became invalid for {name}")
         wc = np.inf
         for Re in RE_EVAL:
             aero = a.get_aero_from_neuralfoil(alpha=AOA_EVAL, Re=Re, model_size=MODEL)
             ld = np.atleast_1d(aero["CL"]) / np.atleast_1d(aero["CD"])
             wc = min(wc, float(np.min(ld)))
         realized.append(wc)
-        rows.append(dict(design=name, sample="perturbed", worst_case_LD=wc))
+        rows.append(dict(design=name, sample="perturbed", sample_id=sample_id,
+                         worst_case_LD=wc, geometry_valid=True,
+                         min_local_thickness=min_thickness,
+                         perturbation_rms_pct=perturb_meta.loc[sample_id, "perturbation_rms_pct"]))
     realized = np.array(realized)
-    rows.append(dict(design=name, sample="as_designed", worst_case_LD=as_designed))
+    nominal_min, nominal_valid = geometry_metrics(af)
+    rows.append(dict(design=name, sample="as_designed", sample_id=-1,
+                     worst_case_LD=as_designed, geometry_valid=nominal_valid,
+                     min_local_thickness=nominal_min, perturbation_rms_pct=0.0))
     print(f"  {name:>10}: as-designed worst-case L/D={as_designed:6.1f} | "
           f"built  mean={realized.mean():6.1f}  5th-pct={np.percentile(realized,5):6.1f}  "
           f"min={realized.min():6.1f}")

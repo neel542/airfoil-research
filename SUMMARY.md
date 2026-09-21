@@ -50,19 +50,21 @@ XFoil does. Odd, but it makes sense. Fit a network to hundreds of thousands
 of XFoil runs and you smooth away some of XFoil's own scatter. So a bigger
 network trained on more XFoil won't fix this. Better physics would.
 
-Then there are the tunnels themselves. They disagree with each other by 12
-percent. Above medium speeds NeuralFoil sits as close to each tunnel as the
-tunnels sit to each other, which means no model can be shown to beat it
-there. The experiments just can't tell the difference.
+Then there are the archives themselves. After assigning each Princeton polar
+to one nearest-speed UIUC polar, their 1,241 unique matched points differ by
+10.9 percent in drag (a 9.1 to 12.9 percent airfoil-cluster interval). This is
+not pure tunnel repeatability: the models, recorded geometries, eras and data
+reduction differ too. It is useful cross-archive context, not a hard ceiling on
+what either facility could distinguish.
 
 How good is a wind tunnel at agreeing with itself, though? Princeton took two
 of its models down and ran them again. Same tunnel, same builder, second
 mounting. Those repeats disagree with themselves by 3.7 percent. So there's a
-ladder: 3.7 percent is one experiment repeating itself, 12 percent is two
-laboratories, and 11.7 percent is the model. The model error is three times
-the noise floor, so it isn't hiding inside the measurement error. But it's no
-bigger than the gap between the two labs, and that gap is the real ceiling on
-what any benchmark like this can resolve.
+ladder: 3.7 percent is one experiment repeating itself, 10.9 percent is the
+cross-archive comparison, and 11.7 percent is the model. The model error is
+three times the repeat noise floor, so it isn't hiding inside measurement
+scatter. The larger archive gap also includes non-tunnel differences and must
+not be treated as a reproducibility ceiling.
 
 The confidence score turned out to be a drag warning and nothing else. High
 confidence, drag error around 9 percent. Low confidence, around 32 percent.
@@ -105,8 +107,8 @@ particular blade, shows up as a 3 percent error in hover power. Diluted.
 Then close the design loop, which is where it gets interesting. More power
 means a bigger battery. A bigger battery means a heavier aircraft. A heavier
 aircraft needs more thrust, which needs more power, which needs more battery.
-Go round that loop until it settles and the same drag error is now a 15
-percent power error instead of an 8 percent one. It roughly doubles.
+Go round that loop until it settles and the same drag error is now an 18
+percent power error instead of an 8 percent one. It more than doubles.
 
 And yet the take-off weight, which is the thing you were actually sizing,
 moves less than the drag error did: about two thirds of a percent for every
@@ -115,8 +117,8 @@ aircraft and neither of them cares about drag.
 
 Both halves matter. Read only the weight number and you'd think the error was
 harmless. Read only the doubling and you'd panic. In grams, for a 15.7 kg
-aircraft, the measured drag uncertainty is worth about three kilograms of
-take-off mass. That is a number a design review can use.
+aircraft, the measured drag uncertainty is worth about three and a half
+kilograms of take-off mass. That is a number a design review can use.
 
 One detail I liked. The least trustworthy part of a rotor blade turns out to
 be the part closest to the hub, because that's where the air moves slowest,

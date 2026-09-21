@@ -23,8 +23,9 @@ typical case, and its lift by 0.07-0.09. Both tunnels agree. At Re = 60k the
 drag error grows to 17-22%. But almost none of that is the network's fault.
 XFoil misses the same points by 12%, and the network differs from XFoil by
 only 2.8%. It even lands closer to the tunnel than XFoil does, on 55% of
-points. The two tunnels disagree with each other by 12% in drag, so from
-Re = 200k up the model is already as close as the experiments can resolve.
+points. A one-to-one nearest-polar comparison between the two archives differs
+by 10.9% in drag, but that includes model-build and data-reduction differences
+and is not a tunnel-reproducibility ceiling.
 The confidence score warns about drag, and about XFoil's physics, but not
 about lift. Carried into a rotor, the error arrives divided by three, because
 two thirds of hover power is induced and untouchable. Close the design loop
@@ -201,14 +202,15 @@ models fit the Kulfan shape to under 0.07% of chord.
   +0.05 bias in both tunnels. `xxlarge` again no better. An `n_crit` sweep
   (5, 7, 9, 11) on this tunnel gives 13.0 / 11.3 / **11.1** / 20.8% drag error:
   the default 9 is the best setting (figure `26`).
-- **Tunnel vs tunnel.** 15 airfoils were measured in both tunnels: 131 polar
-  pairs, 2,139 matched (Re, α) points. The two experiments differ by **12% in
-  drag** (UIUC ~6% higher) and 0.048 in CL; NeuralFoil differs from UIUC by
-  11% and from Princeton by 10% on the same points, and from Re = 200k up all
-  three are 7-9%. NeuralFoil's drag error at Re ≥ 200k is at the
-  reproducibility limit of the experiments. Lift is not: the tunnels agree
-  (0.048) better than NeuralFoil agrees with either (0.066 / 0.080). Figure
-  `27`; `data/cross_tunnel_*.csv`.
+- **Cross-archive comparison.** Each Princeton polar on the 15 shared
+  airfoils is paired with exactly one nearest-Re UIUC polar, giving 87 polar
+  pairs and 1,241 unique matched (Re, α) points. The archives differ by
+  **10.9% in drag** (95% airfoil-cluster interval 9.1-12.9%; UIUC 4.8%
+  higher) and 0.044 in CL. NeuralFoil differs from UIUC by 10.5% and from
+  Princeton by 9.7% on the same points. This is cross-archive disagreement,
+  not a pure tunnel-reproducibility ceiling: the model builds, coordinate
+  provenance, dates and reduction procedures also differ. Figure `27`;
+  `data/cross_tunnel_*.csv`.
 - **Measured vs design geometry.** The 56 models with both coordinate sets
   deviate from their design by 0.22% chord RMS typically (max 0.68%, E387B),
   i.e. the 0.5% build-error scale assumed in the manufacturing study is
@@ -245,7 +247,7 @@ summaries; raw files in `data/soartech8/`.
   also ran, so that the three can be compared like for like, mean |ΔCD/CD| is
   **NeuralFoil-vs-tunnel 11.2%, XFoil-vs-tunnel 12.1%, NeuralFoil-vs-XFoil
   2.8%** (median 1.7%). Signed errors correlate at
-  r = 0.95; XFoil explains 86% of the variance of NeuralFoil's error; the
+  r = 0.95; a centered simple regression gives R² = 0.895; the
   network's own part is < 4% in every Re band of both tunnels, including 60k.
   NeuralFoil is *closer* to experiment than XFoil on 55% of points and has the
   lower mean error in every band (it smooths XFoil's scatter). Lift: 0.079 /
@@ -279,10 +281,10 @@ summaries; raw files in `data/soartech8/`.
 
 - **The noise floor.** Two Princeton models were mounted and run a second time
   in the same tunnel by the same builder. Over 95 matched points they disagree
-  with themselves by **3.7%** in drag and 0.009 in lift, against 12% between
-  the two tunnels and 11.7% for NeuralFoil. So the model error is three times
-  the repeatability of the experiment, and about the same size as the gap
-  between the two laboratories. The floor is not flat: 1.5-2.0% at Re = 300k,
+  with themselves by **3.7%** in drag and 0.009 in lift, against 10.9% between
+  the two archives and 11.7% for NeuralFoil. So the model error is three times
+  the repeatability of the experiment, and about the same size as the broader
+  cross-archive gap. The floor is not flat: 1.5-2.0% at Re = 300k,
   4.7-8.3% at Re = 100k.
 - **Into a rotor.** A four-rotor lift configuration, R = 0.50 m, two blades,
   E387 section, 1,910 rpm, 38.5 N per rotor, 15.7 kg all-up. Every one of 24
@@ -321,10 +323,10 @@ summaries; raw files in `data/soartech8/`.
   drag error (what the model expects on *this* blade, not the 11.7% pooled)
   arrives as a **2.9%** hover-power error, because two thirds of hover power is
   induced. Close the design loop, letting battery mass feed back into weight,
-  and the power error roughly **doubles (1.9-2.5x)**. Take-off weight still
-  moves less than the drag error: the **amplification factor is 0.62-0.68**,
+  and the power error roughly **doubles (2.3-2.5x)**. Take-off weight still
+  moves less than the drag error: the **amplification factor is 0.63-0.74**,
   steady across the distribution. In grams, the 90% interval of the measured
-  error is worth about **3 kg on a 15.7 kg aircraft**.
+  error is worth about **3.5 kg on a 15.7 kg aircraft**.
 - **Hover is the mild case.** The same rotor in level forward flight: shaft
   power falls from 291 W to a minimum of 216 W at 12 m/s (the power bucket),
   while the profile share climbs from **41% in hover to 68% at 14 m/s**. The
@@ -403,56 +405,57 @@ the design robust to *build error* as well as operating conditions, then
 validates it two ways.
 
 **Manufacturing-robust optimization.** Build error is modeled as bounded random
-perturbations of the Kulfan weights (~0.5% chord RMS surface error, realistic
-for foam-cut / printed wings). `B_mfg` maximizes worst-case L/D over both the
-operating envelope *and* a fixed 8-member error ensemble (sample-based robust
-optimization). `B_nominal` is robust to operating conditions only.
+perturbations of the Kulfan weights (truncated Gaussian, mean 0.565% chord RMS
+surface error). Samples are explicitly conditioned on a 0.4%-chord minimum
+local thickness for both designs; 40 accepted paired draws required 145
+attempts (27.6% acceptance), and every accepted shape is retained. `B_mfg`
+maximizes worst-case L/D over both the operating envelope *and* a fixed
+8-member error ensemble. `B_nominal` is robust to operating conditions only.
 
 **Out-of-sample validation** against 40 *fresh* build-error realizations the
 optimizer never saw:
 
 | Design | As-designed worst-case L/D | Built: mean | Built: 5th-pct | Built: min |
 |--------|---------------------------:|------------:|---------------:|-----------:|
-| B_nominal | 34.3 | 20.3 | 9.3 | 8.5 |
-| B_mfg | 33.7 | 26.5 | **19.5** | 10.3 |
+| B_nominal | 38.0 | 19.4 | **9.7** | **8.4** |
+| B_mfg | 30.5 | 19.2 | 8.7 | 7.4 |
 
-**Finding:** the two designs are near-identical on paper, but under realistic
-build error the nominal design's reliable (5th-percentile) worst-case L/D
-collapses to 9.3, while the manufacturing-robust design holds 19.5 - **more than
-2× more reliable when actually built**, for negligible as-designed cost.
+**Finding:** the corrected physical-geometry experiment is a null/negative
+result for this small training ensemble. `B_mfg` gives up substantial
+as-designed performance and does not improve the held-out mean, 5th
+percentile or minimum. The earlier 2× claim came from scoring self-crossing
+airfoils and is withdrawn.
 
-**Fidelity validation against true XFoil.** A headless XFoil 6.99 binary
+**Parent-solver consistency check against XFoil.** A headless XFoil 6.99 binary
 (compiled from source with a no-op X11 stub; see `THIRD_PARTY_XFOIL.md`) gives
-independent ground truth. NeuralFoil `large` (the optimization model) agrees
-with true XFoil to **~5-6%** of L/D, `xxlarge` to ~3-4%. That surrogate error is
-far smaller than the manufacturing effect above, so the robustness conclusion is
-safe. (Note: the aggressive `B_nominal` shape only converged in XFoil for 5/10
-angles - an honest signal that the surrogate is optimistic where real viscous
-flow separates.) Figures: `8_manufacturing_robustness.png`,
+a reference from the low-order solver NeuralFoil emulates, not independent
+physical truth. At Re=200k both corrected designs converge at 10/10 angles;
+mean L/D gaps are 4% (`B_nominal`) and 3% (`B_mfg`). Across the full envelope,
+the gap reaches 15% at Re=50k for `B_mfg`. This check cannot rescue or prove a
+manufacturing conclusion; higher-fidelity CFD or experiments are still needed.
+Figures: `8_manufacturing_robustness.png`,
 `9_fidelity_check.png`; data in `data/manufacturing_validation.csv`,
 `data/xfoil_validation.csv`, `data/fidelity_check.csv`.
 
 ## Envelope-wide XFoil trust map (`xfoil_validate_envelope.py`)
 
-The 200k check was one slice. This sweeps true XFoil across the full Re envelope
+The 200k check was one slice. This sweeps the parent XFoil solver across the full Re envelope
 (50k-500k) and maps the NeuralFoil-vs-XFoil L/D error over every (Re, AoA) cell.
 
 Two findings worth their own line:
 
-1. **Manufacturing robustness ⇒ numerical robustness.** `B_mfg` converges in
-   XFoil at **all 45 (Re, AoA) points (9/9 per Re)**; the aggressive `B_nominal`
-   converges only **5/9 per Re** - its 5-8° band is separated flow XFoil can't
-   solve at all (gray cells in `10_trust_map.png`). A design robust to build
-   error is also one with attached, well-behaved flow.
-2. **The surrogate is trustworthy in the meat of the envelope.** NeuralFoil L/D
-   is within ~3-8% of true XFoil for α≳2° across all Re. Error grows at **low
-   lift (α≤1°)** - up to ~18-23%, because L/D is hypersensitive to small CL
-   errors there - and peaks around **Re=100k**. NeuralFoil's own
-   `analysis_confidence` tracks this (lower for `B_nominal`, 0.2-0.3, than
-   `B_mfg`, 0.5-0.65), so the model honestly flags its weak spots.
+1. **Both corrected designs are numerically tractable.** `B_mfg` converges in
+   XFoil at all 45 (Re, AoA) points; `B_nominal` converges at 43/45, missing
+   one point each at 50k and 100k. This no longer supports the old claim that
+   manufacturing robustness implies attached, numerically robust flow.
+2. **The parent-solver gap depends on Re and design.** Mean absolute L/D error
+   for `B_nominal` ranges from 3.2% to 7.8%. For `B_mfg` it is 1.6-6.5% from
+   100k upward but reaches 15.2% at 50k. Mean confidence is 0.86 and 0.91,
+   respectively. Agreement with XFoil checks emulation consistency; it does
+   not validate either design against physical flow.
 
 Practical upshot: trust the surrogate for cruise/climb design points; re-check
-near-zero-lift and ~100k conditions, and any finalist as aggressive as
+low-Re and near-zero-lift conditions, and any finalist as aggressive as
 `B_nominal`, in XFoil or wind tunnel. Figures: `10_trust_map.png`,
 `11_envelope_polars.png`; data in `data/xfoil_validation_envelope.csv`.
 
@@ -503,7 +506,7 @@ python airfoil_designer.py configs/delivery_drone.yaml
 python airfoil_pipeline.py          # single-point vs robust + tradeoff
 python multiobjective.py            # efficiency / safety / structure / noise
 python manufacturing_robust.py      # build-tolerance robustness
-python xfoil_validate_envelope.py   # surrogate trust map vs true XFoil
+python xfoil_validate_envelope.py   # surrogate consistency map vs parent XFoil
 python uiuc_lsat_parse.py           # official UIUC wind-tunnel files -> one table
 python uiuc_neuralfoil_validation.py  # 55-airfoil benchmark of NeuralFoil
 python uiuc_stall_validation.py     # lift through stall: CLmax, stall angle, CM
@@ -565,7 +568,7 @@ figures/
   20_trust_vs_performance.png
   21-23_uiuc_*.png         # error by airfoil, confidence calibration, tripped runs
   24-25_uiuc_*.png         # CLmax / stall-angle parity, lift curves through stall
-  26-28_*.png              # two tunnels + n_crit, tunnel vs tunnel, measured vs design geometry
+  26-28_*.png              # two archives + n_crit, cross-archive match, measured vs design geometry
   29_xfoil_decomposition.png / 30_clustered_statistics.png / 31_error_model.png
   32_error_vs_reynolds.png # drag error vs Re, both archives, network and XFoil separated
   33_rotor_power_uncertainty.png / 34_weight_amplification.png   # the rotor and the weight loop

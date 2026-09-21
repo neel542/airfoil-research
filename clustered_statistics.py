@@ -37,7 +37,10 @@ def load():
     u["polar"] = u.asb_name + "|" + u.file + "|" + u.Re.astype(str)
     s = pd.read_csv(os.path.join(DATA, "soartech8_neuralfoil_validation.csv"))
     s = s[(s.config == "clean") & (s.NF_mode == "free") & (s.nf == "large") & s.primary & s.fit_ok].copy()
-    s["airfoil"] = s.family
+    # Use the shared database name where one exists so the same airfoil measured
+    # in both tunnels remains one independent cluster. Princeton-only sections
+    # retain their family name.
+    s["airfoil"] = s.asb_name.where(s.asb_name.notna() & (s.asb_name != ""), s.family)
     s["polar"] = s.airfoil_label + "|" + s.Re.astype(str)
     cols = ["airfoil", "polar", "Re", "alpha", "WT_CL", "WT_CD", "NF_CL", "NF_CD", "NF_conf", "dCL", "err_CD"]
     return {"UIUC": u[cols].reset_index(drop=True), "Princeton": s[cols].reset_index(drop=True)}
@@ -166,9 +169,10 @@ def main():
         print(f"  share of confidence variance between airfoils {r['conf_var_share_between_airfoil']:.2f}, "
               f"between polars {r['conf_var_share_between_polar']:.2f}")
 
-    # Pooled two-tunnel estimate (airfoil clusters keyed by tunnel so the same
-    # section in both tunnels counts as two independent measurements of it)
-    pooled = pd.concat([d.assign(airfoil=t + ":" + d.airfoil, polar=t + ":" + d.polar)
+    # Pooled two-tunnel estimate. A shared section is one airfoil cluster even
+    # though it has independent measurements in two facilities; prefix only the
+    # polar identifier, which is a lower-level grouping used for decomposition.
+    pooled = pd.concat([d.assign(polar=t + ":" + d.polar)
                         for t, d in data.items()], ignore_index=True)
     est = {k: fn(pooled) for k, fn in fns.items()}
     cb = cluster_bootstrap(pooled, fns, "airfoil")

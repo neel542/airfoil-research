@@ -181,6 +181,10 @@ def summarise(d):
     # error is explained by the XF-vs-WT signed error (slope-free R^2 of a 1:1 line)
     if len(ok) > 10:
         r["corr_signed_NF_WT_vs_XF_WT"] = np.corrcoef(ok.err_CD_NF_WT, ok.err_CD_XF_WT)[0, 1]
+        # Conventional centered simple-regression R^2. With one predictor and an
+        # intercept this is exactly Pearson r squared; unlike the previously
+        # quoted uncentred 1:1 score, it is legitimately a share of variance.
+        r["r2_signed_NF_WT_from_XF_WT"] = r["corr_signed_NF_WT_vs_XF_WT"] ** 2
         r["corr_conf_abs_NF_XF"] = np.corrcoef(ok.NF_conf, ok.err_CD_NF_XF.abs())[0, 1]
         r["corr_conf_abs_NF_WT"] = np.corrcoef(ok.NF_conf, ok.err_CD_NF_WT.abs())[0, 1]
         r["corr_conf_abs_XF_WT"] = np.corrcoef(ok.NF_conf, ok.err_CD_XF_WT.abs())[0, 1]

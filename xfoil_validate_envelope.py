@@ -2,7 +2,7 @@
 Envelope-wide XFoil validation: a "trust map" for the surrogate.
 ================================================================
 
-The single-point (Re=200k) check showed NeuralFoil agrees with true XFoil to
+The single-point (Re=200k) check compared NeuralFoil with its parent XFoil solver
 ~5%. But low Re is where viscous separation makes both XFoil hard to converge
 and NeuralFoil least confident. This sweeps the FULL envelope and quantifies the
 surrogate-vs-XFoil error as a function of (Re, AoA) -- so we know where the
@@ -86,7 +86,7 @@ df["pct_err_xxlarge"] = 100 * (df.NF_xxlarge_LD - df.XFoil_LD).abs() / df.XFoil_
 df.to_csv(os.path.join(OUT, "data", "xfoil_validation_envelope.csv"), index=False)
 print("  wrote data/xfoil_validation_envelope.csv")
 
-print("\nSurrogate error vs true XFoil, by Re (mean over converged AoA):")
+print("\nSurrogate error vs parent XFoil solver, by Re (mean over converged AoA):")
 summ = (df.dropna(subset=["XFoil_LD"])
         .groupby(["design", "Re"])
         .agg(n_conv=("XFoil_LD", "size"),
@@ -144,7 +144,7 @@ for ax, Re in zip(axes, RE_GRID):
     ax.plot(s.alpha, s.XFoil_LD, ":^", color="#2ca02c", ms=5, label="XFoil")
     ax.set_title(f"Re={Re/1e3:.0f}k"); ax.set_xlabel("AoA [deg]"); ax.grid(alpha=0.3)
 axes[0].set_ylabel("L/D"); axes[0].legend(fontsize=8)
-fig.suptitle("B_mfg: surrogate vs true XFoil across Re")
+fig.suptitle("B_mfg: surrogate vs parent XFoil solver across Re")
 fig.tight_layout()
 fig.savefig(os.path.join(OUT, "figures", "11_envelope_polars.png"), dpi=160)
 print("  wrote figures/11_envelope_polars.png")

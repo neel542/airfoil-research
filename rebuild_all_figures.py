@@ -237,7 +237,7 @@ for ax, name in zip(axes, ["B_nominal", "B_mfg"]):
         if d.empty:
             continue
         ax.plot(d.alpha, d.L_over_D, ms=5, lw=1.8, label=src, **sty)
-    # True-XFoil ground truth comes from xfoil_validate.py (headless binary,
+    # The XFoil parent-solver reference comes from xfoil_validate.py (headless binary,
     # PACC polar parsed directly); fidelity_check.csv only has it when the
     # AeroSandbox XFoil wrapper happened to work, which it does not on this build.
     if fid[(fid.design == name) & (fid.source == "XFoil")].empty:
@@ -290,7 +290,7 @@ for ax, Re in zip(axes, RE_GRID):
     ax.plot(s.alpha, s.XFoil_LD, ":^", color=C_XF, ms=5.5, lw=1.6, label="XFoil")
     ax.set_title(f"Re = {Re/1e3:.0f}k"); ax.set_xlabel("AoA [deg]"); clean(ax)
 axes[0].set_ylabel("L / D"); axes[0].legend(fontsize=8)
-save(fig, "11_envelope_polars.png", "B_mfg: surrogate vs true XFoil across Re")
+save(fig, "11_envelope_polars.png", "B_mfg: surrogate vs parent XFoil solver across Re")
 
 # ═════════════════════════════════════════════════════════════════════════
 # 12-17: e387_neuralfoil_validation.py  +  multifoil comparison
@@ -637,7 +637,7 @@ for ax, key, ttl, yl in [(axes[1], "abs_err_CD_", "n_crit sweep: drag error", "m
 axes[2].axhline(0, color="k", lw=0.8, alpha=0.6); axes[1].legend(fontsize=8.5); axes[1].set_ylim(0, 30); axes[2].set_ylim(-15, 30)
 save(fig, "26_two_tunnels_and_ncrit.png", "The Princeton data set replicates the UIUC benchmark, with n_crit = 9 the best transition setting")
 
-# (27) Tunnel-to-tunnel: the same airfoil in both tunnels, with NeuralFoil on both geometries
+# (27) Cross-archive: the same named airfoil, with NeuralFoil on both geometries
 cases = [("e387", "E387A", 100e3, "E387, Re = 100k"), ("sd7037", "SD7037", 200e3, "SD7037, Re = 200k"),
          ("fx63137", "FX63-137B", 200e3, "FX 63-137, Re = 200k")]
 fig, axes = plt.subplots(1, 3, figsize=(15.5, 4.8))
@@ -653,7 +653,7 @@ for ax, (name, label, Re0, title) in zip(axes, cases):
     ax.plot(pr.alpha, pr.NF_CD, "-", color=C_NF_L, lw=1.8, label="NeuralFoil, measured Princeton model")
     ax.set_yscale("log"); ax.set_title(title); ax.set_xlabel("AoA [deg]"); clean(ax)
 axes[0].set_ylabel("$C_D$ (log)"); axes[0].legend(fontsize=8)
-save(fig, "27_tunnel_vs_tunnel.png", "Two wind tunnels, one airfoil: the experiments disagree by about as much as NeuralFoil disagrees with either")
+save(fig, "27_tunnel_vs_tunnel.png", "Two archives, one named airfoil: cross-archive disagreement includes tunnel, model-build, and reduction differences")
 
 # (28) Measured vs design geometry
 fig, axes = plt.subplots(1, 2, figsize=(13, 5.6))

@@ -17,11 +17,10 @@ What this adds to the UIUC benchmark (uiuc_neuralfoil_validation.py):
      NeuralFoil can be run on the shape that was really in the tunnel. The
      difference between the two runs is the part of the error that is the
      model-builder's, not the surrogate's.
-  3. Tunnel-to-tunnel comparison. 15 benchmark airfoils were tested in both
-     tunnels. At matched Reynolds number and angle of attack, the
-     disagreement between the two experiments is a floor on what any
-     prediction can be validated to; NeuralFoil's error is compared with
-     that floor on the same points.
+  3. Cross-archive comparison. 15 benchmark airfoils were tested in both
+     tunnels. At matched Reynolds number and angle of attack, the archive
+     disagreement provides context for NeuralFoil's error. It is not a pure
+     tunnel-repeatability floor because models and reduction pipelines differ.
   4. n_crit sensitivity. The Princeton tunnel's turbulence level is not
      stated in the archive, so the transition parameter is swept.
 
@@ -35,6 +34,7 @@ Outputs
   data/soartech8_validation_confidence_bins.csv   calibration table
   data/soartech8_ncrit_sensitivity.csv            n_crit sweep
   data/cross_tunnel_comparison.csv                UIUC vs Princeton vs NeuralFoil, matched points
+  data/cross_tunnel_clustered.csv                 airfoil-cluster bootstrap intervals
   data/soartech8_stall_validation.csv             CLmax and stall angle from the lift files
 """
 
@@ -342,9 +342,9 @@ print(nc[["n_crit", "n", "mean_abs_dCL", "mean_dCL", "mean_abs_err_CD", "mean_er
 
 
 # ─────────────────────────────────────────────────────────────────────────────
-# Tunnel-to-tunnel comparison on the shared airfoils
+# Cross-archive comparison on the shared airfoils
 # ─────────────────────────────────────────────────────────────────────────────
-print("\nTunnel-to-tunnel: UIUC (1995-2005) vs Princeton (1986-89) on the same airfoils")
+print("\nCross-archive comparison: UIUC (1995-2005) vs Princeton (1986-89)")
 uiuc = pd.read_csv(os.path.join(DATA, "uiuc_neuralfoil_validation.csv"))
 uiuc = uiuc[(uiuc.config == "clean") & (uiuc.NF_mode == "free") & (uiuc.model == "large") & uiuc.fit_ok]
 pr = clean_L[clean_L.asb_name != ""]
@@ -357,25 +357,38 @@ for name in shared:
         cand = gu_all[(gu_all.Re > 0.85 * Re_p) & (gu_all.Re < 1.15 * Re_p)]
         if cand.empty:
             continue
-        # nearest UIUC Re, one file (prefer the largest overlap in alpha)
+        # Exactly one UIUC polar per Princeton polar. Rank by nearest Reynolds
+        # number, then by the number of Princeton alpha points in the overlap,
+        # then by stable provenance fields. The old implementation accidentally
+        # retained *every* polar inside the +/-15% window, repeating some
+        # Princeton points five times and weighting the result by archive depth.
+        gp_ = gp.sort_values("alpha").drop_duplicates("alpha")
+        choices = []
         for (vol, file, Re_u), gu in cand.groupby(["volume", "file", "Re"]):
             gu = gu.sort_values("alpha").drop_duplicates("alpha")
-            gp_ = gp.sort_values("alpha")
             lo, hi = max(gu.alpha.min(), gp_.alpha.min()), min(gu.alpha.max(), gp_.alpha.max())
-            sel = gp_[(gp_.alpha >= lo) & (gp_.alpha <= hi)]
-            if len(sel) < 3:
-                continue
-            cl_u = np.interp(sel.alpha, gu.alpha, gu.WT_CL)
-            cd_u = np.interp(sel.alpha, gu.alpha, gu.WT_CD)
-            nfcl_u = np.interp(sel.alpha, gu.alpha, gu.NF_CL)   # NF on the AeroSandbox design coords
-            nfcd_u = np.interp(sel.alpha, gu.alpha, gu.NF_CD)
-            for k, (_, r) in enumerate(sel.iterrows()):
-                ct_rows.append(dict(asb_name=name, princeton_label=label, Re_princeton=int(Re_p),
-                                    uiuc_volume=vol, uiuc_file=file, Re_uiuc=int(Re_u), alpha=r.alpha,
-                                    CL_princeton=r.WT_CL, CD_princeton=r.WT_CD,
-                                    CL_uiuc=float(cl_u[k]), CD_uiuc=float(cd_u[k]),
-                                    NF_CL_measured_geom=r.NF_CL, NF_CD_measured_geom=r.NF_CD,
-                                    NF_CL_design_geom=float(nfcl_u[k]), NF_CD_design_geom=float(nfcd_u[k])))
+            n_overlap = int(((gp_.alpha >= lo) & (gp_.alpha <= hi)).sum())
+            if n_overlap >= 3:
+                choices.append((abs(Re_u - Re_p) / Re_p, -n_overlap,
+                                str(vol), str(file), int(Re_u), gu, lo, hi))
+        if not choices:
+            continue
+        _, neg_n_overlap, vol, file, Re_u, gu, lo, hi = min(
+            choices, key=lambda q: q[:5])
+        sel = gp_[(gp_.alpha >= lo) & (gp_.alpha <= hi)]
+        cl_u = np.interp(sel.alpha, gu.alpha, gu.WT_CL)
+        cd_u = np.interp(sel.alpha, gu.alpha, gu.WT_CD)
+        nfcl_u = np.interp(sel.alpha, gu.alpha, gu.NF_CL)   # NF on the AeroSandbox design coords
+        nfcd_u = np.interp(sel.alpha, gu.alpha, gu.NF_CD)
+        pair_id = f"{label}|{int(Re_p)}|{vol}|{file}|{int(Re_u)}"
+        for k, (_, r) in enumerate(sel.iterrows()):
+            ct_rows.append(dict(pair_id=pair_id, asb_name=name, princeton_label=label,
+                                Re_princeton=int(Re_p), uiuc_volume=vol, uiuc_file=file,
+                                Re_uiuc=int(Re_u), Re_relative_gap=abs(Re_u - Re_p) / Re_p,
+                                alpha=r.alpha, CL_princeton=r.WT_CL, CD_princeton=r.WT_CD,
+                                CL_uiuc=float(cl_u[k]), CD_uiuc=float(cd_u[k]),
+                                NF_CL_measured_geom=r.NF_CL, NF_CD_measured_geom=r.NF_CD,
+                                NF_CL_design_geom=float(nfcl_u[k]), NF_CD_design_geom=float(nfcd_u[k])))
 ct = pd.DataFrame(ct_rows)
 ct["dCL_tunnels"] = ct.CL_uiuc - ct.CL_princeton
 ct["errCD_tunnels"] = (ct.CD_uiuc - ct.CD_princeton) / ct.CD_princeton
@@ -403,12 +416,45 @@ cts = pd.concat([ct.groupby("Re_bin", observed=True).apply(ct_summary),
                  ct_summary(ct).to_frame("all").T])
 cts.to_csv(os.path.join(DATA, "cross_tunnel_summary.csv"))
 print(f"  matched points: {len(ct)} on {ct.asb_name.nunique()} airfoils, "
-      f"{ct.groupby(['asb_name', 'Re_princeton', 'uiuc_file']).ngroups} polar pairs")
+      f"{ct.pair_id.nunique()} polar pairs")
 print(cts.round(3).to_string())
 per_af = ct.groupby("asb_name").apply(ct_summary).reset_index()
 per_af.to_csv(os.path.join(DATA, "cross_tunnel_by_airfoil.csv"), index=False)
 print(per_af[["asb_name", "n", "tunnels_abs_dCL", "tunnels_abs_errCD", "tunnels_errCD",
               "NF_vs_uiuc_abs_errCD", "NF_vs_princeton_abs_errCD"]].round(3).to_string(index=False))
+
+# The matched points within one physical airfoil are not independent. Report
+# uncertainty by resampling the 15 shared airfoils, keeping every point from a
+# selected airfoil together. This describes uncertainty across airfoil models;
+# it is not a pointwise measurement-error interval.
+ct_stats = {
+    "tunnels_abs_dCL": lambda d: d.dCL_tunnels.abs().mean(),
+    "tunnels_dCL": lambda d: d.dCL_tunnels.mean(),
+    "tunnels_abs_errCD": lambda d: d.errCD_tunnels.abs().mean(),
+    "tunnels_errCD": lambda d: d.errCD_tunnels.mean(),
+    "NF_vs_uiuc_abs_dCL": lambda d: d.dCL_NF_vs_uiuc.abs().mean(),
+    "NF_vs_uiuc_abs_errCD": lambda d: d.errCD_NF_vs_uiuc.abs().mean(),
+    "NF_vs_princeton_abs_dCL": lambda d: d.dCL_NF_vs_princeton.abs().mean(),
+    "NF_vs_princeton_abs_errCD": lambda d: d.errCD_NF_vs_princeton.abs().mean(),
+}
+ct_groups = {name: d for name, d in ct.groupby("asb_name")}
+ct_names = np.array(sorted(ct_groups))
+ct_rng = np.random.default_rng(0)
+ct_boot = {name: np.empty(2000) for name in ct_stats}
+for b in range(2000):
+    sample = pd.concat([ct_groups[name] for name in ct_rng.choice(
+        ct_names, size=len(ct_names), replace=True)], ignore_index=True)
+    for stat_name, fn in ct_stats.items():
+        ct_boot[stat_name][b] = fn(sample)
+ct_clustered = pd.DataFrame([
+    dict(statistic=stat_name, estimate=fn(ct), n_points=len(ct),
+         n_airfoils=len(ct_names), ci_lo=np.percentile(ct_boot[stat_name], 2.5),
+         ci_hi=np.percentile(ct_boot[stat_name], 97.5))
+    for stat_name, fn in ct_stats.items()
+])
+ct_clustered.to_csv(os.path.join(DATA, "cross_tunnel_clustered.csv"), index=False)
+print("\nAirfoil-cluster bootstrap (95% intervals):")
+print(ct_clustered.round(3).to_string(index=False))
 
 
 # ─────────────────────────────────────────────────────────────────────────────

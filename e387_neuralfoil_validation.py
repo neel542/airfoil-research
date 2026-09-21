@@ -248,7 +248,7 @@ for Re in sorted(df.Re.unique()):
 # ─────────────────────────────────────────────────────────────────────────────
 # Geometry-fidelity check, part 2: translate the Kulfan-fit coordinate error
 # into COEFFICIENT space so it is directly comparable to the NeuralFoil error.
-# Run true XFoil on the ORIGINAL E387 coords and on the Kulfan reconstruction at
+# Run the XFoil binary on the ORIGINAL E387 coords and on the Kulfan reconstruction at
 # the same conditions; the CL/CD gap between them is the aero error attributable
 # purely to the Kulfan fit (same solver, same panels; geometry is the only
 # variable). If that gap is a non-trivial fraction of NeuralFoil's measured error
