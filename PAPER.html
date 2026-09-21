@@ -52,39 +52,40 @@ that go past the stall. XFoil itself was run at all 9,130 conditions, which
 splits the error into XFoil's share and the network's share. Fifteen
 airfoils were tested in both tunnels, so the tunnels can be checked against
 each other. The measured error is then carried through a rotor, in hover and
-in forward flight, and through a weight-closure loop, so the benchmark reports
-what it costs a design and not only what it is. Every number carries an error bar built by resampling whole
-airfoils, and a fitted model turns any prediction into an expected drag
-error.</p>
+in forward flight, and round a weight-closure loop, so the benchmark says
+what the error costs a design and not just how big it is. Every number
+carries an error bar built by resampling whole airfoils, and a fitted model
+turns any prediction into an expected drag error.</p>
 <p>What came out. NeuralFoil's drag is off by 11 to 12 percent on average, 8
 percent in a typical case, and its lift by 0.07 to 0.09. Both tunnels agree.
 At Re = 60,000 the drag error grows to 17 to 22 percent. Almost none of that
 belongs to the network. XFoil misses the same points by 12 percent, and
 NeuralFoil differs from XFoil by only 2.8 percent. The two errors track each
 other at r = 0.95. NeuralFoil even lands closer to the tunnel than XFoil
-does, on 55 percent of points. A one-to-one nearest-polar comparison between
-the two archives differs by 10.9 percent in drag. That is cross-archive
-disagreement, not a pure tunnel-reproducibility limit. The confidence score warns about drag but not lift,
-and it tracks XFoil's error more strongly than the network's. Honest error
-bars run two to five times wider than naive ones, and every headline result
-survives them. One result doesn't: a link between an airfoil's average
-confidence and its average error shows up in the UIUC data and vanishes in
-the Princeton data, and this paper shows why. A fitted model reads
-confidence, Reynolds number, angle and camber and predicts held-out drag
-error 14 percent better than a flat guess, in either tunnel. Running the
-model on the measured shape of each Princeton wing, instead of its drawing,
-removes about a sixth of the drag error. Carried into a hovering rotor whose
-blade sits entirely inside the benchmark's Reynolds range, the drag error
-arrives divided by three, because two thirds of hover power is induced. Close
-the design loop, letting battery mass feed back into take-off weight, and it
-doubles again: the amplification factor from section drag to take-off weight
-is 0.63 to 0.74, and the 90 percent interval of the measured error is worth
-three and a half kilograms on a 15.7 kg aircraft. Hover is the mild case: in forward flight the
-profile share of shaft power climbs from 41 to 68 percent and the same error
-costs 1.7 times as much. Finally, a design pipeline uses all
-of this: a small reward for staying where NeuralFoil is confident moves a
-design out of its worst region for about 2 percent of predicted worst-case
-L/D.</p>
+does, on 55 percent of points. Match every Princeton polar to its nearest
+UIUC one and the two archives differ by 10.9 percent in drag. Read that as
+two archives disagreeing rather than as one tunnel's reproducibility limit:
+a matched pair is two different hand-built models. The confidence score
+warns about drag but not lift, and it tracks XFoil's error more strongly
+than the network's. Honest error bars run two to five times wider than naive
+ones, and every headline result survives them. One result doesn't. A link
+between an airfoil's average confidence and its average error shows up in
+the UIUC data and vanishes in the Princeton data, and this paper shows why.
+A fitted model reads confidence, Reynolds number, angle and camber and
+predicts held-out drag error 14 percent better than a flat guess, in either
+tunnel. Running the model on the measured shape of each Princeton wing,
+instead of its drawing, removes about a sixth of the drag error. Carried
+into a hovering rotor whose blade sits entirely inside the benchmark's
+Reynolds range, the drag error arrives divided by three, because two thirds
+of hover power is induced. Close the design loop, letting battery mass feed
+back into take-off weight, and it doubles again: the amplification factor
+from section drag to take-off weight is 0.63 to 0.74, and the 90 percent
+interval of the measured error is worth three and a half kilograms on a 15.7
+kg aircraft. Hover is the mild case. In forward flight the profile share of
+shaft power climbs from 41 to 68 percent, and the same error costs 1.7 times
+as much. Finally, a design pipeline uses all of this: a small reward for
+staying where NeuralFoil is confident moves a design out of its worst region
+for about 2 percent of predicted worst-case L/D.</p>
 <hr />
 <h2>1. Introduction</h2>
 <h3>1.1 Why slow air is hard</h3>
@@ -1020,9 +1021,9 @@ least trustworthy part of it and the outboard two thirds are the best. Section
 percent of points the network lands nearer the measurement. Comparing the two
 on the points where both ran, its average drag error is lower in every band:
 11.2 against 12.1 percent overall, and 12.5 against 14.9 at Re = 100,000 in
-the UIUC tunnel. That makes sense. Fit a
-network to hundreds of thousands of XFoil polars and you smooth out XFoil's
-point-to-point scatter, and some of that scatter is error. The 3.5 percent
+the UIUC tunnel. That makes sense. Fit a network to hundreds of thousands of
+XFoil polars and you smooth out XFoil's point-to-point scatter, and some of
+that scatter is error. The 3.5 percent
 of conditions where XFoil wouldn't converge are worth a look too.
 NeuralFoil's average drag error there is 25 percent and its average
 confidence 0.57, against 11 percent and 0.95 where XFoil did converge. XFoil
@@ -2136,10 +2137,9 @@ section before any of this was run. Inside Re 40,000 to 98,000 it lands within
 a percent of measured thrust on average and 4 percent high on power, with 9 and
 13 percent scatter, and nothing in that database reaches the Reynolds numbers
 this rotor runs at, so the check sits below the operating point rather than on
-it. And hover is the
-friendly case: fly the same rotor forward and the profile share of shaft power
-climbs from 41 to 68 percent, so the same section error costs 1.7 times as
-much at cruise as it does hovering. Uncertainty
+it. And hover is the friendly case. Fly the same rotor forward and the
+profile share of shaft power climbs from 41 to 68 percent, so the same
+section error costs 1.7 times as much at cruise as it does hovering. Uncertainty
 quantification earns its keep exactly here: it says how much of what is
 unknown early survives to the end. For this aircraft the answer is about two
 thirds of a percent of take-off weight per percent of section drag, and a
@@ -2161,11 +2161,12 @@ completely different structures underneath. The UIUC and Princeton sets
 reach the same conclusion about the confidence score for different reasons,
 and only the breakdown in section 3.4 shows that the airfoil-level version
 belonged to one sample.</p>
-<p>The design results add an important qualification. Robustness against changing
-operating conditions remains useful, but this small-ensemble manufacturing
-robustification did not generalize once invalid geometries were excluded. The confidence-aware
-optimizer shows that staying inside NeuralFoil's checked region costs almost
-nothing in predicted performance.</p>
+<p>The design results come with a qualification. Designing against changing
+operating conditions is still worth doing. Designing against build error, on
+this small ensemble, is not: once the invalid geometries were thrown out the
+advantage went with them. The confidence-aware optimizer fares better, and
+shows that staying inside NeuralFoil's checked region costs almost nothing in
+predicted performance.</p>
 <hr />
 <h2>5. Limitations</h2>
 <ul>
@@ -2301,18 +2302,19 @@ of four in propagated error the mechanism is the same one: power error is 0.93
 times the profile share of shaft power times the section drag error. That
 holds in forward flight too, where the profile share climbs from 41 percent in
 hover to 68 percent at 14 m/s and the same drag error costs 1.7 times as much.
-The speed this aircraft would cruise at for endurance is within two metres per
-second of the speed where the surrogate's error does the most damage. For this 15.7 kg aircraft the
-90 percent interval of the measured drag error is worth about three
-kilograms of take-off mass.</p>
+The speed this aircraft would cruise at for endurance is within two metres
+per second of the speed where the surrogate's error does the most damage. On
+this 15.7 kg aircraft the 90 percent interval of the measured drag error is
+worth about three and a half kilograms of take-off mass.</p>
 <p>Four things would push this further. A third tunnel, with documented
 turbulence and flapped configurations. A measured rotor or propeller in the
 Re 100,000 to 500,000 range with a published section, so the solver can be
-checked where this rotor runs; no public database has one. A training set for the surrogate that
-includes experimental or higher-fidelity slow-speed data, since the split
-here shows more XFoil won't help. And a real wind-tunnel test of 3D-printed
-robust and peak-tuned airfoils, with their built shapes measured, which
-would turn this validation study into an original experimental result.</p>
+checked where this rotor actually runs. No public database has one. A training
+set for the surrogate that includes experimental or higher-fidelity slow-speed
+data, since the split here shows that more XFoil will not help. And a real
+wind-tunnel test of 3D-printed robust and peak-tuned airfoils, with their
+built shapes measured, which would turn this validation study into an
+original experimental result.</p>
 <hr />
 <h2>Author Contributions</h2>
 <p>The author designed and directed this study: choosing the question, setting
