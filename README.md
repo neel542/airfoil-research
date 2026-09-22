@@ -1,5 +1,7 @@
 # How far can NeuralFoil be trusted below Re = 500,000?
 
+[![tests](https://github.com/neel542/airfoil-research/actions/workflows/tests.yml/badge.svg)](https://github.com/neel542/airfoil-research/actions/workflows/tests.yml)
+
 **NeuralFoil** is a neural network that copies the airfoil solver XFoil and
 answers in a fraction of a second. People use it to design slow-flying wings.
 Nobody had checked it against a real wind tunnel at those speeds.
