@@ -185,6 +185,42 @@ def test_bemt_inflow_bracket():
     assert (d.vi / old_cap).max() > 1.0, "the test blade must actually need more than the old cap"
     assert (d.vi > 1e-3).all(), "an element fell back to zero inflow"
     assert out["T"] > 0 and out["P"] > 0
+    # every element actually balances momentum, not just returns something
+    for i in range(len(rot.x)):
+        phi = np.arctan2(d.vi[i], rot.omega * rot.r[i])
+        res = rot._residual(phi, i, 0.0, 1.0)[0]
+        assert abs(res) < 1e-6 * max(1.0, abs(d.dT[i] / d.dr[i])), f"element {i} unbalanced"
+
+    # The first repair only moved the cap to 0.95 of the rotational speed.
+    # A solid, steeply pitched four-blade root needs more than that, and
+    # there must still be no cap.
+    class Strong(Analytic):
+        def __call__(self, alpha, Re):
+            cl = np.clip(2 * np.pi * np.deg2rad(np.atleast_1d(alpha)), -2.0, 2.0)
+            return cl, 0.02 + 0.05 * cl ** 2
+    rot = ru.Rotor(R=0.1143, n_blades=4, chord_root=0.05, taper=1.0, rpm=4000,
+                   twist_rate_deg=0.0, root_cut=0.30, n_elem=12, section=Strong())
+    rot.twist = np.deg2rad(np.interp(rot.x, [0.30, 1.0], [75.0, 13.4]))
+    out, d = rot.solve(0.0)
+    assert (d.vi / (0.95 * rot.omega * rot.r)).max() > 1.0, "the test must exceed the second cap"
+    assert out["T"] > 0
+
+    # A lift curve with a stall dip balances momentum at more than one
+    # inflow. The solver must take the lowest-inflow balance and say so.
+    class Dip(Analytic):
+        def __call__(self, alpha, Re):
+            a = np.atleast_1d(alpha)
+            cl = np.clip(2 * np.pi * np.deg2rad(a), -1.2, 1.2) - 0.9 * np.exp(-((a - 12.0) / 1.2) ** 2)
+            return cl, 0.02 + 0.05 * cl ** 2
+    rot = ru.Rotor(R=0.1143, n_blades=2, chord_root=0.02, taper=1.0, rpm=4000,
+                   twist_rate_deg=0.0, root_cut=0.30, n_elem=12, section=Dip())
+    rot.twist = np.full_like(rot.x, np.deg2rad(22.0))
+    out, d = rot.solve(0.0)
+    assert out["n_multiroot"] > 0, "the dip must produce multiple balances"
+    for i in range(len(rot.x)):
+        grid = np.linspace(1e-6, np.arctan2(d.vi[i], rot.omega * rot.r[i]), 400)[:-1]
+        assert (rot._residual(grid, i, 0.0, 1.0) > 0).all(), \
+            f"element {i}: a lower-inflow balance was skipped"
 
     # Iterative solvers must fail loudly when their iteration budget is
     # exhausted; returning the last iterate would make downstream CSVs look
@@ -244,11 +280,16 @@ def test_every_data_input_is_tracked():
 def test_bemt_validation():
     """Section 3.5: the rotor solver against measured propellers with a known
     section. Pinned so the honest parts cannot drift: the clean window, the
-    two families disagreeing in sign, the low-Re failure, and zero fallbacks."""
+    two families disagreeing in sign, the low-Re failure, and where the solver
+    had to choose between inflow balances."""
     p = _csv("bemt_validation.csv")
     s = _csv("bemt_validation_summary.csv").set_index("label")
     assert (p.section == "neuralfoil").all()
-    assert int(p.n_fallback.sum()) == 0, "an element fell back to zero inflow"
+    # a stall dip in the section polar gives some elements more than one
+    # balance; the paper reports how many and where, so pin it
+    mr = p[p.n_multiroot > 0]
+    assert int(mr.n_multiroot.sum()) == 45 and len(mr) == 27
+    assert (mr.D_in == 9).all() and (mr.pitch_in >= 6.75).all()
     assert (p.in_window == (p.Re_75 >= 40e3)).all(), "window definition drifted"
     assert len(p) == 261 and p.label.nunique() == 15
 
@@ -275,10 +316,11 @@ def test_bemt_validation():
     # solidity by a few percent per added blade
     b = _csv("bemt_validation_blades.csv").set_index("blades")
     _close(b.loc[3].CT_meas_ratio, 1.353, 0.01, "measured 3/2 thrust ratio")
-    _close(b.loc[3].CT_pred_ratio, 1.383, 0.01, "predicted 3/2 thrust ratio")
+    _close(b.loc[3].CT_pred_ratio, 1.406, 0.01, "predicted 3/2 thrust ratio")
+    _close(b.loc[4].CT_pred_ratio, 1.246, 0.01, "predicted 4/3 thrust ratio")
     for nb in [3, 4]:
         assert b.loc[nb].CT_pred_ratio > b.loc[nb].CT_meas_ratio
-        assert b.loc[nb].CT_pred_ratio - b.loc[nb].CT_meas_ratio < 0.05
+        assert b.loc[nb].CT_pred_ratio / b.loc[nb].CT_meas_ratio < 1.05, "a few percent per blade"
 
 
 def test_bemt_validation_xfoil_split():
@@ -288,8 +330,8 @@ def test_bemt_validation_xfoil_split():
     n = _csv("bemt_validation_summary.csv").set_index("label").loc["all 9 in"]
     x = _csv("bemt_validation_summary_xfoil.csv").set_index("label").loc["all 9 in"]
     assert int(n.n_window) == int(x.n_window) == 87, "the two runs must cover the same points"
-    for col, quoted in [("err_CT_mean_window", 0.010), ("err_CT_abs_window", 0.090),
-                        ("err_CP_mean_window", 0.048), ("err_CP_abs_window", 0.138)]:
+    for col, quoted in [("err_CT_mean_window", 0.004), ("err_CT_abs_window", 0.090),
+                        ("err_CP_mean_window", 0.047), ("err_CP_abs_window", 0.137)]:
         _close(x[col], quoted, 0.01, f"xfoil {col}")
         assert abs(x[col] - n[col]) < 0.015, f"{col}: the two section models should nearly agree"
 
@@ -298,12 +340,54 @@ def test_bemt_validation_xfoil_split():
     m = pn.merge(px, on=["label", "rpm"], suffixes=("_nf", "_xf"))
     w = m[m.in_window_nf & (m.D_in_nf == 9) & ~m.drawn_nf]
     assert len(w) == 87
-    _close((w.err_CT_nf - w.err_CT_xf).abs().median(), 0.009, 0.005, "median |NF-XF| thrust")
+    _close((w.err_CT_nf - w.err_CT_xf).abs().median(), 0.012, 0.002, "median |NF-XF| thrust")
 
-    # the XFoil table pushes some low-Re elements past the inflow bracket; that
-    # is tolerable only because none of them are inside the reported window
-    assert int(px[px.in_window].n_fallback.sum()) == 0, "in-window fallback"
-    assert px[px.n_fallback > 0].Re_75.max() < _csv("bemt_validation.csv").Re_75.max()
+    # the XFoil table is bumpier near stall, so the solver chooses between
+    # inflow balances more often with it; the paper reports how often
+    assert int(px.n_multiroot.sum()) == 232 and int((px.n_multiroot > 0).sum()) == 108
+    assert int(px[px.in_window].n_multiroot.sum()) == 62
+
+
+def test_profile_power_check():
+    """Section 3.5: Govindarajan's two routes to profile power from a static
+    thrust stand, and his reading of the validation error. Pinned so the
+    limit stays stated as a limit."""
+    e = _csv("bemt_error_split.csv").set_index("quantity")
+    # the mean absolute error is propeller offsets, not the balance scattering
+    _close(e.loc["thrust"].share_of_variance_between, 0.81, 0.02, "thrust variance between propellers")
+    _close(e.loc["power"].share_of_variance_between, 0.97, 0.02, "power variance between propellers")
+    _close(e.loc["thrust"].measured_scatter_mae, 0.006, 0.001, "measured thrust off its own curve")
+    _close(e.loc["power"].measured_scatter_mae, 0.008, 0.001, "measured power off its own curve")
+    _close(e.loc["thrust"].mae_within_propeller, 0.036, 0.002, "thrust scatter inside a propeller")
+    _close(e.loc["power"].mae_within_propeller, 0.016, 0.002, "power scatter inside a propeller")
+    for q in ["thrust", "power"]:
+        assert e.loc[q].measured_scatter_mae < 0.1 * e.loc[q].mae, "the balance is not the scatter"
+
+    s = _csv("profile_power_summary.csv").set_index("label")
+    low = s.loc["DA4002 9x2.85 2b"]
+    assert low.CT_rotor == s.CT_rotor.min(), "the lowest-thrust propeller changed"
+    _close(low.CT_over_sigma, 0.14, 0.005, "lowest C_T/sigma")
+    _close(low.FM_measured, 0.57, 0.01, "measured figure of merit, lowest thrust")
+    _close(low.cd0_all_profile, 0.103, 0.002, "Cd0 read as all profile")
+    _close(low.cd0_upper_bound, 0.044, 0.001, "model-free Cd0 upper bound")
+    _close(low.cd0_kappa_typical, 0.035, 0.001, "Cd0 with kappa 1.15")
+    _close(low.cd_eff_solver, 0.031, 0.001, "solver's power-weighted blade drag")
+    for c in ["cd0_zero_lift_nf", "cd0_zero_lift_xf"]:
+        _close(low[c], 0.021, 0.0006, c)
+    # the check passes, and it is a factor of two wide
+    assert low.cd0_zero_lift_nf < low.cd_eff_solver < low.cd0_upper_bound
+    assert low.cd0_upper_bound / low.cd0_zero_lift_nf > 2.0
+    # the solver respects the model-free bound on every propeller
+    assert (s.cd_eff_solver < s.cd0_upper_bound).all()
+    # zero-lift drag stops working as the pitch steepens
+    fam = s[s.index.str.startswith("DA4002")].sort_values("pitch_in")
+    assert fam.kappa_implied_nf.is_monotonic_increasing
+    _close(fam.kappa_implied_nf.iloc[0], 1.39, 0.01, "implied kappa, lowest pitch")
+    _close(fam.kappa_implied_nf.iloc[-1], 2.50, 0.02, "implied kappa, steepest pitch")
+    # sigma over the blade alone understates the profile integral by about a quarter
+    p = _csv("profile_power_points.csv")
+    under = 1 - p.sigma_over_8 / p.profile_integral
+    assert under.between(0.22, 0.27).all()
 
 
 def test_laminar_run_length():

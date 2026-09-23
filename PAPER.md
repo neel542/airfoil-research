@@ -917,27 +917,55 @@ which all fit to better than 0.07 percent, but it sits inside the UIUC spread,
 whose median is 0.07 and whose worst is 0.23. NeuralFoil sees that fitted
 shape.
 
-Two things came out. The first was a defect in the solver. Its inflow
-root-finder capped induced velocity at a quarter of the local rotational
-speed, which a lightly twisted rotor never reaches (the design rotor above sat
-at 0.977 of the cap) but a fixed-pitch propeller root at 36 degrees exceeds.
-Past the cap an element fell back to zero inflow and sat fully stalled, with
-no warning. It is fixed, and no number in this section moved by more than one
-part in ten thousand.
+Two things came out. The first was a defect in the solver. The solver is
+this paper's own: a hover blade-element momentum model that balances each
+annulus's blade-element thrust against momentum thrust, with Prandtl tip and
+root loss and no swirl. Its root-finder searched for the induced velocity
+below a quarter of the local rotational speed. That limit was a bracket for
+the root-finder, not physics. A lightly twisted rotor never reaches it (the
+design rotor above sat at 0.977 of it), but a fixed-pitch propeller root at 36
+degrees does. Past the limit an element fell back to zero inflow and sat fully
+stalled, with no warning. The first repair only moved the limit to 0.95 of the
+rotational speed, which still left elements falling back on the XFoil runs.
+The solver now solves for the inflow angle instead of the induced velocity,
+and takes its bracket from the element: at zero inflow a lifting section makes
+more thrust than momentum asks for, and once the inflow angle has carried it
+10 degrees below zero incidence it makes negative thrust, so the balance lies
+between. There is no velocity limit left, and a solve that cannot balance
+fails loudly.
+
+Solving it properly exposed a second thing. NeuralFoil's SDA1075 polar has a
+small dip at stall, and where an element sits on it, momentum balances at up
+to three inflows. The old root-finder chose between them by accident, according
+to where its bracket happened to end. The solver now scans the bracket and
+takes the lowest-inflow balance, the one the flow reaches first as the
+propeller spins up from rest, which is the convention of Ning's CCBlade (Ning,
+2014). That choice was made on 45 elements across 27 of the 261 points, all on
+9 inch propellers of 6.75 inch pitch and steeper. It moves no point by more than 2.2 percent in
+thrust, and the design rotor above not at all, to within a microwatt.
 
 The second is the result. Inside a window of Re 40,000 to 98,000 at 75
 percent span, over 87 points on the seven 9 inch propellers, the solver lands
 within 1 percent of measured thrust on average and 4 percent high on power,
-with mean absolute errors of 9 and 13 percent. The two families miss in
-opposite directions, which is why the bias is small and the scatter is not:
+with mean absolute errors of 9 and 13 percent. Govindarajan asked whether
+that gap between a small mean and a large mean absolute error is the
+unsteadiness of the data showing through. It is not. Each measured point sits
+within 0.6 percent of thrust and 0.8 percent of power, on average, of a smooth
+curve through its own propeller's sweep, so the balance is not scattering by
+anything like 9 percent. The error belongs to the propellers: 81 percent of
+the thrust error's variance and 97 percent of the power error's is the
+difference between one propeller's offset and the next, and inside a single
+propeller's sweep the prediction wanders by only 3.6 and 1.6 percent. The two
+families miss in opposite directions, which is why the bias is small and the
+mean absolute error is not:
 
 | Propeller | Blades | Thrust error | Power error |
 |---|---:|---:|---:|
 | DA4002 9x2.85 | 2 | −3 percent | −2 percent |
-| DA4002 9x4.76 | 2 | +2 percent | +8 percent |
+| DA4002 9x4.76 | 2 | +1 percent | +7 percent |
 | DA4002 9x6.75 | 2 | −8 percent | −14 percent |
 | DA4002 9x8.95 | 2 | −20 percent | −20 percent |
-| DA4022 9x6.75 | 2 | +6 percent | +14 percent |
+| DA4022 9x6.75 | 2 | +5 percent | +13 percent |
 | DA4022 9x6.75 | 3 | +10 percent | +16 percent |
 | DA4022 9x6.75 | 4 | +12 percent | +17 percent |
 
@@ -949,17 +977,17 @@ The blade-count series is the cleanest test, because the section and the
 pitch are identical across it and only the number of blades changes, so the
 section error is held fixed and what moves is the inflow and tip-loss model.
 Measured thrust rises by a factor of 1.35 from two blades to three and 1.21
-from three to four; the solver says 1.38 and 1.24. It over-rewards solidity by
-2 to 3 percent per added blade, and its over-prediction of the DA4022 grows
+from three to four; the solver says 1.41 and 1.25. It over-rewards solidity by
+3 to 4 percent per added blade, and its over-prediction of the DA4022 grows
 with blade count for the same reason.
 
 **So is it the solver, or the section?** Run the whole test again with XFoil
 filling the section table instead of NeuralFoil, on the same Kulfan geometry
 the network sees, and the answer barely moves. Inside the window the thrust
-bias goes from +0.6 to +1.0 percent and the power bias from +3.9 to +4.8;
-the mean absolute errors go from 8.8 and 12.8 percent to 9.0 and 13.8. Point
+bias goes from +0.5 to +0.4 percent and the power bias from +3.8 to +4.7;
+the mean absolute errors go from 8.7 and 12.7 percent to 9.0 and 13.7. Point
 by point across the same 87 points the two section models disagree about
-thrust by a median of 0.9 percent. So almost none of that 9 and 13 percent
+thrust by a median of 1.2 percent. So almost none of that 9 and 13 percent
 scatter is the network's emulation of XFoil, which is consistent with the 2.8
 percent emulation error of section 3.3 and is the one candidate this paper
 can rule out. What the swap cannot separate is the rest: the blade-element
@@ -984,6 +1012,38 @@ DA4002 9x8.95, comes down to 54 percent, and it is also the worst predicted.
 The rotor above is 63 percent. So this data tests the thrust and inflow side
 of the solver hard, and the profile-power side, which is the channel the drag
 error travels through in the rest of this section, rather less.
+
+**Can a static thrust stand check profile power at all?** Fitting
+C_P = κ C_T^1.5/√2 + σ Cd0/8 across the four DA4002 pitches fails: the
+intercept goes negative, because the pitch swings the 75 percent station from
+4 to 16 degrees and neither κ nor Cd0 holds still. Govindarajan suggested two
+simpler routes, and `profile_power_check.py` tries both on the seven 9 inch
+propellers inside the window. The first is to take the lowest-thrust point
+and treat all of its power as profile. The lowest thrust in the database is
+the DA4002 9x2.85, and it is not close to zero: C_T/σ is 0.14, and its
+measured figure of merit is 0.57, which says without any rotor model that at
+least 57 percent of its power is ideal induced power. Read as all profile,
+its power gives a blade drag coefficient of 0.103, five times what the
+section can plausibly have. Taking the ideal induced power out first turns
+the same point into a model-free upper bound of 0.044, or 0.035 with a
+typical κ of 1.15. His second route is the section's zero-lift drag, 0.021 at
+this propeller's Reynolds number from NeuralFoil and from XFoil alike, and
+within 2 percent of the section's minimum drag there, so it serves as the
+floor. That brackets the effective blade drag between 0.021 and 0.044, and the
+solver's own power-weighted blade drag, 0.031, sits inside. The check passes,
+but the bracket spans a factor of two, far wider than the 11 percent drag
+error it would need to resolve. Carrying the zero-lift drag to the steeper
+propellers shows where it stops working: the κ it leaves behind climbs from
+1.39 at the lowest pitch to 2.50 at the steepest, which no rotor can have,
+because at 16 degrees incidence NeuralFoil puts the section's drag at about
+ten times its zero-lift value. One detail matters if anyone repeats this: with σ counted
+over the blade alone, from 30 percent span, σ Cd0/8 understates the profile
+power of a uniform Cd0 by about a quarter, so the integral here is done on
+the measured chord. The answer, then, is that this database can bound
+profile power but cannot measure it to the precision the question needs. A
+propeller run near zero thrust would close most of the gap, and nothing in
+the database was run there. Short of that it takes CFD or a measured blade
+drag, and this paper records it as a limit.
 
 **The blade does not inherit the headline number.** Averaged over the blade,
 the fitted error model of section 3.4 expects 7.4 percent drag error, not 11.7
@@ -1541,6 +1601,9 @@ cited below.
 21. Yang, Y., Li, R., Zhang, Y., and Chen, H. (2026). *Uncertainty-aware
     data-based method for fast and reliable shape optimization.*
     arXiv:2601.21956.
+22. Ning, S. A. (2014). A simple solution method for the blade element
+    momentum equations with guaranteed convergence. *Wind Energy*, 17(9),
+    1327-1345.
 
 ---
 

@@ -268,31 +268,61 @@ C<sub>T</sub> = T/(ρn²D⁴) and C<sub>P</sub> = P/(ρn³D⁵). Nothing is tune
 Errors are reported inside a window Re<sub>0.75</sub> ≥ 40k, below which
 NeuralFoil's SDA1075 polar stalls early (C<sub>L,max</sub> 0.78 at Re 40k
 against 1.26 at 60k) in a regime the benchmark does not cover. Inside the
-window, over 87 points on the seven 9 in propellers: thrust bias +0.6%, mean
-absolute error 8.8%; power bias +3.9%, mean absolute error 12.8%; the two
-families miss in opposite directions (DA4002 −3 to −20% thrust, DA4022 +6 to
+window, over 87 points on the seven 9 in propellers: thrust bias +0.5%, mean
+absolute error 8.7%; power bias +3.8%, mean absolute error 12.7%; the two
+families miss in opposite directions (DA4002 +1 to −20% thrust, DA4022 +5 to
 +12%), the drawn and built DA4002 geometries differ by 3% in thrust, and the
-solver over-predicts the thrust gain from an added blade by 2-3% (measured
-×1.35 and ×1.21 for 2→3→4 blades at 4,900 rpm, predicted ×1.38 and ×1.24). No
+solver over-predicts the thrust gain from an added blade by 3-4% (measured
+×1.35 and ×1.21 for 2→3→4 blades at 4,900 rpm, predicted ×1.41 and ×1.25). No
 propeller reaches the design rotor's Re 118k–475k, and these propellers are
 54–89% induced at the top of their sweeps (six of seven above 77%) against
 the rotor's 63%. The run
-also exposed a defect in the solver's inflow root-finder, which capped
-v<sub>i</sub> at 0.25Ωr and fell back silently to zero inflow above it; the cap
-is now 0.95Ωr, every published rotor number is unchanged to 1 part in 10⁴, and
-a regression test drives a 38° root through the solver. `validate_bemt.py --xfoil` repeats the whole test with the section table
+also exposed a defect in the solver's inflow root-finder, which bracketed
+v<sub>i</sub> below 0.25Ωr and fell back silently to zero inflow above it. The
+solver now solves each annulus for the inflow angle φ, with v<sub>i</sub> = Ωr tan φ,
+bracketed between φ → 0 and the angle that puts the section 10° below zero
+incidence (widened in 5° steps if needed, a RuntimeError if no balance exists),
+so there is no velocity cap and no fallback. Where a stall dip in the section
+polar gives more than one balance, it scans the bracket on 181 points and takes
+the lowest-inflow root, the first-bracket convention of CCBlade (Ning, 2014);
+that happens on 45 elements across 27 of the 261 points, all on 9 in
+propellers of 6.75 in pitch and steeper, and is reported per point as
+`n_multiroot`. The design rotor is unchanged to 10⁻⁸ W, and a regression test
+drives a 38° root through the solver. `validate_bemt.py --xfoil` repeats the whole test with the section table
 filled by XFoil (n_crit 9, free transition) on the same Kulfan geometry, 69
 angles from −10° to 24° × 36 Reynolds rows from 15k to 300k, rows with under
-40% convergence dropped. Inside the window the 9 in results shift by 0.2–1.0
-points (thrust bias +0.6→+1.0%, power bias +3.9→+4.8%, mean absolute 8.8→9.0
-and 12.8→13.8%), and point by point the two section models differ on thrust
-by a median 0.9%, so the residual is not the network's emulation of XFoil.
-With the XFoil table, 14 elements on two 5 in propellers below Re 13,600 hit
-the inflow bracket and fall back to zero inflow; all sit outside the reported
-window, and an in-window fallback is a hard failure. Outputs:
+40% convergence dropped. Inside the window the 9 in results shift by 0.1–1.0
+points (thrust bias +0.5→+0.4%, power bias +3.8→+4.7%, mean absolute 8.7→9.0
+and 12.7→13.7%), and point by point the two section models differ on thrust
+by a median 1.2%, so the residual is not the network's emulation of XFoil.
+The XFoil table is bumpier near stall than NeuralFoil's, so the solver chooses
+between inflow balances more often with it: 232 elements on 108 of the 261
+points, 62 of those elements inside the window. Before the inflow-angle solver,
+14 elements on two 5 in propellers below Re 13,600 fell back to zero inflow
+with this table; none do now. Outputs:
 `data/bemt_validation.csv`, `data/bemt_validation_summary.csv`,
 `data/bemt_validation_blades.csv`, `figures/36_bemt_validation.png`, and the
 same three CSVs with an `_xfoil` suffix.
+
+`profile_power_check.py` asks whether the static data can check profile power,
+along the two routes Govindarajan suggested, on the 87 in-window 9 in points.
+Coefficients are converted to rotor convention (C<sub>T</sub> × 4/π³,
+C<sub>P</sub> × 4/π⁴), and profile power for a uniform C<sub>d0</sub> with the
+inflow neglected is taken as C<sub>d0</sub> · N<sub>b</sub>/(2π) ∫ (c/R) x³ dx
+over the measured chord from r/R = 0.30, which reduces to σC<sub>d0</sub>/8 for
+a constant chord from hub to tip; σ counted over the blade alone understates it
+by 22–27%. Route one reads C<sub>d0</sub> off each point as if all power were
+profile, then again with the ideal induced power C<sub>T</sub><sup>1.5</sup>/√2
+removed, which is a model-free upper bound because induced power cannot fall
+below it. Route two takes the SDA1075 zero-lift drag at each point's
+Re<sub>0.75</sub>, from NeuralFoil and from XFoil (n_crit 9, same Kulfan
+geometry), and reports the induced-power factor κ that the remaining measured
+power implies. The same script splits the validation error into per-propeller
+offsets and within-sweep scatter, and measures how far each measured point sits
+from a quadratic in log RPM through its own sweep, as an upper bound on balance
+noise and unsteadiness together. Outputs: `data/bemt_error_split.csv`,
+`data/rpm_sweep_change.csv`, `data/profile_power_points.csv`,
+`data/profile_power_summary.csv`.
 
 **Forward flight.** The same rotor in level flight, trimmed at each speed
 against an airframe flat-plate area of 0.05 m2, blade elements integrated over
