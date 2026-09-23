@@ -185,6 +185,24 @@ class Rotor:
         dFx_p = q * cd * np.cos(phi)                          # profile part
         return dT, dFx, dFx_i, dFx_p, alpha, Re, cl, cd, phi
 
+    def _residual(self, phi, i, collective, cd_scale):
+        """Blade-element thrust minus momentum thrust per unit span at element
+        i, for an array of inflow angles."""
+        phi = np.atleast_1d(np.asarray(phi, float))
+        u_t = self.omega * self.r[i]
+        vi = u_t * np.tan(phi)
+        u = np.hypot(u_t, vi)
+        alpha = np.rad2deg(self.twist[i] + collective - phi)
+        cl, cd = self.section(alpha, u * self.chord[i] / NU)
+        cd = cd * float(cd_scale)
+        dT = 0.5 * RHO * u ** 2 * self.chord[i] * self.Nb * (cl * np.cos(phi) - cd * np.sin(phi))
+        s = np.maximum(np.abs(np.sin(phi)), 1e-3)            # _tip_loss, vectorised
+        f_t = self.Nb * (1 - self.x[i]) / (2 * s)
+        f_r = self.Nb * (self.x[i] - self.root_cut) / (2 * s)
+        F = np.maximum((2 / np.pi) * np.arccos(np.clip(np.exp(-f_t), 0, 1)) *
+                       (2 / np.pi) * np.arccos(np.clip(np.exp(-f_r), 0, 1)), 1e-3)
+        return dT - 4 * np.pi * RHO * vi ** 2 * F * self.r[i]
+
     def _tip_loss(self, i, phi):
         """Prandtl tip and root loss."""
         s = max(abs(np.sin(phi)), 1e-3)
@@ -198,33 +216,46 @@ class Rotor:
         """Run the rotor at a given collective. Returns per-element and totals.
 
         At each element the blade-element thrust is matched to the momentum
-        thrust 4 pi rho vi^2 F r dr by solving for the induced velocity.
+        thrust 4 pi rho vi^2 F r dr by solving for the inflow angle, with
+        vi = omega r tan(phi).
         """
         cd_scale = np.broadcast_to(np.atleast_1d(cd_scale), (len(self.x),))
         rows = []
-        self.n_fallback = 0
+        self.n_multiroot = 0
         for i in range(len(self.x)):
-            def residual(vi):
-                dT = self._element(vi, i, collective, cd_scale[i])[0]
-                phi = np.arctan2(vi, self.omega * self.r[i])
-                F = self._tip_loss(i, phi)
-                return dT - 4 * np.pi * RHO * vi ** 2 * F * self.r[i]
-
-            # Bracket on the induced velocity. This was 0.25 of the local
-            # rotational speed, which a lightly twisted rotor never reaches
-            # (the design point sat at 0.977 of it) but a fixed-pitch
-            # propeller root at 36 degrees exceeds. Past the cap brentq found
-            # no sign change and the element fell back to zero inflow, fully
-            # stalled, with no warning.
-            vi_hi = 0.95 * self.omega * self.r[i] + 1e-3
-            try:
-                if residual(1e-4) <= 0:
-                    vi = 1e-4                                  # element makes no thrust
-                else:
-                    vi = brentq(residual, 1e-4, vi_hi, xtol=1e-8, rtol=1e-10)
-            except ValueError:
-                vi = 1e-4
-                self.n_fallback += 1                       # counted, never silent
+            # Solve for the inflow angle, not the induced velocity, so there is
+            # no velocity cap. The old solver bracketed vi below a fixed
+            # fraction of the rotational speed (a quarter, then 0.95), which is
+            # a root-finder convenience with no physics in it: past it the
+            # element fell back to zero inflow, fully stalled. The bracket here
+            # comes from the element itself. At zero inflow a lifting element
+            # makes more thrust than momentum asks for; once the inflow angle
+            # carries the section to 10 degrees below zero incidence it makes
+            # negative thrust while momentum still asks for positive, so a
+            # root lies between. If it somehow does not, the solve fails loudly.
+            phi_lo = 1e-6
+            if self._residual(phi_lo, i, collective, cd_scale[i])[0] <= 0:
+                phi = phi_lo                                # element carries no thrust at all
+            else:
+                theta = self.twist[i] + collective
+                phi_hi = float(np.clip(theta + np.deg2rad(10.0), np.deg2rad(1.0), np.deg2rad(89.0)))
+                while (self._residual(phi_hi, i, collective, cd_scale[i])[0] > 0
+                       and phi_hi < np.deg2rad(89.0)):
+                    phi_hi = min(phi_hi + np.deg2rad(5.0), np.deg2rad(89.0))
+                # A section polar with a stall dip can balance momentum at more
+                # than one inflow. Scan the bracket, take the lowest-inflow
+                # balance (the one the flow reaches first as the rotor spins up
+                # from rest), and count the elements where there was a choice.
+                grid = np.linspace(phi_lo, phi_hi, 181)
+                res = self._residual(grid, i, collective, cd_scale[i])
+                flips = np.flatnonzero((res[:-1] > 0) & (res[1:] <= 0))
+                if len(flips) == 0:
+                    raise RuntimeError(f"no inflow balances element {i} at r/R {self.x[i]:.3f}")
+                self.n_multiroot += int(np.count_nonzero(np.diff(np.sign(res))) > 1)
+                k = flips[0]
+                phi = brentq(lambda p: self._residual(p, i, collective, cd_scale[i])[0],
+                             grid[k], grid[k + 1], xtol=1e-12, rtol=1e-12)
+            vi = self.omega * self.r[i] * np.tan(phi)
             dT, dFx, dFx_i, dFx_p, alpha, Re, cl, cd, phi = self._element(
                 vi, i, collective, cd_scale[i])
             rows.append(dict(x=self.x[i], r=self.r[i], dr=self.dr[i], chord=self.chord[i],
@@ -247,7 +278,7 @@ class Rotor:
                    Re_min=d.Re.min(), Re_max=d.Re.max(),
                    FM=(T ** 1.5 / np.sqrt(2 * RHO * self.area)) / P if P > 0 else np.nan)
         out["CT_sigma"] = out["CT"] / self.solidity
-        out["n_fallback"] = self.n_fallback
+        out["n_multiroot"] = self.n_multiroot
         out["disk_loading"] = T / self.area
         return out, d
 

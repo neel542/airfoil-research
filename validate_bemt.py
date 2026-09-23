@@ -188,7 +188,7 @@ def run_case(case, sec):
                          induced_frac=out["induced_frac"], FM=out["FM"],
                          alpha_root=float(d.alpha_deg.iloc[0]),
                          alpha_75=float(np.interp(0.75, d.x, d.alpha_deg)),
-                         n_fallback=int(out["n_fallback"]),
+                         n_multiroot=int(out["n_multiroot"]),
                          in_window=bool(out["Re_75"] >= WINDOW_RE)))
     return rows
 
@@ -204,7 +204,7 @@ def summarise(pts):
             for c in ["err_CT", "err_CP"]:
                 r[f"{c}_mean_{tag}"] = sub[c].mean() if len(sub) else np.nan
                 r[f"{c}_abs_{tag}"] = sub[c].abs().mean() if len(sub) else np.nan
-        r["n_fallback"] = int(d.n_fallback.sum())
+        r["n_multiroot"] = int(d.n_multiroot.sum())
         return r
     rows = [block(g, lab) for lab, g in pts.groupby("label", sort=False)]
     real = pts[~pts.drawn]
@@ -345,26 +345,18 @@ def main(xfoil=False):
         show[c] = (100 * show[c]).round(1)
     print(show[["label", "n", "n_window", "Re75_max", "err_CT_mean_window", "err_CT_abs_window",
                 "err_CP_mean_window", "err_CP_abs_window", "err_CT_mean_all", "err_CP_mean_all",
-                "n_fallback"]].round(0).to_string(index=False))
+                "n_multiroot"]].round(0).to_string(index=False))
 
     b = blade_series(pts)
     b.to_csv(os.path.join(DATA, f"bemt_validation_blades{sfx}.csv"), index=False)
     print(f"\nDA4022 9x6.75 at {RPM_MATCH:.0f} RPM, two to four blades (same section, same pitch):\n")
     print(b.round(4).to_string(index=False))
 
-    # A fallback inside the reported window would invalidate the headline, so
-    # that is fatal. Outside it, on the 5 in propellers whose tip sits near
-    # Re 10,000, the XFoil table is steep enough to push an element past the
-    # bracket; those points are already excluded, so report and carry on.
-    fb = pts[pts.n_fallback > 0]
-    if len(fb):
-        print(f"\n{int(fb.n_fallback.sum())} fallbacks to zero inflow on "
-              f"{fb.label.nunique()} propellers, up to Re {fb.Re_75.max():,.0f}:")
-        print(fb.groupby("label").agg(points=("n_fallback", "size"),
-                                      elements=("n_fallback", "sum"),
-                                      Re75_max=("Re_75", "max")).round(0).to_string())
-    bad = int(fb[fb.in_window].n_fallback.sum())
-    assert bad == 0, f"{bad} elements fell back to zero inflow inside the reported window"
+    # The solver takes the lowest-inflow balance where a section polar with a
+    # stall dip allows more than one. Say where that choice was made.
+    mr = pts[pts.n_multiroot > 0]
+    print(f"\n{int(mr.n_multiroot.sum())} elements on {len(mr)} of {len(pts)} points had more than "
+          f"one inflow balance ({int(mr[mr.in_window].n_multiroot.sum())} elements inside the window)")
     if not xfoil:
         figure(pts)
     print("\nDone.")
