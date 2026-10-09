@@ -1,0 +1,242 @@
+{
+  "purpose": "Predictions for printed E387 test rotors, made before printing.",
+  "section": {
+    "name": "E387",
+    "kulfan": "asb.Airfoil('e387').to_kulfan_airfoil()",
+    "TE_thickness_frac": 0.0025,
+    "thickness_pct": 9.145,
+    "camber_pct": 3.653
+  },
+  "blade": {
+    "R_m": 0.12,
+    "chord_m": 0.04,
+    "n_blades": 2,
+    "twist_deg": 0.0,
+    "taper": 1.0,
+    "hub_radius_m": 0.014,
+    "plain_E387_from_m": 0.028,
+    "root_thicken": 2.2,
+    "hub_height_mm": 12.0,
+    "bore_mm": 6.0,
+    "rotation": "counter-clockwise seen from the marked face; leading edge (the rounded edge) leads"
+  },
+  "air": {
+    "T_C": 28.0,
+    "p_kPa": 99.2,
+    "rho": 1.1475490385618412,
+    "nu": 1.6133102947661442e-05
+  },
+  "solver": {
+    "model": "rotor_uncertainty.Rotor, 24 elements, Prandtl tip and root loss, negative-thrust elements balanced with reversed momentum",
+    "root_cut": 0.11666666666666667,
+    "neuralfoil_model": "large"
+  },
+  "strength": {
+    "petg_density": 1270.0,
+    "strength_MPa": 30.0,
+    "safety_factor": 5.0,
+    "shaft_power_cap_W": 100.0
+  },
+  "xfoil": {
+    "coverage": 0.963265306122449,
+    "Re_rows_kept": [
+      40000.0,
+      320000.0,
+      14,
+      14
+    ]
+  },
+  "tunnel_rows": {
+    "uiuc": [
+      {
+        "Re": 60131,
+        "models": [
+          "E387A.DRG",
+          "E387C.DRG",
+          "E387D.DRG"
+        ]
+      },
+      {
+        "Re": 100258,
+        "models": [
+          "E387A.DRG",
+          "E387C.DRG",
+          "e387_c_drg.txt"
+        ]
+      },
+      {
+        "Re": 151600,
+        "models": [
+          "E387A.DRG"
+        ]
+      },
+      {
+        "Re": 200594,
+        "models": [
+          "E387A.DRG",
+          "E387C.DRG",
+          "e387_c_drg.txt"
+        ]
+      },
+      {
+        "Re": 301048,
+        "models": [
+          "E387A.DRG",
+          "E387C.DRG",
+          "e387_c_drg.txt"
+        ]
+      },
+      {
+        "Re": 349865,
+        "models": [
+          "e387_c_drg.txt"
+        ]
+      },
+      {
+        "Re": 459476,
+        "models": [
+          "E387C.DRG",
+          "e387_c_drg.txt"
+        ]
+      },
+      {
+        "Re": 500094,
+        "models": [
+          "e387_c_drg.txt"
+        ]
+      }
+    ],
+    "princeton": [
+      {
+        "Re": 59700,
+        "models": [
+          "E387A"
+        ]
+      },
+      {
+        "Re": 98767,
+        "models": [
+          "E387A",
+          "E387A REPEAT",
+          "E387B"
+        ]
+      },
+      {
+        "Re": 201467,
+        "models": [
+          "E387A",
+          "E387A REPEAT",
+          "E387B"
+        ]
+      },
+      {
+        "Re": 302650,
+        "models": [
+          "E387A",
+          "E387A REPEAT"
+        ]
+      }
+    ]
+  },
+  "bemt_validation": [
+    {
+      "label": "all 9 in",
+      "n": 130,
+      "n_window": 87,
+      "Re75_min": 18369.552408105807,
+      "Re75_max": 97698.44527093742,
+      "err_CT_mean_window": 0.0046787546537455,
+      "err_CT_abs_window": 0.0866100259087203,
+      "err_CP_mean_window": 0.0381456726259263,
+      "err_CP_abs_window": 0.127353576856307,
+      "err_CT_mean_all": -0.0799359451152598,
+      "err_CT_abs_all": 0.1410292059532177,
+      "err_CP_mean_all": 0.0043738116590573,
+      "err_CP_abs_all": 0.1231132457660905,
+      "n_multiroot": 41
+    }
+  ],
+  "articles": {
+    "Z-4.6": {
+      "pitch_deg": -4.6,
+      "max_rpm": 7750,
+      "peak_stress_MPa": 5.83,
+      "shaft_power_W_at_max": 25.5,
+      "file": "hardware/printed_rotor/rotor_Z-4.6.stl",
+      "sha256": "d44c6f480f5652952cbe87d240a903b6544d6581e78a66df2b90b363cd1e6621",
+      "volume_cm3": 29.37,
+      "mass_g": 37.3,
+      "size_mm": [
+        240.0,
+        47.6,
+        12.0
+      ],
+      "genus": 1,
+      "triangles": 43366
+    },
+    "Z-3.6": {
+      "pitch_deg": -3.6,
+      "max_rpm": 7750,
+      "peak_stress_MPa": 5.72,
+      "shaft_power_W_at_max": 24.6,
+      "file": "hardware/printed_rotor/rotor_Z-3.6.stl",
+      "sha256": "f7be1813b82bfec17dd312c7e8e39825aae598054d2e5fc6550223198166d3f5",
+      "volume_cm3": 29.37,
+      "mass_g": 37.3,
+      "size_mm": [
+        240.0,
+        47.6,
+        12.0
+      ],
+      "genus": 1,
+      "triangles": 43358
+    },
+    "Z-2.6": {
+      "pitch_deg": -2.6,
+      "max_rpm": 7750,
+      "peak_stress_MPa": 5.83,
+      "shaft_power_W_at_max": 24.1,
+      "file": "hardware/printed_rotor/rotor_Z-2.6.stl",
+      "sha256": "49b4f1500ca39e212a219538e004f67c7d9f8f0862c85d221293ad72e5150bf6",
+      "volume_cm3": 29.37,
+      "mass_g": 37.3,
+      "size_mm": [
+        240.0,
+        47.6,
+        12.0
+      ],
+      "genus": 1,
+      "triangles": 43370
+    },
+    "L+4.0": {
+      "pitch_deg": 4.0,
+      "max_rpm": 6250,
+      "peak_stress_MPa": 5.72,
+      "shaft_power_W_at_max": 22.9,
+      "file": "hardware/printed_rotor/rotor_L+4.0.stl",
+      "sha256": "47833cc6a04b88cf8619d983d9224b6c0772f21deb48fd86ed59a733df1a9420",
+      "volume_cm3": 29.37,
+      "mass_g": 37.3,
+      "size_mm": [
+        240.0,
+        47.3,
+        12.0
+      ],
+      "genus": 1,
+      "triangles": 43362
+    },
+    "HUB": {
+      "file": "hardware/printed_rotor/hub_tare.stl",
+      "sha256": "f5067bd8537aa0836005be7c3ffb40bfa83c3da78e524b6cc7f8e663ddec2792",
+      "volume_cm3": 7.04,
+      "mass_g": 8.9,
+      "size_mm": [
+        28.0,
+        28.0,
+        12.0
+      ],
+      "genus": 1,
+      "triangles": 1058
+    }
+  }
+}

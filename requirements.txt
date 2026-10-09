@@ -16,3 +16,5 @@ pytest==8.4.2
 # Optional: true-XFoil validation needs an `xfoil` binary on PATH.
 # There is no pip package; build a headless binary per THIRD_PARTY_XFOIL.md.
 # Optional: the guided notebook needs `pip install jupyter`.
+# Optional: printed_rotor.py writes the test rotor STL files with
+# `pip install manifold3d==3.5.4`. Nothing else in the repository uses it.
