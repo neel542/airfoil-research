@@ -1,0 +1,10 @@
+{
+  "report": "Harris, F. D. (2020). Model Rotor Hover Performance at Low Reynolds Number. NASA CR-20205001147.",
+  "ntrs": "https://ntrs.nasa.gov/citations/20205001147",
+  "pdf_url": "https://ntrs.nasa.gov/api/citations/20205001147/downloads/Harris%20CR-20205001147_Final_7_1_2020.pdf",
+  "pdf_sha256": "ea2dc3288d4e04333e015ea27ab90511562d16416e0eef9de1f73b7d77c8395f",
+  "retrieved": "2026-10-19",
+  "appendix_a_txt": "pdftotext -f 54 -l 66 -layout (poppler) on the PDF above; Appendix A, Tabulated Experimental Data, PDF pages 54 to 66",
+  "cross_check": "liege_rotor_db/: Knight1937_data.csv and Landgrebe1971_data.csv from https://gitlab.uliege.be/rotare/rotor-db (MIT licence, LICENSE alongside), commit 3adc553a0729ed5f01ce3ee586031ee6244d6c74",
+  "note": "The Liege geometry file lists Knight and Hefner's blades as NACA 0012 with a 5 percent root cut. NACA TN-626 (p. 17) and Harris Table 2 both say NACA 0015; this repository uses 0015."
+}

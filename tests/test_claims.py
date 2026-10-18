@@ -1029,6 +1029,41 @@ def test_solver_convergence_is_reported_not_assumed():
     _close(tail.d_mass_g / 1000.0, -2.573, 0.06, "converged tail take-off mass impact, kg")
 
 
+def test_hover_lowre():
+    """hover_lowre_validation.py: the solver against Harris (2020) Appendix A,
+    measured hover rotors at tip Re 139,528 to 548,274. Pinned: the parse,
+    the zero-thrust departure from free-transition drag, and the power
+    shortfall over the whole sweep below blade stall."""
+    d = _csv("hover_lowre_rotors.csv")
+    assert len(d) == 327
+    assert d.experiment.value_counts().to_dict() == {
+        "Landgrebe1971": 128, "Bhagwat2018": 91, "Ramasamy2015": 73, "Knight1937": 35}
+    assert set(d[d.experiment == "Knight1937"].airfoil) == {"naca0015"}
+
+    z = _csv("hover_zero_thrust.csv")
+    z = z[z.measured]
+    r = z["CP_sigma"] / z["NF free, n_crit 9"]
+    k = r[z.experiment == "Knight1937"]
+    _close(k.mean(), 1.05, 0.02, "Knight and Hefner zero thrust, measured over free NF")
+    hi = r[(z.experiment != "Knight1937") & (z.Re_tip > 220e3)]
+    assert hi.min() > 1.13 and hi.max() < 2.10, "above tip Re 220k every test reads 13-110% above"
+    lo = r[(z.experiment == "Bhagwat2018") & (z.Re_tip < 150e3)]
+    _close(lo.mean(), 0.99, 0.02, "Bhagwat 2018 at tip Re 139,528")
+    # XFoil and NeuralFoil agree at zero thrust, so the gap is not the network
+    xf = (z["XFoil free, n_crit 9"] / z["NF free, n_crit 9"] - 1).abs()
+    assert xf.max() < 0.07
+
+    s = _csv("hover_lowre_summary.csv").set_index(["experiment", "band"])
+    a = s.loc[("all", "CT/sigma <= 0.10")]
+    assert int(a.n) == 177 and int(a.n_left_out) == 6
+    _close(a.mean_err_free, -0.170, 0.005, "sweep power error, free transition")
+    _close(a.mae_free, 0.174, 0.005, "sweep power MAE, free transition")
+    _close(a.mean_err_tripped, 0.034, 0.005, "sweep power error, tripped")
+    _close(a.mae_tripped, 0.098, 0.005, "sweep power MAE, tripped")
+    for e in ("Bhagwat2018", "Knight1937", "Ramasamy2015"):
+        assert s.loc[(e, "CT/sigma <= 0.10")].mean_err_free < -0.09, e
+
+
 if __name__ == "__main__":
     fails = 0
     for name, fn in sorted(globals().items()):
