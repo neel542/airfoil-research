@@ -397,6 +397,8 @@ def test_laminar_run_length():
     r = _csv("laminar_run_length.csv")
     xf = r[r.error == "XF_vs_tunnel"].set_index("band")
     _close(xf.loc["all"].rho_partial, -0.170, 0.02, "pooled partial rho")
+    # a section measured in both tunnels is one bootstrap cluster, not two
+    assert int(xf.loc["all"].airfoils) == 94, "airfoil clusters must be the 94 distinct sections"
     assert xf.loc["all"].partial_hi < 0, "pooled interval must exclude zero, below it"
     for band, quoted in [("40-80k", -0.28), ("80-130k", -0.26), ("130-180k", -0.21),
                          ("180-250k", -0.18), ("250-550k", -0.02)]:

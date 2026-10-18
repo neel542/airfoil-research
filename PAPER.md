@@ -683,12 +683,12 @@ negative in every Reynolds band but the highest:
 
 | Re band | Points | Partial rho | 95% interval |
 |---|---:|---:|---|
-| 40,000 to 80,000 | 1,287 | −0.28 | −0.35 to −0.21 |
-| 80,000 to 130,000 | 1,954 | −0.26 | −0.32 to −0.19 |
-| 130,000 to 180,000 | 1,089 | −0.21 | −0.30 to −0.14 |
-| 180,000 to 250,000 | 2,067 | −0.18 | −0.24 to −0.11 |
+| 40,000 to 80,000 | 1,287 | −0.28 | −0.35 to −0.20 |
+| 80,000 to 130,000 | 1,954 | −0.26 | −0.33 to −0.19 |
+| 130,000 to 180,000 | 1,089 | −0.21 | −0.30 to −0.13 |
+| 180,000 to 250,000 | 2,067 | −0.18 | −0.25 to −0.11 |
 | 250,000 to 550,000 | 2,417 | −0.02 | −0.10 to 0.05 |
-| all | 8,814 | −0.17 | −0.21 to −0.12 |
+| all | 8,814 | −0.17 | −0.22 to −0.12 |
 
 A longer laminar run goes with a smaller drag error, and the effect is
 largest at exactly the Reynolds numbers where the bubble argument said the

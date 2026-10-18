@@ -18,6 +18,10 @@ import aerosandbox as asb
 
 OUT = os.path.dirname(os.path.abspath(__file__))
 XFOIL = os.path.join(OUT, ".venv", "bin", "xfoil")
+if not os.path.exists(XFOIL):
+    # without this every polar comes back empty and the CSV looks like XFoil
+    # failed to converge everywhere
+    raise SystemExit(f"XFoil not found at {XFOIL}. Build it first (THIRD_PARTY_XFOIL.md).")
 RE_GRID = np.array([50e3, 100e3, 200e3, 350e3, 500e3])
 ALPHAS = np.arange(0, 8.5, 1.0)
 

@@ -172,7 +172,7 @@ fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(13, 5))
 # Left: the trade curve
 ax1.plot(df.mean_conf, df.worst_LD, "-o", color="#1f77b4", lw=2, ms=7)
 for _, r in df.iterrows():
-    ax1.annotate(f"w={r.w_conf:.0f}", (r.mean_conf, r.worst_LD),
+    ax1.annotate(f"w={r.w_conf:g}", (r.mean_conf, r.worst_LD),
                  xytext=(6, 5), textcoords="offset points", fontsize=8.5)
 ax1.set_xlabel("Mean NeuralFoil confidence  (how much you can trust the number)")
 ax1.set_ylabel("Worst-case L/D  (predicted performance)")

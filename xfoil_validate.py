@@ -19,6 +19,10 @@ OUT = os.path.dirname(os.path.abspath(__file__))
 RE = 200e3
 ALPHAS = np.arange(0, 9.5, 1.0)
 XFOIL = os.path.join(OUT, ".venv", "bin", "xfoil")
+if not os.path.exists(XFOIL):
+    # without this every polar comes back empty and the CSV looks like XFoil
+    # failed to converge everywhere
+    raise SystemExit(f"XFoil not found at {XFOIL}. Build it first (THIRD_PARTY_XFOIL.md).")
 
 
 def run_xfoil_polar(coords, Re, alphas):

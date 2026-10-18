@@ -65,8 +65,8 @@ def _sweep(d, Re, alphas, tag):
     try:
         subprocess.run([XFOIL], input="\n".join(cmds) + "\n",
                        capture_output=True, text=True, timeout=900, cwd=d)
-    except Exception:
-        pass
+    except subprocess.TimeoutExpired:
+        pass   # a hung sweep is non-convergence; a missing binary is not
     rows = []
     path = os.path.join(d, pol)
     if os.path.exists(path):
@@ -129,7 +129,9 @@ def load_points():
     s = pd.read_csv(os.path.join(DATA, "soartech8_neuralfoil_validation.csv"))
     s = s[(s.config == "clean") & (s.NF_mode == "free") & (s.nf == "large") & s.primary & s.fit_ok].copy()
     s["tunnel"] = "Princeton"
-    s["airfoil"] = s.family
+    # Same key as clustered_statistics.py: a section measured in both tunnels is
+    # one airfoil cluster, not two. Princeton-only sections keep their family name.
+    s["airfoil"] = s.asb_name.where(s.asb_name.notna() & (s.asb_name != ""), s.family)
     s["polar"] = s.airfoil_label + "|" + s.Re.astype(str)
     s["geom_key"] = s.model
 
@@ -192,6 +194,9 @@ def summarise(d):
 
 
 def main():
+    if not os.path.exists(XFOIL):
+        raise SystemExit(f"XFoil not found at {XFOIL}. Build it first (THIRD_PARTY_XFOIL.md), "
+                         "or use --recompute to rebuild the summaries from the cached table.")
     pts, geoms = load_points()
     print(f"{len(pts)} clean points, {pts.polar.nunique()} polars, {len(geoms)} geometries; "
           f"XFoil on {N_PROC} processes")

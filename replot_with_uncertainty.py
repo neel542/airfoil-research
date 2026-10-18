@@ -6,13 +6,14 @@ band from the wind-tunnel validation (e387_neuralfoil_validation.py), so no
 performance number is shown without its error bar.
 
 Error model (data/error_model.json), all measured against real wind-tunnel data:
-  - NeuralFoil L/D error vs experiment = ~16% (CL ~7%, CD ~15%) at the
-    confidence range where it was validated (analysis_confidence 0.70-0.92).
+  - NeuralFoil L/D error vs experiment = LD_band_pct, with the validated
+    confidence range in validated_conf_range. Both are read from the JSON at
+    run time, so the labels below always match the current error model.
   - This is a FLOOR, not a symmetric estimate: NeuralFoil under-predicts
     laminar-separation-bubble drag at low Re, so it OVER-predicts L/D. True L/D
     therefore trends toward the LOWER edge of the band.
   - Airfoils A and B operate at analysis_confidence BELOW the validated range
-    (A ~ 0.00, B ~ 0.02-0.37). Their true error is therefore >= the measured
+    (see the note in error_model.json). Their true error is therefore >= the measured
     band. Airfoil A in particular is disclaimed by NeuralFoil itself
     (confidence ~ 0) and is drawn with a hatched "unvalidated" band.
 
@@ -83,7 +84,7 @@ for ax, Re in zip(axes, PLOT_RE):
 axes[0].set_ylabel("L / D")
 axes[0].legend(fontsize=8.5, framealpha=0.9, loc="upper left")
 fig.suptitle(
-    "Airfoil A vs B: L/D with measured uncertainty band (±16% from wind-tunnel validation)\n"
+    f"Airfoil A vs B: L/D with measured uncertainty band (±{BAND*100:.0f}% from wind-tunnel validation)\n"
     "Shaded = validated band; hatched = NeuralFoil confidence below validated range "
     "(band is a LOWER bound, true L/D trends to lower edge)", fontsize=10)
 fig.tight_layout()
@@ -106,7 +107,7 @@ def asym_err(vals):
 ax.errorbar(peak, worst,
             xerr=asym_err(peak), yerr=asym_err(worst),
             fmt="none", ecolor="gray", elinewidth=1, capsize=3, alpha=0.7,
-            zorder=1, label="±16% measured band (one-sided)")
+            zorder=1, label=f"±{BAND*100:.0f}% measured band (one-sided)")
 sc = ax.scatter(peak, worst, c=lam, cmap="viridis", s=90, zorder=3,
                 edgecolors="k", linewidths=0.5)
 plt.colorbar(sc, ax=ax, label="λ  (1 = peak-seeking A, 0 = robust B)")

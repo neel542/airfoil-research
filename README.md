@@ -542,7 +542,7 @@ data/
   grid_evaluation.csv      # CL, CD, CM, L/D, confidence for A & B over 11×9 grid
   tradeoff_family.csv      # peak/worst/mean L/D + Pareto flag for each λ
   uiuc_lsat/               # raw UIUC wind-tunnel files (Vols 1-4), as downloaded
-  uiuc_experimental.csv    # all 1,763 measured points in one table
+  uiuc_experimental.csv    # all 5,441 measured drag points in one table
   uiuc_neuralfoil_validation.csv + uiuc_validation_*.csv   # benchmark, point-by-point + summaries
   uiuc_experimental_lift.csv / uiuc_stall_validation.csv   # lift runs through stall
   e387_experimental_NREL.csv / e387_neuralfoil_validation.csv   # E387 detail (+ XFoil)

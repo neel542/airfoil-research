@@ -212,8 +212,8 @@ SCENARIOS = [
 def _fingerprint():
     """Size and modification time of the real documents. A scenario that escaped
     its temp directory moves one of these."""
-    return {d: os.stat(os.path.join(REAL_ROOT, d))[:10:9]
-            for d in DOCS}
+    stats = {d: os.stat(os.path.join(REAL_ROOT, d)) for d in DOCS}
+    return {d: (st.st_size, st.st_mtime_ns) for d, st in stats.items()}
 
 
 def _fired(mutate):
