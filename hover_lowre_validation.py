@@ -15,7 +15,7 @@ root to tip:
     Bhagwat and Ramasamy     NACA 0012, 2 to 6 blades, tip Re 139,528 to 334,866
     2018 ("Mahendra & Mani")
 
-Three parts, each printed and written to data/:
+Four parts, each printed and written to data/:
 
   1. Parse. Appendix A is read from the report's own text layer
      (data/harris2020/appendix_a.txt, made with pdftotext from the NTRS PDF
@@ -38,6 +38,9 @@ Three parts, each printed and written to data/:
      rotor_uncertainty.Rotor and the predicted power is set against the
      measured power. Collective is compared only for Knight and Hefner;
      Harris says the collective settings in Ramasamy's data are inaccurate.
+  4. Swirl. The solver has none. A first-order estimate of what it would add,
+     from the angular momentum the solver's own torque leaves in the wake, set
+     against the part 3 shortfall. See swirl().
 
 What this does not settle. The report gives no hub tare for any of the four
 tests, so measured power may include hub and blade-root drag the solver does
@@ -47,7 +50,7 @@ Table 2 gives 16.7 percent; at zero thrust that changes the integral by less
 than 0.1 percent. Compressibility is in part 2 (NeuralFoil's Mach input) and
 not in part 3, which only runs to tip Mach 0.25.
 
-    python hover_lowre_validation.py            # parts 1 to 3
+    python hover_lowre_validation.py            # parts 1 to 4
     python hover_lowre_validation.py --zero     # parts 1 and 2 only
 
 Inputs  : data/harris2020/appendix_a.txt, data/harris2020/source.json,
@@ -56,6 +59,7 @@ Outputs : data/hover_lowre_rotors.csv        every row of Appendix A, parsed
           data/hover_zero_thrust.csv         part 2
           data/hover_lowre_validation.csv    part 3, per point
           data/hover_lowre_summary.csv       part 3, per experiment
+          data/hover_swirl.csv               part 4, per point
           figures/38_hover_lowre.png
 """
 
@@ -256,22 +260,29 @@ class Section(ru.Section):
 SWEEP_SECTIONS = [("free", {}), ("tripped", dict(xtr_upper=0.05, xtr_lower=0.05))]
 
 
+def _rotor(r, section):
+    """One measured point as a solver rotor: untwisted, constant chord, the
+    point's own viscosity. Returns the rotor, the measured thrust and tip speed."""
+    ru.NU = r.nu
+    v_tip = r.v_tip_fps * FPS2MS
+    rpm = v_tip / r.R_m * 60 / (2 * np.pi)
+    blade = pd.DataFrame({"r/R": [r.root_cut, 1.0], "c/R": [r.chord_m / r.R_m] * 2,
+                          "beta": [0.0, 0.0]})
+    T = r.CT * ru.RHO * np.pi * r.R_m ** 2 * v_tip ** 2
+    rot = ru.Rotor(R=r.R_m, n_blades=int(r.n_blades), rpm=rpm, root_cut=r.root_cut,
+                   n_elem=30, section=section, blade=blade)
+    return rot, T, v_tip
+
+
 def sweep(d):
     pts = d[(d.CT > 1e-5) & (d.M_tip <= MACH_MAX)
             & ~d.note.str.contains("Extrapolated|Questionable", case=False)].copy()
     sections = {(a, lab): Section(a, **kw) for a in pts.airfoil.unique() for lab, kw in SWEEP_SECTIONS}
     out = []
     for i, r in pts.iterrows():
-        ru.NU = r.nu
-        v_tip = r.v_tip_fps * FPS2MS
-        rpm = v_tip / r.R_m * 60 / (2 * np.pi)
-        blade = pd.DataFrame({"r/R": [r.root_cut, 1.0], "c/R": [r.chord_m / r.R_m] * 2,
-                              "beta": [0.0, 0.0]})
-        T = r.CT * ru.RHO * np.pi * r.R_m ** 2 * v_tip ** 2
         row = r.to_dict()
         for lab, _ in SWEEP_SECTIONS:
-            rot = ru.Rotor(R=r.R_m, n_blades=int(r.n_blades), rpm=rpm, root_cut=r.root_cut,
-                           n_elem=30, section=sections[(r.airfoil, lab)], blade=blade)
+            rot, T, v_tip = _rotor(r, sections[(r.airfoil, lab)])
             try:
                 o, _ = rot.trim(T, lo=-6.0, hi=30.0)
             except (ValueError, RuntimeError) as e:
@@ -305,8 +316,8 @@ def summarise(p):
                          ("0.04 to 0.10", kept[kept.CT_sigma >= 0.04])):
             row = dict(experiment=k, band=band, n=len(gb),
                        n_left_out=len(g) - len(kept) if band.startswith("CT/sigma <=") else 0,
-                       Re_tip_min=gb.Re_tip.min() if len(gb) else np.nan,
-                       Re_tip_max=gb.Re_tip.max() if len(gb) else np.nan)
+                       Re_tip_min=int(gb.Re_tip.min()) if len(gb) else np.nan,
+                       Re_tip_max=int(gb.Re_tip.max()) if len(gb) else np.nan)
             for lab, _ in SWEEP_SECTIONS:
                 e = gb[f"CP_err_{lab}"].dropna()
                 row[f"n_{lab}"] = len(e)
@@ -316,6 +327,49 @@ def summarise(p):
                 row[f"profile_frac_{lab}"] = gb[f"profile_frac_{lab}"].mean()
             rows.append(row)
     return pd.DataFrame(rows)
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Part 4: how much could swirl explain
+# ─────────────────────────────────────────────────────────────────────────────
+SWIRL_CT_SIGMA_MIN = 0.02   # below this there is too little through-flow for the
+                            # momentum estimate to mean anything; it diverges as vi -> 0
+CONTRACTION = 1 / np.sqrt(2)  # ideal hover wake: half the disk area far downstream
+
+
+def swirl(p):
+    """Abhishek (IIT Kanpur, 19 October 2026): 2D drag and BEMT cannot give the
+    whole profile torque, a lot of it is 3D effects and swirl losses. The 3D
+    part needs a 3D solver. The swirl part can be sized from what is here.
+
+    The solver has no swirl: it takes the in-plane velocity as omega r. The
+    torque it does carry leaves angular momentum in the wake, dQ = dm r v_theta,
+    with dm = 2 pi rho r dr vi F, the same mass flow its momentum balance uses.
+    The kinetic energy of that swirl, sum 1/2 dm v_theta^2, is a first-order
+    estimate of the power swirl would add. Three versions, each as a fraction of
+    power: at the disk radius; in a wake contracted to r/sqrt(2), which keeps
+    r v_theta and so doubles the energy; and that again with the torque raised
+    to the measured power, since the solver's torque is low and the energy goes
+    as its square. Free-transition sections, every swept point from CT/sigma
+    0.02 to 0.10."""
+    q = p[(p.CT_sigma >= SWIRL_CT_SIGMA_MIN) & (p.CT_sigma <= CT_SIGMA_MAX)
+          & p.CP_free.notna()]
+    sections = {a: Section(a) for a in q.airfoil.unique()}
+    out = []
+    for _, r in q.iterrows():
+        rot, T, v_tip = _rotor(r, sections[r.airfoil])
+        o, e = rot.trim(T, lo=-6.0, hi=30.0)
+        F = np.array([rot._tip_loss(i, np.deg2rad(phi)) for i, phi in enumerate(e.phi_deg)])
+        dm = 2 * np.pi * ru.RHO * e.r * e.dr * e.vi * F
+        v_theta = e.dQ / (dm * e.r)
+        frac = (0.5 * dm * v_theta ** 2).sum() / o["P"]
+        out.append(dict(experiment=r.experiment, n_blades=r.n_blades, Re_tip=r.Re_tip,
+                        CT_sigma=r.CT_sigma, CP_err_free=r.CP_err_free,
+                        swirl_disk=frac, swirl_contracted=frac / CONTRACTION ** 2,
+                        swirl_at_measured_power=frac / CONTRACTION ** 2 * r.CP / r.CP_free,
+                        v_theta_max_over_v_tip=float((v_theta / v_tip).max())))
+    ru.NU = 1.46e-5
+    return pd.DataFrame(out)
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -412,6 +466,18 @@ def main(zero_only=False):
         print(f"\nPart 3. {len(p)} points trimmed to measured thrust, tip Mach <= {MACH_MAX}; "
               f"averages over CT/sigma <= {CT_SIGMA_MAX}")
         print(s.to_string(index=False, float_format=lambda v: f"{v:.3f}"))
+
+        w = swirl(p)
+        w.to_csv(os.path.join(DATA, "hover_swirl.csv"), index=False, float_format="%.6g")
+        print(f"\nPart 4. Swirl, as a fraction of power, {len(w)} points at CT/sigma "
+              f"{SWIRL_CT_SIGMA_MIN} to {CT_SIGMA_MAX}, against the free-transition shortfall")
+        bands = pd.cut(w.CT_sigma, [SWIRL_CT_SIGMA_MIN, 0.04, 0.07, CT_SIGMA_MAX + 1e-9], right=False)
+        for (band, g) in list(w.groupby(bands, observed=True)) + [("all", w)]:
+            print(f"  CT/sigma {str(band):16s} n {len(g):3d}  disk {g.swirl_disk.mean():.2%}  "
+                  f"contracted {g.swirl_contracted.mean():.2%}  "
+                  f"at measured power {g.swirl_at_measured_power.mean():.2%}  "
+                  f"(max {g.swirl_at_measured_power.max():.2%})  "
+                  f"shortfall {-g.CP_err_free.mean():.1%}")
     print("\nFigure:", figure(z, p))
 
 

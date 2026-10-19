@@ -1054,6 +1054,17 @@ def test_hover_lowre():
     # XFoil and NeuralFoil agree at zero thrust, so the gap is not the network
     xf = (z["XFoil free, n_crit 9"] / z["NF free, n_crit 9"] - 1).abs()
     assert xf.max() < 0.07
+    # one rotor, four speeds: the measured power hardly moves while free-
+    # transition drag falls, so the gap grows with Re. A fixed 3D or swirl
+    # term would give a constant ratio.
+    b6 = z[(z.experiment == "Bhagwat2018") & (z.n_blades == 6)].sort_values("Re_tip")
+    assert list(b6.Re_tip) == [139528, 223244, 279055, 334866]
+    ratio = (b6["CP_sigma"] / b6["NF free, n_crit 9"]).round(2).tolist()
+    assert ratio == [0.99, 1.33, 1.52, 1.65], ratio
+    _close(1 - b6.CP_sigma.iloc[-1] / b6.CP_sigma.iloc[0], 0.08, 0.005,
+           "6-blade measured CP/sigma, change from tip Re 139,528 to 334,866")
+    _close(b6.CP_sigma.iloc[-1] / b6["NF tripped at 5% chord"].iloc[-1], 0.98, 0.01,
+           "6-blade at tip Re 334,866, measured over tripped")
 
     s = _csv("hover_lowre_summary.csv").set_index(["experiment", "band"])
     a = s.loc[("all", "CT/sigma <= 0.10")]
@@ -1064,6 +1075,20 @@ def test_hover_lowre():
     _close(a.mae_tripped, 0.098, 0.005, "sweep power MAE, tripped")
     for e in ("Bhagwat2018", "Knight1937", "Ramasamy2015"):
         assert s.loc[(e, "CT/sigma <= 0.10")].mean_err_free < -0.09, e
+
+
+def test_hover_swirl():
+    """hover_lowre_validation.py part 4: swirl sized from the solver's own wake
+    angular momentum, against the free-transition power shortfall, on the 130
+    swept points at CT/sigma 0.02 to 0.10."""
+    w = _csv("hover_swirl.csv")
+    assert len(w) == 130
+    assert w.CT_sigma.min() >= 0.02 and w.CT_sigma.max() <= 0.10
+    _close(w.swirl_disk.mean(), 0.0095, 0.0005, "swirl at the disk")
+    assert np.allclose(w.swirl_contracted, 2 * w.swirl_disk), "contraction to r/sqrt(2) doubles it"
+    _close(w.swirl_at_measured_power.mean(), 0.023, 0.001, "swirl, contracted, at measured power")
+    assert w.swirl_at_measured_power.max() < 0.045
+    _close(-w.CP_err_free.mean(), 0.166, 0.003, "free-transition shortfall on the same points")
 
 
 if __name__ == "__main__":

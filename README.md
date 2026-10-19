@@ -523,6 +523,7 @@ python rotor_uncertainty.py         # the drag error through a hover rotor and a
 python rotor_uncertainty.py --explore     # just the rotor sizing sweep
 python rotor_uncertainty.py --from-cache  # redo the closure and figures, reuse the Monte Carlo
 python validate_bemt.py             # the solver against 14 measured UIUC propellers (~2 min); --xfoil for the XFoil split
+python hover_lowre_validation.py    # the solver against 327 measured hover rotors (Harris 2020), zero thrust, and a swirl estimate (~2 min)
 python uncertainty_aware_design.py  # confidence-aware optimizer sweep
 python rebuild_all_figures.py       # every figure, from the saved CSVs
 ```
@@ -559,6 +560,9 @@ data/
   rotor_propagation.csv / rotor_propagation_summary.csv  # 4,000 Monte Carlo rotor trims
   rotor_weight_closure.csv # power -> battery -> weight, and the amplification factor
   rotor_forward_flight.csv # profile share and propagated error against airspeed
+  harris2020/              # Harris (2020) NASA CR Appendix A text layer, PDF hash, Liege rotor-db copy for the parse check
+  hover_lowre_*.csv / hover_zero_thrust.csv   # measured hover rotors, tip Re 139.5k to 548k: parse, zero thrust, sweep
+  hover_swirl.csv          # swirl estimate against the power shortfall, CT/sigma 0.02 to 0.10
   uncertainty_aware_sweep.csv
 figures/
   1_shapes.png             # overlaid optimized shapes
@@ -576,4 +580,6 @@ figures/
   33_rotor_power_uncertainty.png / 34_weight_amplification.png   # the rotor and the weight loop
   35_forward_flight.png    # the power bucket, and the profile share rising with airspeed
   36_bemt_validation.png   # the solver against measured propellers with a known section
+  37_printed_rotor_prediction.png   # stand readings predicted for the printed E387 rotors
+  38_hover_lowre.png       # measured hover rotors: zero-thrust profile power, power error over the sweep
 ```
