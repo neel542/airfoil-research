@@ -1091,6 +1091,26 @@ def test_hover_swirl():
     _close(-w.CP_err_free.mean(), 0.166, 0.003, "free-transition shortfall on the same points")
 
 
+def test_zero_thrust_physics():
+    """zero_thrust_physics.py: three explanations for zero-thrust profile power
+    above free-transition drag, each tested on the 28 measured points."""
+    p = _csv("zero_thrust_physics.csv")
+    h = _csv("zero_thrust_hub_fit.csv")
+    assert len(p) == 28
+    assert p.induced_bound_share.max() < 0.013, "induced power from residual thrust is negligible"
+    lg = h[h.experiment == "Landgrebe1971"]
+    assert (lg.hub_share_at_min_sigma.abs() < 0.02).all(), "no hub torque in Landgrebe"
+    bh = h[h.experiment == "Bhagwat2018"]
+    assert bh.hub_share_at_min_sigma.between(0.05, 0.08).all()
+    hi = p[p.Re_tip > 220e3]
+    hi = hi[hi.experiment != "Knight1937"]
+    assert hi.ratio_ncrit_1.min() > 1.07, "n_crit 1 does not close the gap above tip Re 220,000"
+    b6 = p[(p.experiment == "Bhagwat2018") & (p.n_blades == 6)].sort_values("Re_tip")
+    assert np.all(np.diff(b6.x_tr_equiv) < 0), "matching transition moves forward as Re rises"
+    _close(b6.x_tr_equiv.iloc[0], 0.373, 0.005, "x_tr at tip Re 139,528")
+    _close(b6.x_tr_equiv.iloc[-1], 0.085, 0.005, "x_tr at tip Re 334,866")
+
+
 if __name__ == "__main__":
     fails = 0
     for name, fn in sorted(globals().items()):

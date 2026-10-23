@@ -524,6 +524,7 @@ python rotor_uncertainty.py --explore     # just the rotor sizing sweep
 python rotor_uncertainty.py --from-cache  # redo the closure and figures, reuse the Monte Carlo
 python validate_bemt.py             # the solver against 14 measured UIUC propellers (~2 min); --xfoil for the XFoil split
 python hover_lowre_validation.py    # the solver against 327 measured hover rotors (Harris 2020), zero thrust, and a swirl estimate (~2 min)
+python zero_thrust_physics.py      # induced power, hub torque and transition as explanations for the zero-thrust gap (~10 s)
 python uncertainty_aware_design.py  # confidence-aware optimizer sweep
 python rebuild_all_figures.py       # every figure, from the saved CSVs
 ```
@@ -563,6 +564,8 @@ data/
   harris2020/              # Harris (2020) NASA CR Appendix A text layer, PDF hash, Liege rotor-db copy for the parse check
   hover_lowre_*.csv / hover_zero_thrust.csv   # measured hover rotors, tip Re 139.5k to 548k: parse, zero thrust, sweep
   hover_swirl.csv          # swirl estimate against the power shortfall, CT/sigma 0.02 to 0.10
+  zero_thrust_physics.csv  # per zero-thrust point: induced bound, n_crit ratios, matching transition
+  zero_thrust_hub_fit.csv  # CP = hub + per-blade * sigma at each test and tip Re
   uncertainty_aware_sweep.csv
 figures/
   1_shapes.png             # overlaid optimized shapes
