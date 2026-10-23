@@ -1111,6 +1111,20 @@ def test_zero_thrust_physics():
     _close(b6.x_tr_equiv.iloc[-1], 0.085, 0.005, "x_tr at tip Re 334,866")
 
 
+def test_ltpt_e387():
+    """ltpt_neuralfoil_validation.py: NeuralFoil against the E387 in a third
+    tunnel, NASA Langley LTPT (TM-4062 Table B1), parsed by langley_ltpt_parse.py."""
+    raw = _csv("langley_ltpt_e387/e387_ltpt.csv")
+    assert len(raw) == 357
+    p = _csv("ltpt_neuralfoil_validation.csv")
+    assert len(p) == 234
+    q = p[p.ptinf_psi == 15]
+    _close(q.err_CD.abs().mean(), 0.134, 0.003, "LTPT 15 psi mean |CD error|")
+    _close(q.err_CD.abs().median(), 0.108, 0.003, "LTPT 15 psi median |CD error|")
+    for re, m in [(100000, 0.128), (200000, 0.135), (300000, 0.127), (460000, 0.159)]:
+        _close(q[q.Re == re].err_CD.abs().mean(), m, 0.003, f"LTPT Re {re}")
+
+
 if __name__ == "__main__":
     fails = 0
     for name, fn in sorted(globals().items()):

@@ -1,0 +1,13 @@
+{
+  "report": "McGhee, R. J., Walker, B. S., and Millard, B. F. (1988). Experimental Results for the Eppler 387 Airfoil at Low Reynolds Numbers in the Langley Low-Turbulence Pressure Tunnel. NASA TM-4062 (L-16430), October 1988.",
+  "ntrs": "https://ntrs.nasa.gov/citations/19890001471",
+  "ntrs_citation_id": "19890001471",
+  "pdf_url": "https://ntrs.nasa.gov/api/citations/19890001471/downloads/19890001471.pdf",
+  "pdf_file": "19890001471.pdf",
+  "pdf_bytes": 8291177,
+  "pdf_sha256": "0116b874b62637717dc33bb048bb4756ea39ecaaf7ffb516dd01c593a255a9f5",
+  "retrieved": "2026-10-23",
+  "pdf_note": "234-page 1-bit 300 dpi scan (Pdf.Capture 5.2, 2004) with an OCR text layer. Table B1, Experimental Results From Langley Low-Turbulence Pressure Tunnel, is on PDF pages 95 to 103 (report pages 91 to 99).",
+  "table_b1_txt": "table_b1_textlayer.txt: pdftotext -layout (poppler) of PDF pages 95 to 103, written by langley_ltpt_parse.py",
+  "parsed": "e387_ltpt.csv, written by langley_ltpt_parse.py from the page images (pdfimages) with the text layer as a check"
+}
