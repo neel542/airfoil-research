@@ -41,7 +41,7 @@ import pandas as pd
 
 warnings.filterwarnings("ignore")
 
-OUT = os.path.dirname(os.path.abspath(__file__))
+OUT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))  # repo root (this script lives one folder down)
 DATA = os.path.join(OUT, "data")
 XFOIL = os.path.join(OUT, ".venv", "bin", "xfoil")
 N_CRIT = 9

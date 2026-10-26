@@ -1,6 +1,6 @@
 # Headless XFoil build (for fidelity validation)
 
-`xfoil_validate.py` needs an `xfoil` binary. There is no Homebrew formula and the
+`design/xfoil_validate.py` needs an `xfoil` binary. There is no Homebrew formula and the
 stock XFoil 6.99 build links X11 (XQuartz) for its plotting library. Since the
 validation runs XFoil graphics-off in batch mode, the X11 dependency was removed
 by replacing the plot backend (`Xwin2.c`) with no-op Fortran stubs. The compiled
@@ -35,5 +35,5 @@ make xfoil FC=gfortran FFLAGS="$FLAGS" FFLOPT="$FLAGS" \
 ## Notes
 - License: XFoil is GPL (Mark Drela / Harold Youngren). This repo does not
   redistribute it; build it yourself with the steps above.
-- The binary is batch-only (no interactive plotting). `xfoil_validate.py` drives
+- The binary is batch-only (no interactive plotting). `design/xfoil_validate.py` drives
   it via stdin and parses the PACC polar file directly.

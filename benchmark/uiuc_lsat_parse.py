@@ -1,5 +1,5 @@
 """
-uiuc_lsat_parse.py
+Reads the UIUC wind-tunnel files into clean CSV tables.
 =============================================================================
 Parse the official UIUC Low-Speed Airfoil Tests (LSAT) ASCII polar files in
 data/uiuc_lsat/ into two tidy tables: data/uiuc_experimental.csv (drag runs:
@@ -25,7 +25,7 @@ import glob
 import numpy as np
 import pandas as pd
 
-OUT = os.path.dirname(os.path.abspath(__file__))
+OUT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))  # repo root (this script lives one folder down)
 SRC = os.path.join(OUT, "data", "uiuc_lsat")
 
 # File stem -> AeroSandbox airfoil-database name (true design coordinates).

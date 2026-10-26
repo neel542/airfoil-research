@@ -16,7 +16,7 @@ import numpy as np
 import pandas as pd
 import aerosandbox as asb
 
-OUT = os.path.dirname(os.path.abspath(__file__))
+OUT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))  # repo root (this script lives one folder down)
 XFOIL = os.path.join(OUT, ".venv", "bin", "xfoil")
 if not os.path.exists(XFOIL):
     # without this every polar comes back empty and the CSV looks like XFoil

@@ -1,5 +1,5 @@
 """
-rebuild_all_figures.py
+Redraws every figure from the saved data, in one consistent style.
 =============================================================================
 Re-render every figure in the project with one clean, consistent, presentation
 style: readable fonts, a fixed color palette, light gridlines, no top/right
@@ -18,7 +18,7 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
-OUT = os.path.dirname(os.path.abspath(__file__))
+OUT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))  # repo root (this script lives one folder down)
 DATA = os.path.join(OUT, "data")
 FIG = os.path.join(OUT, "figures")
 

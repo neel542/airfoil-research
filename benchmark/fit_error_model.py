@@ -31,7 +31,7 @@ import numpy as np
 import pandas as pd
 from scipy import stats
 
-OUT = os.path.dirname(os.path.abspath(__file__))
+OUT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))  # repo root (this script lives one folder down)
 DATA = os.path.join(OUT, "data")
 CONF_BINS = [0, 0.5, 0.7, 0.8, 0.9, 0.95, 1.0000001]
 Y_FLOOR = 1e-4

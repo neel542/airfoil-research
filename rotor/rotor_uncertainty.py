@@ -68,7 +68,7 @@ from scipy.stats import gamma as gamma_dist
 
 import aerosandbox as asb
 
-OUT = os.path.dirname(os.path.abspath(__file__))
+OUT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))  # repo root (this script lives one folder down)
 DATA = os.path.join(OUT, "data")
 FIG = os.path.join(OUT, "figures")
 

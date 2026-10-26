@@ -1,5 +1,5 @@
 """
-soartech8_neuralfoil_validation.py
+The same NeuralFoil test repeated in a second tunnel (Princeton, 54 airfoils).
 =============================================================================
 Independent replication of the NeuralFoil benchmark on a second wind tunnel:
 the SoarTech 8 data set (Selig, Donovan and Fraser, "Airfoils at Low
@@ -46,7 +46,7 @@ import pandas as pd
 import aerosandbox as asb
 from scipy import stats
 
-OUT = os.path.dirname(os.path.abspath(__file__))
+OUT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))  # repo root (this script lives one folder down)
 DATA = os.path.join(OUT, "data")
 N_CRIT = 9.0
 MODELS = ["large", "xxlarge"]

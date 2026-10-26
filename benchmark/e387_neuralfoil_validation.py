@@ -1,5 +1,5 @@
 """
-e387_neuralfoil_validation.py
+NeuralFoil and XFoil against the measured E387 airfoil (UIUC tunnel), the first check of the project.
 =============================================================================
 First validation of NeuralFoil against EXPERIMENTAL wind-tunnel data in the
 low-Reynolds-number regime (Re 100k-500k) relevant to small UAVs and wind
@@ -63,7 +63,7 @@ import numpy as np
 import pandas as pd
 import aerosandbox as asb
 
-OUT = os.path.dirname(os.path.abspath(__file__))
+OUT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))  # repo root (this script lives one folder down)
 XFOIL = os.path.join(OUT, ".venv", "bin", "xfoil")
 SKIP_XFOIL = not os.path.exists(XFOIL)
 if SKIP_XFOIL:

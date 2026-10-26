@@ -52,7 +52,7 @@ from scipy.interpolate import RegularGridInterpolator
 import aerosandbox as asb
 import rotor_uncertainty as ru
 
-OUT = os.path.dirname(os.path.abspath(__file__))
+OUT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))  # repo root (this script lives one folder down)
 DATA = os.path.join(OUT, "data")
 PROP = os.path.join(DATA, "uiuc_propdb")
 FIG = os.path.join(OUT, "figures")
@@ -130,6 +130,7 @@ def xfoil_section():
     filled along alpha from its converged points, the edges are held, and a
     row with too few converged points is dropped. Coverage is reported."""
     from multiprocessing import Pool
+    sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "benchmark"))
     import xfoil_decomposition as xd
 
     print("Building the SDA1075 table from XFoil ...", flush=True)

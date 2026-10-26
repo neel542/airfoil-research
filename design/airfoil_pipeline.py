@@ -30,7 +30,7 @@ import pandas as pd
 import aerosandbox as asb
 import aerosandbox.numpy as anp   # casadi-aware numpy for use inside Opti
 
-OUT = os.path.dirname(os.path.abspath(__file__))
+OUT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))  # repo root (this script lives one folder down)
 os.makedirs(os.path.join(OUT, "figures"), exist_ok=True)
 os.makedirs(os.path.join(OUT, "data"), exist_ok=True)
 

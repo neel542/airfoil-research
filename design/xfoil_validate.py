@@ -15,7 +15,7 @@ import numpy as np
 import pandas as pd
 import aerosandbox as asb
 
-OUT = os.path.dirname(os.path.abspath(__file__))
+OUT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))  # repo root (this script lives one folder down)
 RE = 200e3
 ALPHAS = np.arange(0, 9.5, 1.0)
 XFOIL = os.path.join(OUT, ".venv", "bin", "xfoil")

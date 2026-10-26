@@ -116,7 +116,7 @@ def _duplicate_mass_in_paper(tmp):
 
 
 def _desync_mass(tmp):
-    """PAPER.md edited, build_paper_html.py not re-run."""
+    """PAPER.md edited, tools/build_paper_html.py not re-run."""
     v = _values("PAPER.md", tc.CLAIM_MASS_SPREAD)[0]
     _rewrite(tmp, "PAPER.md", f"worth {v} kilograms on a", "worth four kilograms on a",
              tc.CLAIM_MASS_SPREAD)

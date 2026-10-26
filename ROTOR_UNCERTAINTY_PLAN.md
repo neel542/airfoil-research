@@ -55,7 +55,7 @@ Effort: 1 to 2 hours.
 
 ## Phase 1: the rotor propagation study
 
-This is the new work and it is the centrepiece. New file, `rotor_uncertainty.py`.
+This is the new work and it is the centrepiece. New file, `rotor/rotor_uncertainty.py`.
 
 ### 1.1 Pick a rotor that is actually inside the validated envelope
 
@@ -138,7 +138,7 @@ land.
 - The Gamma error model was fitted to tunnel-versus-model residuals in a wind tunnel, not on a
   rotating blade. Rotational effects on the boundary layer are not in it.
 
-Deliverables: `rotor_uncertainty.py`, `data/rotor_propagation.csv`,
+Deliverables: `rotor/rotor_uncertainty.py`, `data/rotor_propagation.csv`,
 `data/rotor_weight_closure.csv`, two figures (power distribution, weight amplification).
 
 Effort: this is the large one. 15 to 25 hours honestly, most of it in getting BEMT to converge

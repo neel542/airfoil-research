@@ -102,7 +102,7 @@ plain-text tables rather than the report PDFs. Every airfoil in Vols 1-4 with
 design geometry in the AeroSandbox database is included in its plain
 configuration: 57 airfoils, 5,441 drag-run and 21,462 lift-run points,
 Re = 30k-500k, with clean and boundary-layer-tripped runs kept separate and
-files that mix several trip heights excluded (`uiuc_lsat_parse.py`). This
+files that mix several trip heights excluded (`benchmark/uiuc_lsat_parse.py`). This
 addresses a real gap: the NeuralFoil paper (Sharpe & Hansman 2025) validates
 against experiment only at Re = 1.8×10⁶. Each airfoil is refit in the
 17-parameter Kulfan basis; the two whose fit error exceeds the 0.5%-chord
@@ -126,13 +126,13 @@ drag within ~12% (22% at 100k, the laminar-bubble regime that XFoil also
 misses). On the 298 clean lift sweeps that pass through stall, CLmax is
 over-predicted by 0.06 (~6%) and the stall angle placed within ~1.5°;
 post-stall CL error nearly doubles while confidence halves
-(`uiuc_stall_validation.py`). Scripts: `uiuc_neuralfoil_validation.py`,
-`e387_neuralfoil_validation.py`; data `data/uiuc_*.csv`; `figures/12-17, 21-25`.
+(`benchmark/uiuc_stall_validation.py`). Scripts: `benchmark/uiuc_neuralfoil_validation.py`,
+`benchmark/e387_neuralfoil_validation.py`; data `data/uiuc_*.csv`; `figures/12-17, 21-25`.
 
 **Replication in a second tunnel.** The same benchmark is run on the Princeton
 *Airfoils at Low Speeds* data set (Selig, Donovan & Fraser 1989; SoarTech 8):
 54 airfoils / 68 models, 4,702 clean and 1,744 tripped drag-polar points at
-Re = 60k-300k, parsed from the archive's `Stec8.zip` (`soartech8_parse.py`).
+Re = 60k-300k, parsed from the archive's `Stec8.zip` (`benchmark/soartech8_parse.py`).
 That set also publishes profiler-measured coordinates of the actual models, so
 NeuralFoil is run on both the design and the as-built shape (Kulfan refit of
 each; all 68 fit to < 0.07% chord). Because the tunnel's turbulence level is
@@ -150,7 +150,7 @@ data reduction differ. As-built deviations are 0.22% chord RMS typically (max
 0.091 → 0.081, and the shape change alone moves NeuralFoil's drag by 5%. The
 point-level confidence result replicates at the extremes (30% → 10%) but the
 airfoil-level rank correlation does not (−0.08, n.s.). CLmax is over-predicted
-by 0.11 on 114 lift sweeps. Script `soartech8_neuralfoil_validation.py`; data
+by 0.11 on 114 lift sweeps. Script `benchmark/soartech8_neuralfoil_validation.py`; data
 `data/soartech8_*.csv`, `data/cross_tunnel_*.csv`; `figures/26-28`.
 
 **Decomposition against XFoil.** NeuralFoil emulates XFoil, so its error
@@ -158,7 +158,7 @@ against a tunnel is XFoil's error plus the network's emulation error. Headless
 XFoil 6.99 is run at all 9,130 clean conditions of both tunnels on the same
 Kulfan geometry NeuralFoil saw (viscous, n_crit = 9, free transition, polars
 swept outward from 0° in 0.5° steps with the measured angles inserted so each
-point warm-starts from its neighbour; `xfoil_decomposition.py`, 8 processes,
+point warm-starts from its neighbour; `benchmark/xfoil_decomposition.py`, 8 processes,
 about 25 min). XFoil converges at 8,814 points (96.5%); failures cluster at
 low confidence (56% convergence below 0.5 vs 99% above 0.95). NeuralFoil needs
 no solver run, so its error against the tunnels is reported on all 9,130
@@ -181,7 +181,7 @@ at one Re and are not independent; the independent unit is the airfoil (55
 UIUC, 54 Princeton, 94 distinct; 667 clean polars). Every headline statistic
 is given a 95% interval from a cluster bootstrap that resamples airfoils with
 all their points (B = 2,000, seed 0), alongside the naive point bootstrap
-(`clustered_statistics.py`). Clustered intervals are 2-5× wider; all headline
+(`benchmark/clustered_statistics.py`). Clustered intervals are 2-5× wider; all headline
 results survive (e.g. mean drag error 12.3% [11.3, 13.4] UIUC, 11.1% [10.3,
 12.0] Princeton; L/D bias +15% [12, 18] in both; r(conf, |ΔCD/CD|) −0.43
 [−0.50, −0.35] and −0.27 [−0.33, −0.20]; r(conf, |ΔCL|) includes zero in
@@ -195,7 +195,7 @@ Data `data/clustered_statistics.csv`,
 `data/confidence_correlation_decomposition.csv`; `figures/30`.
 
 **Fitted error model.** Expected |ΔCD/CD| is modelled as a Gamma GLM with log
-link (IRLS in numpy; `fit_error_model.py`) on log10(1.001 − confidence),
+link (IRLS in numpy; `benchmark/fit_error_model.py`) on log10(1.001 − confidence),
 log10(Re/1e5), α, α², max camber and max thickness (% chord), over the 8,211
 attached-flow clean points of both tunnels. Coefficients (log scale): +0.625,
 −0.842, −0.043, +0.0092, +0.0345, ≈0; dispersion 0.72. Evaluation is
@@ -210,7 +210,7 @@ predicted 29.2% / actual 28.7%. Coefficients and worked examples in
 
 **Same-model repeatability.** Two Princeton models were mounted and run a
 second time in the same tunnel by the same builder (E387A, SD7003;
-`repeatability.py`). Runs are matched at the same nominal Re (within 6%), the
+`benchmark/repeatability.py`). Runs are matched at the same nominal Re (within 6%), the
 second run interpolated onto the first run's angles over the overlapping
 range. Over 95 matched points the repeats disagree by **3.7%** in drag and
 0.009 in lift, against 10.9% between the two archives and 11.7% for NeuralFoil.
@@ -225,7 +225,7 @@ average, on a CD of 0.013 to 0.027, with a pooled bias of -0.1%, so the
 disagreement is scatter and not an offset between the runs. Data
 `data/repeatability_same_model.csv`.
 
-**Propagation into a rotor and an aircraft.** `rotor_uncertainty.py` carries the
+**Propagation into a rotor and an aircraft.** `rotor/rotor_uncertainty.py` carries the
 measured drag error through a blade-element momentum rotor in hover and then
 through a weight-closure loop. Section lift and drag come from NeuralFoil on a
 fixed (α, Re) table (141 × 45, linear interpolation), so the nominal and
@@ -251,7 +251,7 @@ payload, 0.40 structure fraction, 45 min hover, 180 Wh/kg pack, 85% usable,
 0.93 x (profile share) x (section drag error), SD 0.009, while the propagated
 error itself ranges 1.5-5.8% for a fixed 11.7% section error.
 
-**Solver validation.** `validate_bemt.py` runs the same blade-element solver
+**Solver validation.** `rotor/validate_bemt.py` runs the same blade-element solver
 against static thrust and power measured on 14 propellers from Volume 2 of the
 UIUC Propeller Database (`data/uiuc_propdb/`), chosen because Deters designed
 and 3D-printed them so their airfoil section is known exactly: SDA1075 over
@@ -288,7 +288,7 @@ the lowest-inflow root, the first-bracket convention of CCBlade (Ning, 2014);
 that happens on 45 elements across 27 of the 261 points, all on 9 in
 propellers of 6.75 in pitch and steeper, and is reported per point as
 `n_multiroot`. The design rotor is unchanged to 10⁻⁸ W, and a regression test
-drives a 38° root through the solver. `validate_bemt.py --xfoil` repeats the whole test with the section table
+drives a 38° root through the solver. `rotor/validate_bemt.py --xfoil` repeats the whole test with the section table
 filled by XFoil (n_crit 9, free transition) on the same Kulfan geometry, 69
 angles from −10° to 24° × 36 Reynolds rows from 15k to 300k, rows with under
 40% convergence dropped. Inside the window the 9 in results shift by 0.1–1.0
@@ -304,7 +304,7 @@ with this table; none do now. Outputs:
 `data/bemt_validation_blades.csv`, `figures/36_bemt_validation.png`, and the
 same three CSVs with an `_xfoil` suffix.
 
-`profile_power_check.py` asks whether the static data can check profile power,
+`rotor/profile_power_check.py` asks whether the static data can check profile power,
 along the two routes Govindarajan suggested, on the 87 in-window 9 in points.
 Coefficients are converted to rotor convention (C<sub>T</sub> × 4/π³,
 C<sub>P</sub> × 4/π⁴), and profile power for a uniform C<sub>d0</sub> with the
@@ -352,7 +352,7 @@ Pinned dependencies in `requirements.txt`; fixed RNG seeds for all perturbation
 ensembles and bootstraps; every study writes its data to CSV before plotting;
 `tests/test_claims.py` pins every number quoted in PAPER.md, README.md and this
 file to the data files (25 tests). The config-driven
-tool (`airfoil_designer.py` + `configs/*.yaml`) reproduces any mission design
+tool (`design/airfoil_designer.py` + `configs/*.yaml`) reproduces any mission design
 from a single spec.
 
 ## Key limitations

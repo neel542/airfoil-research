@@ -212,7 +212,7 @@ def xfoil_polar(coords, Re, alphas, xfoil):
 # --------------------------------------------------------------------------- #
 def main(config_path):
     c = load_config(config_path)
-    outdir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "runs", c["name"])
+    outdir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "runs", c["name"])
     os.makedirs(outdir, exist_ok=True)
     print(f"=== Designing '{c['name']}' ===")
     print(f"  envelope Re={c['envelope']['Re']}  AoA={c['envelope']['AoA']}  "
@@ -257,7 +257,7 @@ def main(config_path):
     fig.tight_layout(); fig.savefig(os.path.join(outdir, "LD_heatmap.png"), dpi=150); plt.close(fig)
 
     # optional XFoil validation at the design point Re
-    xf = shutil.which("xfoil") or os.path.join(os.path.dirname(os.path.abspath(__file__)), ".venv", "bin", "xfoil")
+    xf = shutil.which("xfoil") or os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), ".venv", "bin", "xfoil")
     if c["validate_xfoil"] and os.path.exists(xf):
         Re = c["design_point"]["Re"]
         # Always start the sweep at 0 deg: viscous XFoil cold-starts reliably

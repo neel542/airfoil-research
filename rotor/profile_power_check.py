@@ -53,6 +53,7 @@ Outputs : data/profile_power_points.csv    every 9 in point in the window, parts
 """
 
 import os
+import sys
 import warnings
 
 warnings.filterwarnings("ignore")
@@ -64,7 +65,7 @@ import aerosandbox as asb
 import rotor_uncertainty as ru
 import validate_bemt as vb
 
-OUT = os.path.dirname(os.path.abspath(__file__))
+OUT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))  # repo root (this script lives one folder down)
 DATA = os.path.join(OUT, "data")
 
 CT_ROT = 4 / np.pi ** 3        # propeller C_T to rotor C_T
@@ -173,6 +174,7 @@ def zero_lift_tables(Res):
 
     # XFoil on the same Kulfan geometry NeuralFoil sees, as in validate_bemt.py
     from multiprocessing import Pool
+    sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "benchmark"))
     import xfoil_decomposition as xd
     coords = xd.panel_coords(af.to_kulfan_airfoil())
     xa = np.arange(-8.0, 2.01, 0.25)

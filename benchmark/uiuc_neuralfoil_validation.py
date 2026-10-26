@@ -1,5 +1,5 @@
 """
-uiuc_neuralfoil_validation.py
+NeuralFoil against every UIUC drag measurement (the main benchmark, first tunnel).
 =============================================================================
 Systematic check of NeuralFoil against measured wind-tunnel polars from the
 UIUC Low-Speed Airfoil Tests archive: 57 airfoils (Vols 1-4), Re 40k-500k, clean and
@@ -36,7 +36,7 @@ import pandas as pd
 import aerosandbox as asb
 from scipy import stats
 
-OUT = os.path.dirname(os.path.abspath(__file__))
+OUT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))  # repo root (this script lives one folder down)
 DATA = os.path.join(OUT, "data")
 N_CRIT = 9.0          # standard for the UIUC tunnel (turbulence ~0.1%)
 MODELS = ["large", "xxlarge"]

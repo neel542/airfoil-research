@@ -1,5 +1,5 @@
 """
-replot_with_uncertainty.py
+Redraws the design figures with the measured error bars.
 =============================================================================
 Re-plot the headline A-vs-B figures with the EMPIRICALLY MEASURED uncertainty
 band from the wind-tunnel validation (e387_neuralfoil_validation.py), so no
@@ -29,7 +29,7 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
-OUT = os.path.dirname(os.path.abspath(__file__))
+OUT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))  # repo root (this script lives one folder down)
 FIG = os.path.join(OUT, "figures")
 EM  = json.load(open(os.path.join(OUT, "data", "error_model.json")))
 BAND = EM["LD_band_pct"] / 100.0

@@ -1,5 +1,5 @@
 """
-soartech8_parse.py
+Reads the Princeton (SoarTech 8) wind-tunnel files into clean CSV tables.
 =============================================================================
 Parse the SoarTech 8 data set ("Airfoils at Low Speeds", Selig, Donovan and
 Fraser, 1989; Princeton University 3 x 4 ft smoke tunnel, 1986-1989) into
@@ -47,7 +47,7 @@ import re
 import numpy as np
 import pandas as pd
 
-HERE = os.path.dirname(os.path.abspath(__file__))
+HERE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))  # repo root (this script lives one folder down)
 RAW = os.path.join(HERE, "data", "soartech8")
 DATA = os.path.join(HERE, "data")
 

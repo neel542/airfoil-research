@@ -1,5 +1,5 @@
 """
-build_paper_html.py
+Turns PAPER.md into one HTML file with the figures inside.
 =============================================================================
 Turn PAPER.md into a single self-contained HTML file with the figures embedded
 inline (as base64), styled like an academic paper. Open the result in any
@@ -9,7 +9,7 @@ tools or internet needed.
 
 import os, re, base64, markdown
 
-OUT = os.path.dirname(os.path.abspath(__file__))
+OUT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))  # repo root (this script lives one folder down)
 MD  = os.path.join(OUT, "PAPER.md")
 FIG = os.path.join(OUT, "figures")
 HTML_OUT = os.path.join(OUT, "PAPER.html")

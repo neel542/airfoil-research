@@ -1,5 +1,5 @@
 """
-langley_ltpt_parse.py
+Reads NASA Langley's E387 table (third tunnel) into a CSV file.
 =============================================================================
 Parse Table B1 of McGhee, Walker and Millard (1988), "Experimental Results
 for the Eppler 387 Airfoil at Low Reynolds Numbers in the Langley
@@ -85,7 +85,7 @@ import pandas as pd
 from PIL import Image
 from scipy import ndimage as ndi
 
-HERE = os.path.dirname(os.path.abspath(__file__))
+HERE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))  # repo root (this script lives one folder down)
 SRC = os.path.join(HERE, "data", "langley_ltpt_e387")
 PDF = os.path.join(SRC, "19890001471.pdf")
 TEXT_LAYER = os.path.join(SRC, "table_b1_textlayer.txt")

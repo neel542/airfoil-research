@@ -76,7 +76,7 @@ import pandas as pd
 import aerosandbox as asb
 import rotor_uncertainty as ru
 
-OUT = os.path.dirname(os.path.abspath(__file__))
+OUT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))  # repo root (this script lives one folder down)
 DATA = os.path.join(OUT, "data")
 FIG = os.path.join(OUT, "figures")
 SRC = os.path.join(DATA, "harris2020")
@@ -197,6 +197,7 @@ def xfoil_cd0(airfoil, Res):
     """XFoil zero-incidence drag, free transition at n_crit 9, on a Re grid.
     Points that do not converge come back NaN."""
     from multiprocessing import Pool
+    sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "benchmark"))
     import xfoil_decomposition as xd
 
     if not os.path.exists(xd.XFOIL):

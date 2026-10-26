@@ -44,7 +44,9 @@ import numpy as np
 import pandas as pd
 from scipy.stats import rankdata
 
-OUT = os.path.dirname(os.path.abspath(__file__))
+os.chdir(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))  # paths below are relative to the repo root
+
+OUT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))  # repo root (this script lives one folder down)
 DATA = os.path.join(OUT, "data")
 
 RE_BANDS = [(40e3, 80e3, "40-80k"), (80e3, 130e3, "80-130k"), (130e3, 180e3, "130-180k"),

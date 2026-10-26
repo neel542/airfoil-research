@@ -1,5 +1,5 @@
 """
-uiuc_stall_validation.py
+NeuralFoil's lift curves through stall against the UIUC lift runs.
 =============================================================================
 Lift curves through stall: NeuralFoil against the UIUC lift runs.
 
@@ -31,7 +31,7 @@ import numpy as np
 import pandas as pd
 import aerosandbox as asb
 
-OUT = os.path.dirname(os.path.abspath(__file__))
+OUT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))  # repo root (this script lives one folder down)
 DATA = os.path.join(OUT, "data")
 MODEL = "large"
 N_CRIT = 9.0

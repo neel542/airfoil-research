@@ -37,6 +37,32 @@ per percent of section drag.
 Full paper: `PAPER.md` or `PAPER.html`. Short version: `SUMMARY.md`. Methods:
 `METHODS.md`.
 
+## Start here: what is where
+
+| Folder | What it answers | Status |
+|---|---|---|
+| `benchmark/` | How wrong is NeuralFoil against real wind tunnels, and why? | The core of the project |
+| `rotor/` | What does that error cost a rotor and an aircraft? | Finished side study |
+| `design/` | Can we design better low-speed airfoils with it? | Earlier work; the manufacturing result is withdrawn |
+| `tools/` | Rebuild every figure, and the HTML paper | Support |
+| `data/`, `figures/` | Every result the paper quotes | Checked by `tests/` |
+
+The benchmark, in the order the scripts run:
+
+1. **Read the tunnel files:** `benchmark/uiuc_lsat_parse.py` (UIUC),
+   `benchmark/soartech8_parse.py` (Princeton), `benchmark/langley_ltpt_parse.py` (NASA Langley).
+2. **Compare NeuralFoil with each tunnel:** `benchmark/uiuc_neuralfoil_validation.py`,
+   `benchmark/soartech8_neuralfoil_validation.py`, `benchmark/ltpt_neuralfoil_validation.py`,
+   `benchmark/e387_neuralfoil_validation.py`, `benchmark/uiuc_stall_validation.py`.
+3. **Split the error into XFoil's share and the network's:** `benchmark/xfoil_decomposition.py`,
+   plus `benchmark/xfoil_validate_envelope.py` (NeuralFoil against XFoil across the whole operating range).
+4. **Honest error bars and the noise floor:** `benchmark/clustered_statistics.py`, `benchmark/repeatability.py`.
+5. **Predict the error of any new prediction:** `benchmark/fit_error_model.py`.
+6. **Ideas that were tested and did not explain the error:** `benchmark/laminar_run.py`.
+
+Run any script from the repo root, for example `python benchmark/fit_error_model.py`.
+`pytest tests/` checks that every number in the paper still matches the data.
+
 ## What it produces
 
 | Airfoil | Objective | Peak L/D | Worst-case L/D | Mean L/D | Max thickness |
@@ -102,7 +128,7 @@ trust.
 
 ## Wind-tunnel benchmark: 55 airfoils
 
-(`uiuc_lsat_parse.py`, `uiuc_neuralfoil_validation.py`, `uiuc_stall_validation.py`, `e387_neuralfoil_validation.py`)
+(`benchmark/uiuc_lsat_parse.py`, `benchmark/uiuc_neuralfoil_validation.py`, `benchmark/uiuc_stall_validation.py`, `benchmark/e387_neuralfoil_validation.py`)
 
 The whole pipeline rests on NeuralFoil. But NeuralFoil had only ever been
 checked against an experiment once, at Re = 1.8×10⁶, in its own paper. So
@@ -148,7 +174,7 @@ network, and an upper bound on the network by itself.
   `xtr_lower`) the bias is 6% (on the precisely documented 2004 runs: 19% → 2%)
   and lift error falls. The transition inputs work, which had not been checked
   against experiment before.
-- **Through stall** (`uiuc_stall_validation.py`, 298 clean lift sweeps past
+- **Through stall** (`benchmark/uiuc_stall_validation.py`, 298 clean lift sweeps past
   CLmax, Re 30k-500k): CLmax over-predicted by 0.06 (~6%); stall angle within
   ~1.5° (NeuralFoil ~1° early); past stall the CL error nearly doubles while
   confidence drops 0.89 → 0.52; CM off by 0.018 (~20% of typical). Measured
@@ -161,7 +187,7 @@ network, and an upper bound on the network by itself.
   project reported r ≈ −0.48 between confidence and *relative* lift error on
   the E387 alone; that was driven by near-zero-lift points and does not hold in
   absolute terms or on the wider benchmark.
-- **E387 in detail** (`e387_neuralfoil_validation.py`, with headless XFoil at
+- **E387 in detail** (`benchmark/e387_neuralfoil_validation.py`, with headless XFoil at
   the same conditions): lift within ~5% from Re = 200k up and 11% at 100k;
   drag ~12% from 200k up and 22% at 100k, where both NeuralFoil and XFoil miss
   the laminar-separation-bubble drag (figure 13).
@@ -173,7 +199,7 @@ summaries; raw source files in `data/uiuc_lsat/`.
 
 ## Second tunnel: the Princeton "Airfoils at Low Speeds" data set
 
-(`soartech8_parse.py`, `soartech8_neuralfoil_validation.py`)
+(`benchmark/soartech8_parse.py`, `benchmark/soartech8_neuralfoil_validation.py`)
 
 The whole benchmark then runs again on a separate, older data set: SoarTech
 8, *Airfoils at Low Speeds* (Selig, Donovan & Fraser 1989). Those runs
@@ -240,7 +266,7 @@ summaries; raw files in `data/soartech8/`.
 
 ## XFoil decomposition, honest statistics, fitted error model
 
-(`xfoil_decomposition.py`, `clustered_statistics.py`, `fit_error_model.py`)
+(`benchmark/xfoil_decomposition.py`, `benchmark/clustered_statistics.py`, `benchmark/fit_error_model.py`)
 
 - **Where the error comes from.** Headless XFoil at all 9,130 clean conditions
   of both tunnels on the same Kulfan geometry NeuralFoil saw (converged at
@@ -279,7 +305,7 @@ summaries; raw files in `data/soartech8/`.
   and back (0.077 vs 0.089). Coefficients + worked examples in
   `data/error_model_fit.json`. Figure `31`.
 
-## What the error costs a design (`rotor_uncertainty.py`, `validate_bemt.py`, `repeatability.py`)
+## What the error costs a design (`rotor/rotor_uncertainty.py`, `rotor/validate_bemt.py`, `benchmark/repeatability.py`)
 
 - **The noise floor.** Two Princeton models were mounted and run a second time
   in the same tunnel by the same builder. Over 95 matched points they disagree
@@ -343,7 +369,7 @@ summaries; raw files in `data/soartech8/`.
   off the hover solver at zero speed, so its numbers are only quoted as ratios
   within itself. The study propagates uncertainty; it does not predict a rotor.
 
-## Uncertainty-aware optimizer (`uncertainty_aware_design.py`)
+## Uncertainty-aware optimizer (`design/uncertainty_aware_design.py`)
 
 The benchmark above showed that NeuralFoil's confidence is a reliable warning
 about its drag error. This module feeds that back into the optimizer: alongside
@@ -370,7 +396,7 @@ it is not, it costs ~2%.) No prior airfoil-optimization work appears to feed a
 surrogate's own measured reliability back into the design loop this way.
 Figure: `20_trust_vs_performance.png`; data in `data/uncertainty_aware_sweep.csv`.
 
-## Multi-objective extension (`multiobjective.py`)
+## Multi-objective extension (`design/multiobjective.py`)
 
 L/D alone is a thin objective for an aircraft that flies over people, gets built
 in the field, and must not stall. This module designs across **four physically
@@ -400,7 +426,7 @@ acoustic signal, not a hand-wave. New figures: `5_multiobj_shapes.png`,
 `6_multiobj_radar.png`, `7_multiobj_stall.png`; metrics in
 `data/multiobjective_metrics.csv`.
 
-## Manufacturing robustness + validation (`manufacturing_robust.py`, `xfoil_validate.py`)
+## Manufacturing robustness + validation (`design/manufacturing_robust.py`, `design/xfoil_validate.py`)
 
 A field-built or 3D-printed wing never matches the CAD shape. This stage makes
 the design robust to *build error* as well as operating conditions, then
@@ -439,7 +465,7 @@ Figures: `8_manufacturing_robustness.png`,
 `9_fidelity_check.png`; data in `data/manufacturing_validation.csv`,
 `data/xfoil_validation.csv`, `data/fidelity_check.csv`.
 
-## Envelope-wide XFoil trust map (`xfoil_validate_envelope.py`)
+## Envelope-wide XFoil trust map (`benchmark/xfoil_validate_envelope.py`)
 
 The 200k check was one slice. This sweeps the parent XFoil solver across the full Re envelope
 (50k-500k) and maps the NeuralFoil-vs-XFoil L/D error over every (Re, AoA) cell.
@@ -461,7 +487,7 @@ low-Re and near-zero-lift conditions, and any finalist as aggressive as
 `B_nominal`, in XFoil or wind tunnel. Figures: `10_trust_map.png`,
 `11_envelope_polars.png`; data in `data/xfoil_validation_envelope.csv`.
 
-## The reusable tool (`airfoil_designer.py`)
+## The reusable tool (`design/airfoil_designer.py`)
 
 Everything above is wrapped into one config-driven tool so a new vehicle/mission
 is a **YAML change, not a code change** - the "useful to others" direction. A
@@ -469,8 +495,8 @@ student or NGO engineer points it at their own envelope and gets a robust,
 multi-objective, XFoil-validated section.
 
 ```bash
-python airfoil_designer.py configs/delivery_drone.yaml
-python airfoil_designer.py configs/small_turbine.yaml
+python design/airfoil_designer.py configs/delivery_drone.yaml
+python design/airfoil_designer.py configs/small_turbine.yaml
 ```
 
 The config exposes every knob: operating envelope + grid density, design point,
@@ -502,33 +528,33 @@ pip install -r requirements.txt
 jupyter notebook tutorial.ipynb
 
 # Or design from a mission config
-python airfoil_designer.py configs/delivery_drone.yaml
+python design/airfoil_designer.py configs/delivery_drone.yaml
 
 # Or reproduce the research studies
-python airfoil_pipeline.py          # single-point vs robust + tradeoff
-python multiobjective.py            # efficiency / safety / structure / noise
-python manufacturing_robust.py      # build-tolerance robustness
-python xfoil_validate_envelope.py   # surrogate consistency map vs parent XFoil
-python uiuc_lsat_parse.py           # official UIUC wind-tunnel files -> one table
-python uiuc_neuralfoil_validation.py  # 55-airfoil benchmark of NeuralFoil
-python uiuc_stall_validation.py     # lift through stall: CLmax, stall angle, CM
-python soartech8_parse.py           # Princeton "Airfoils at Low Speeds" files -> tables
-python soartech8_neuralfoil_validation.py  # second tunnel, tunnel-vs-tunnel, measured geometry
-python e387_neuralfoil_validation.py  # E387 in detail, with XFoil
-python xfoil_decomposition.py       # XFoil at all 9,130 clean points: physics vs network error (~25 min, 8 procs)
-python clustered_statistics.py      # airfoil-cluster bootstrap intervals + correlation anatomy
-python fit_error_model.py           # cross-validated Gamma GLM error model -> data/error_model_fit.json
-python repeatability.py             # same model, same tunnel, twice: the 3.7% noise floor
-python rotor_uncertainty.py         # the drag error through a hover rotor and a weight loop (~17 min)
-python rotor_uncertainty.py --explore     # just the rotor sizing sweep
-python rotor_uncertainty.py --from-cache  # redo the closure and figures, reuse the Monte Carlo
-python validate_bemt.py             # the solver against 14 measured UIUC propellers (~2 min); --xfoil for the XFoil split
-python hover_lowre_validation.py    # the solver against 327 measured hover rotors (Harris 2020), zero thrust, and a swirl estimate (~2 min)
-python langley_ltpt_parse.py       # NASA Langley LTPT E387 table (TM-4062 Table B1) read off the scanned pages
-python ltpt_neuralfoil_validation.py # NeuralFoil against the E387 in a third tunnel
-python zero_thrust_physics.py      # induced power, hub torque and transition as explanations for the zero-thrust gap (~10 s)
-python uncertainty_aware_design.py  # confidence-aware optimizer sweep
-python rebuild_all_figures.py       # every figure, from the saved CSVs
+python design/airfoil_pipeline.py          # single-point vs robust + tradeoff
+python design/multiobjective.py            # efficiency / safety / structure / noise
+python design/manufacturing_robust.py      # build-tolerance robustness
+python benchmark/xfoil_validate_envelope.py   # surrogate consistency map vs parent XFoil
+python benchmark/uiuc_lsat_parse.py           # official UIUC wind-tunnel files -> one table
+python benchmark/uiuc_neuralfoil_validation.py  # 55-airfoil benchmark of NeuralFoil
+python benchmark/uiuc_stall_validation.py     # lift through stall: CLmax, stall angle, CM
+python benchmark/soartech8_parse.py           # Princeton "Airfoils at Low Speeds" files -> tables
+python benchmark/soartech8_neuralfoil_validation.py  # second tunnel, tunnel-vs-tunnel, measured geometry
+python benchmark/e387_neuralfoil_validation.py  # E387 in detail, with XFoil
+python benchmark/xfoil_decomposition.py       # XFoil at all 9,130 clean points: physics vs network error (~25 min, 8 procs)
+python benchmark/clustered_statistics.py      # airfoil-cluster bootstrap intervals + correlation anatomy
+python benchmark/fit_error_model.py           # cross-validated Gamma GLM error model -> data/error_model_fit.json
+python benchmark/repeatability.py             # same model, same tunnel, twice: the 3.7% noise floor
+python rotor/rotor_uncertainty.py         # the drag error through a hover rotor and a weight loop (~17 min)
+python rotor/rotor_uncertainty.py --explore     # just the rotor sizing sweep
+python rotor/rotor_uncertainty.py --from-cache  # redo the closure and figures, reuse the Monte Carlo
+python rotor/validate_bemt.py             # the solver against 14 measured UIUC propellers (~2 min); --xfoil for the XFoil split
+python rotor/hover_lowre_validation.py    # the solver against 327 measured hover rotors (Harris 2020), zero thrust, and a swirl estimate (~2 min)
+python benchmark/langley_ltpt_parse.py       # NASA Langley LTPT E387 table (TM-4062 Table B1) read off the scanned pages
+python benchmark/ltpt_neuralfoil_validation.py # NeuralFoil against the E387 in a third tunnel
+python rotor/zero_thrust_physics.py      # induced power, hub torque and transition as explanations for the zero-thrust gap (~10 s)
+python design/uncertainty_aware_design.py  # confidence-aware optimizer sweep
+python tools/rebuild_all_figures.py       # every figure, from the saved CSVs
 ```
 
 New to the project? Start with [`tutorial.ipynb`](tutorial.ipynb) - it designs an

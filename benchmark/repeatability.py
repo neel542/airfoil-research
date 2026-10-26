@@ -28,7 +28,7 @@ import os
 import numpy as np
 import pandas as pd
 
-OUT = os.path.dirname(os.path.abspath(__file__))
+OUT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))  # repo root (this script lives one folder down)
 DATA = os.path.join(OUT, "data")
 
 # model name of the repeat run -> the original run of the same physical model

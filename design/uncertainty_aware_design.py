@@ -1,5 +1,5 @@
 """
-uncertainty_aware_design.py
+An optimiser that is rewarded for staying where NeuralFoil is confident.
 =============================================================================
 THE NOVEL EXTENSION.
 
@@ -31,7 +31,7 @@ import pandas as pd
 import aerosandbox as asb
 import aerosandbox.numpy as anp
 
-OUT = os.path.dirname(os.path.abspath(__file__))
+OUT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))  # repo root (this script lives one folder down)
 os.makedirs(os.path.join(OUT, "figures"), exist_ok=True)
 os.makedirs(os.path.join(OUT, "data"), exist_ok=True)
 

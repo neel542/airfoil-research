@@ -39,6 +39,7 @@ Inputs  : data/hover_zero_thrust.csv  (hover_lowre_validation.py part 2)
 Outputs : data/zero_thrust_physics.csv        per measured point
           data/zero_thrust_hub_fit.csv        part 2 fits
 """
+import os
 import warnings
 
 import numpy as np
@@ -46,6 +47,8 @@ import pandas as pd
 
 import aerosandbox as asb
 import hover_lowre_validation as hv
+
+os.chdir(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))  # paths below are relative to the repo root
 
 warnings.filterwarnings("ignore")
 

@@ -118,7 +118,7 @@ from scipy.optimize import brentq
 import aerosandbox as asb
 import rotor_uncertainty as ru
 
-OUT = os.path.dirname(os.path.abspath(__file__))
+OUT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))  # repo root (this script lives one folder down)
 DATA = os.path.join(OUT, "data")
 FIG = os.path.join(OUT, "figures")
 HW = os.path.join(OUT, "hardware", "printed_rotor")
@@ -343,6 +343,7 @@ def xfoil_section(kf, refresh=False):
         pts = pd.read_csv(XFOIL_CACHE)
     else:
         from multiprocessing import Pool
+        sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "benchmark"))
         import xfoil_decomposition as xd
 
         if not os.path.exists(xd.XFOIL):

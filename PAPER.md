@@ -1017,7 +1017,7 @@ error travels through in the rest of this section, rather less.
 C_P = κ C_T^1.5/√2 + σ Cd0/8 across the four DA4002 pitches fails: the
 intercept goes negative, because the pitch swings the 75 percent station from
 4 to 16 degrees and neither κ nor Cd0 holds still. Govindarajan suggested two
-simpler routes, and `profile_power_check.py` tries both on the seven 9 inch
+simpler routes, and `rotor/profile_power_check.py` tries both on the seven 9 inch
 propellers inside the window. The first is to take the lowest-thrust point
 and treat all of its power as profile. The lowest thrust in the database is
 the DA4002 9x2.85, and it is not close to zero: C_T/σ is 0.14, and its

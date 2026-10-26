@@ -4,7 +4,7 @@ Five parts for the thrust stand. Four are the same blade at different pitches: t
 benchmark, measured in both tunnels), 40 mm chord, 240 mm across, two blades, no twist and no
 taper. The fifth is the bare hub.
 
-`printed_rotor.py` made these files and predicted what the stand should read **before anything was
+`rotor/printed_rotor.py` made these files and predicted what the stand should read **before anything was
 printed**. The predictions are in `data/printed_rotor_prediction.csv` (each rotor at its own pitch)
 and `data/printed_rotor_zero_thrust.csv` (the torque at zero thrust), drawn in
 `figures/37_printed_rotor_prediction.png`. `data/printed_rotor_design.json` records the SHA-256 of
@@ -27,7 +27,7 @@ Measure the motor's prop adapter with the caliper, the threaded part the propell
 The files have a 6.0 mm hole. If the adapter is different, regenerate them:
 
 ```bash
-.venv/bin/python printed_rotor.py --bore 5.0 --stl-only
+.venv/bin/python rotor/printed_rotor.py --bore 5.0 --stl-only
 ```
 
 The hole does not touch the blades, so the predictions still stand. Commit the new files anyway,

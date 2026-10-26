@@ -167,7 +167,7 @@ def test_bemt_inflow_bracket():
     degrees needs about twice it. An element that hit the cap fell back to
     zero inflow and sat fully stalled, silently. This test uses an analytic
     section so it runs in milliseconds rather than building a NeuralFoil table."""
-    sys.path.insert(0, ROOT)
+    sys.path.insert(0, os.path.join(ROOT, "rotor"))
     import rotor_uncertainty as ru
 
     class Analytic:
@@ -899,7 +899,7 @@ def test_paper_html_is_synchronized_with_paper_md():
         html = [m.group("value").strip().lower() for m in rx.finditer(_prose("PAPER.html"))]
         assert md == html, (
             f"{name}: PAPER.html is out of date with PAPER.md: {html} vs {md}. "
-            "Run `python build_paper_html.py`."
+            "Run `python tools/build_paper_html.py`."
         )
         seen += len(md)
     assert seen >= 6, \

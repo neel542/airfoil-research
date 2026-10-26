@@ -20,12 +20,15 @@ the two tunnels share.
 
 Output: data/ltpt_neuralfoil_validation.csv (per point)
 """
+import os
 import warnings
 
 import numpy as np
 import pandas as pd
 
 import aerosandbox as asb
+
+os.chdir(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))  # paths below are relative to the repo root
 
 warnings.filterwarnings("ignore")
 
