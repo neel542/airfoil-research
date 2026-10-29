@@ -1,0 +1,95 @@
+# Improving NeuralFoil's drag error: research plan
+
+Neel is not entering ISEF (decided 29 Oct 2026), so Claude drafted steps 1 and 3 to 5 at his
+request. Anything that uses this work must say so.
+Fill the steps in order. Don't start step 5 before steps 1 to 4 are written and dated.
+
+---
+
+## Step 1. The question (one sentence)
+What exactly will be improved, measured how, on what data?
+
+> Can a small correction, learned from one wind tunnel's measurements, cut NeuralFoil's mean drag
+> error on airfoils measured in the other tunnel, scored by benchmark/testbench.py?
+
+## Step 2. The baseline to beat (already measured, do not change)
+These are the numbers from the current paper. Any "improvement" is measured against them.
+
+Measured by `benchmark/testbench.py` (file `data/testbench_results.csv`), which also checks
+them against `data/clustered_statistics.csv`. Mean drag error, with 95% interval from resampling airfoils:
+
+| Measure | Princeton (learn on UIUC) | UIUC (learn on Princeton) | Both, 10-fold by airfoil |
+|---|---|---|---|
+| NeuralFoil mean drag error | 11.10% (10.28 to 12.01) | 12.32% (11.35 to 13.37) | 11.69% (11.09 to 12.30) |
+| NeuralFoil median drag error | 7.49% | 8.15% | 7.82% |
+| XFoil mean drag error | 11.37% | 12.90% | 12.10% |
+| Points / airfoils | 4,702 / 54 | 4,428 / 55 | 9,130 / 94 |
+| Repeat-run noise floor (same tunnel) | 3.7% | | |
+
+An idea counts as an improvement only if its "vs_neuralfoil" interval is entirely below zero.
+
+## Step 3. Why does the error happen? (your hypothesis)
+What do you think causes most of the error, and what evidence from your own results points to it?
+
+> Part of the error is a steady bias, not random scatter, and it depends on speed and lift the
+> same way in both tunnels (measured 29 Oct with data/xfoil_decomposition.csv):
+> - At Re 60,000 NeuralFoil's drag is too high by 12 to 13 percent on average in both tunnels.
+> - At Re 300,000 to 500,000 it is too low by 4 to 7 percent.
+> - At zero or negative lift it is too high by 10 to 14 percent; at mid lift (CL 0.3 to 0.9) slightly low.
+> Because NeuralFoil copies XFoil (errors correlate at r = 0.95), this is most likely XFoil's
+> transition and separation-bubble model being wrong in a consistent direction. A bias that repeats
+> across two independent tunnels should be learnable in one and removable in the other.
+> What argues against it: most of the error is scatter (the bias is small outside low Re and low lift),
+> and the two archives differ from each other by 10.9 percent, so some bias may be tunnel-specific.
+
+## Step 4. What will you change, and what do you predict?
+- The change:
+- Your prediction, as a number (for example "mean drag error drops from X% to Y%"):
+- What result would mean the idea failed:
+- Date written:
+
+> - The change: multiply NeuralFoil's drag by exp(f), where f is a small linear model of the
+>   log ratio log(CD_tunnel / CD_NeuralFoil), fitted by ridge least squares on the training tunnel only.
+>   Inputs use only what is known at prediction time, never the measured lift:
+>   A: log Re, NeuralFoil CL, CL squared, log Re times CL
+>   B: A plus camber and thickness
+>   C: B plus NeuralFoil's confidence (cannot be used on the locked LTPT test, which has no confidence)
+> - Prediction: the best of A to C lowers mean drag error by at least 1 percentage point in BOTH
+>   cross-tunnel tests (from 11.10 and 12.32 percent), with the vs_neuralfoil interval below zero;
+>   most of the gain at Re 60,000.
+> - Failure: the interval includes zero in either cross-tunnel test, or the error rises in one of them.
+> - Written 29 October 2026, before any correction was fitted.
+
+## Step 5. The rules of the test (write before running anything)
+- Which data is used to build or tune the change?
+- Which data is kept untouched for the final test? (another tunnel? airfoils never seen?)
+- How are error bars made? (whole airfoils resampled, as in the paper?)
+- How many tries are allowed before you report?
+
+> - Build and tune: only the UIUC->Princeton and Princeton->UIUC splits and the 10-fold airfoil CV.
+> - Locked: NASA Langley LTPT E387 (data/ltpt_neuralfoil_validation.csv, 234 points, a third tunnel
+>   never used for fitting). It is scored once, at the end, with the chosen model fitted on both tunnels.
+> - Error bars: resample whole airfoils (the bench). LTPT has one airfoil, so it gets a plain mean only.
+> - Tries: these three models, ridge strength fixed in advance at 1.0 on standardized inputs.
+>   No other models get added after seeing results; anything new is a new, dated plan entry.
+
+## Step 6. Run it
+Log every run here with the date, what changed, and the result. Failed runs stay in the log.
+
+| Date | What I ran | Result | Note |
+|---|---|---|---|
+
+## Step 7. What the result means
+Did it beat the baseline by more than the noise floor? On both tunnels? Where does it still fail?
+
+>
+
+## Step 8. Check before telling anyone
+- [ ] Numbers re-run from scratch match
+- [ ] Tested on data that was never used for tuning
+- [ ] A professor or mentor has looked at it
+- [ ] Only then: write up and think about publishing
+
+## Time budget (studies first)
+Hours per week I will give this:
+Day(s):
