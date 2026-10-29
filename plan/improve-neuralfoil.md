@@ -78,11 +78,27 @@ Log every run here with the date, what changed, and the result. Failed runs stay
 
 | Date | What I ran | Result | Note |
 |---|---|---|---|
+| 29 Oct | Corrections A, B, C on the bench (`benchmark/drag_correction.py`) | A: Princeton 11.10 -> 9.92% (change -1.19, interval -1.59 to -0.80); UIUC 12.32 -> 11.46% (-0.86, interval -1.56 to -0.11); 10-fold 11.69 -> 10.48% | B and C fail Princeton->UIUC: their intervals include zero |
+| 29 Oct | A by Re band, cross-tunnel | Re 60k: Princeton 16.8 -> 13.2%, UIUC 21.7 -> 17.9%. Re 300k to 500k (UIUC): 9.8 -> 10.2% and 9.2 -> 10.3%, slightly worse | |
+| 29 Oct | Locked test: A fitted on both tunnels, scored once on NASA LTPT E387 | 234 points: mean 13.0 -> 12.6%, median 11.2 -> 10.2%, better on 53% of points. By pressure: 15 psi 13.4 -> 12.5%, 10 psi 12.9 -> 12.0%, 5 psi 11.1 -> 11.5%, 3 psi 19.1 -> 19.5% | One airfoil, so no interval |
 
 ## Step 7. What the result means
 Did it beat the baseline by more than the noise floor? On both tunnels? Where does it still fail?
 
->
+> Partly confirmed. The simplest correction (A: speed and lift only) beats NeuralFoil in both
+> cross-tunnel tests, with the whole interval below zero both times, so the shared bias is real
+> and does carry from one tunnel to the other. But it misses the 1-point target on the UIUC side
+> (0.86 points), so the prediction as written failed there. Overall the gain is about 1.2 points,
+> 11.7 to 10.5 percent, roughly a tenth of the error. Most of the error is scatter that a smooth
+> correction cannot touch.
+> Where it works: slow speeds. At Re 60,000 the error drops by 3.6 to 3.8 points in both tunnels.
+> Where it hurts: the fastest UIUC band (Re 300,000 to 500,000) gets 0.4 to 1.1 points worse.
+> Adding camber, thickness or confidence (B, C) made the cross-tunnel result worse: those let the
+> model learn things specific to one tunnel. Simpler transferred better.
+> The locked third tunnel agrees only weakly: 13.0 to 12.6 percent on one airfoil, better at the
+> two higher pressures and slightly worse at the two lower ones. Not strong evidence either way.
+> Honest summary: a real but small improvement, concentrated at low Reynolds number. Next idea
+> should target the low-Re band directly, or stop correcting everywhere above Re 300,000.
 
 ## Step 8. Check before telling anyone
 - [ ] Numbers re-run from scratch match
