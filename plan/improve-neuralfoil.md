@@ -128,3 +128,26 @@ that it must hold in both cross-tunnel directions.
   (then the gate adds nothing).
 - Locked LTPT E387: it was already scored once under entry 1, so this is a second look, not a clean
   test. It is reported as such.
+
+### Entry 2 result (31 October 2026)
+
+| | Princeton (learn on UIUC) | UIUC (learn on Princeton) | Both, 10-fold |
+|---|---|---|---|
+| Entry 1, correction A everywhere | -1.19 (-1.59 to -0.80) | -0.86 (-1.56 to -0.11) | -1.21 |
+| Entry 2, A below Re 150,000 only | -0.82 (-1.14 to -0.50) | -0.92 (-1.30 to -0.50) | -0.96 |
+
+Against what was written down:
+- Both intervals below zero: yes.
+- At least 1.2 points better in both: no (0.82 and 0.92).
+- Gain over entry 1 at least 0.2 points: no. Princeton got 0.37 points worse, UIUC 0.06 better.
+  That meets the failure condition, so entry 2 failed.
+- Nothing above Re 150,000 changes: true, except that the Princeton "150k" band, which straddles the
+  cutoff, got worse (10.2 to 10.8 percent).
+- Re 60,000 still improves a lot (Princeton 16.8 to 12.5, UIUC 21.7 to 17.4 at 40k to 60k).
+- LTPT second look (not clean): mean 13.0 to 12.7 percent, better on only 41 percent of points.
+
+What it means: the gate removed the harm above Re 300,000 but also removed gains in the middle bands
+(Princeton 300k, 200k to 400k in UIUC), and the cutoff sits on a band where the correction misfires.
+Entry 1 (correct everywhere) is the better model. Keep it as the result: about 1.2 points, 11.7 to 10.5
+percent. A smooth correction tops out near 10 percent error; the rest is scatter that needs a different
+kind of idea, not another cutoff.

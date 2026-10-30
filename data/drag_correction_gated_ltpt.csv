@@ -1,0 +1,2 @@
+model,n_points,neuralfoil,corrected,neuralfoil_median,corrected_median,share_improved
+A_Re<=150000,234,0.129956,0.126514,0.111561,0.0991709,0.410256

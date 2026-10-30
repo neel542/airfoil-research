@@ -1,0 +1,4 @@
+candidate,split,mean_abs_errCD,ci_lo,ci_hi,median_abs_errCD,vs_neuralfoil,vs_nf_ci_lo,vs_nf_ci_hi,n_points,coverage,n_airfoils
+correction_A_Re<=150k,UIUC->Princeton,0.102796,0.0949071,0.112478,0.0716757,-0.00824256,-0.0113885,-0.00501028,4702,1,54
+correction_A_Re<=150k,Princeton->UIUC,0.113981,0.104313,0.124608,0.0790666,-0.00917412,-0.0130304,-0.00495362,4428,1,55
+correction_A_Re<=150k,airfoil-CV,0.107289,0.101456,0.114089,0.074111,-0.00962607,-0.0122553,-0.00698926,9130,1,94

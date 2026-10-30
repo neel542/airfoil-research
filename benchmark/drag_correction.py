@@ -29,6 +29,7 @@ import testbench as tb
 
 DATA = tb.DATA
 RIDGE = 1.0
+RE_GATE = 150000   # plan entry 2: correct only at Re <= 150,000
 FEATURES = {
     "A": ["logRe", "CL", "CL2", "logRe_CL"],
     "B": ["logRe", "CL", "CL2", "logRe_CL", "camber", "thickness"],
@@ -88,17 +89,24 @@ class Correction:
         return d.NF_CD.to_numpy(float) * np.exp(self.b0 + np.einsum("ij,j->i", Z, self.b))  # einsum: matmul raises false warnings on macOS numpy 2.0
 
 
-def candidate(feats):
+def candidate(feats, re_max=None):
+    """re_max: fit and apply only at Re <= re_max; everything above keeps NeuralFoil's drag."""
     def cand(train, test):
-        return Correction(feats).fit(with_shape(train)).predict(with_shape(test))
+        if re_max is None:
+            return Correction(feats).fit(with_shape(train)).predict(with_shape(test))
+        m = Correction(feats).fit(with_shape(train[train.Re <= re_max]))
+        out = test.NF_CD.to_numpy(float).copy()
+        low = (test.Re <= re_max).to_numpy()
+        out[low] = m.predict(with_shape(test[low]))
+        return out
     return cand
 
 
-def by_re(d, model):
+def by_re(d, model, re_max=None):
     """Error by Re band, cross-tunnel predictions for every point."""
     out = []
     for split, tr, te in tb.splits(d):
-        te = te.assign(cd_corr=candidate(FEATURES[model])(tr, te))
+        te = te.assign(cd_corr=candidate(FEATURES[model], re_max)(tr, te))
         out.append(te)
     p = pd.concat(out)
     p["err_nf"] = (p.NF_CD - p.WT_CD).abs() / p.WT_CD
@@ -107,17 +115,20 @@ def by_re(d, model):
                                                  corrected=("err_corr", "mean")).reset_index())
 
 
-def ltpt_test(model):
+def ltpt_test(model, re_max=None):
     d = tb.load()
+    d = d if re_max is None else d[d.Re <= re_max]
     m = Correction(FEATURES[model]).fit(with_shape(d))
     t = pd.read_csv(os.path.join(DATA, "ltpt_neuralfoil_validation.csv"))
     t = t[(t.cd > 0) & ~t.hysteresis.astype(bool) & ~t.turbulator.astype(bool)].copy()
     t["camber"], t["thickness"] = CAMBER["e387"], THICK["e387"]
     t["WT_CD"] = t.cd
     corr = m.predict(t)
+    if re_max is not None:
+        corr = np.where(t.Re <= re_max, corr, t.NF_CD.to_numpy(float))
     e_nf = np.abs(t.NF_CD - t.cd) / t.cd
     e_c = np.abs(corr - t.cd) / t.cd
-    return pd.DataFrame([dict(model=model, n_points=len(t), neuralfoil=e_nf.mean(), corrected=e_c.mean(),
+    return pd.DataFrame([dict(model=model + ("" if re_max is None else f"_Re<={re_max}"), n_points=len(t), neuralfoil=e_nf.mean(), corrected=e_c.mean(),
                               neuralfoil_median=e_nf.median(), corrected_median=e_c.median(),
                               share_improved=(e_c < e_nf).mean())])
 
@@ -143,3 +154,16 @@ if __name__ == "__main__":
     lt.to_csv(os.path.join(DATA, "drag_correction_ltpt.csv"), index=False, float_format="%.6g")
     print("\nLocked test, NASA Langley LTPT E387 (scored once):")
     print(lt.to_string(index=False))
+
+    # Entry 2 of the plan (written before running): correction A at Re <= 150,000 only.
+    gated = tb.run({"correction_A_Re<=150k": candidate(FEATURES["A"], RE_GATE)})
+    gated = gated[gated.candidate != "neuralfoil"]
+    gated.to_csv(os.path.join(DATA, "drag_correction_gated_bench.csv"), index=False, float_format="%.6g")
+    print("\nEntry 2: correction A at Re <= 150,000 only")
+    print(gated.assign(**{c: (gated[c] * 100).round(2) for c in pct})[["candidate", "split"] + pct].to_string(index=False))
+    rg = by_re(tb.load(), "A", RE_GATE)
+    rg.to_csv(os.path.join(DATA, "drag_correction_gated_by_Re.csv"), index=False, float_format="%.6g")
+    print(rg.assign(neuralfoil=(rg.neuralfoil * 100).round(1), corrected=(rg.corrected * 100).round(1)).to_string(index=False))
+    lg = ltpt_test("A", RE_GATE)
+    lg.to_csv(os.path.join(DATA, "drag_correction_gated_ltpt.csv"), index=False, float_format="%.6g")
+    print("LTPT second look (not a clean test):"); print(lg.to_string(index=False))
