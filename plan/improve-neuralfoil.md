@@ -276,3 +276,52 @@ once on LTPT as a third look (labelled as such).
 If it fails, as predicted: NeuralFoil's own boundary-layer state does not carry the scatter. Then what is
 left is measurement scatter and physics neither NeuralFoil nor XFoil represent, and the correction work
 stops at A: a 1.2-point gain, 11.7 to 10.5 percent.
+
+### Entry 4 result (31 October 2026)
+
+Features: NeuralFoil re-run at all 9,130 points. The re-computed drag matched the stored drag to 4e-14, so
+the geometry and settings are the same as in the validations. One caveat, not tested: the trailing-edge
+shape factor Hs has a long tail (a few points reach 38, where NeuralFoil has the layer separated), and it
+went in unchanged.
+
+Mean drag error, and the change from NeuralFoil in points (95 percent interval from resampling airfoils):
+
+| | Princeton (learn on UIUC) | UIUC (learn on Princeton) | Both, 10-fold |
+|---|---|---|---|
+| NeuralFoil | 11.10% | 12.32% | 11.69% |
+| A (speed and lift) | 9.92% (-1.19) | 11.46% (-0.86) | 10.48% (-1.21) |
+| F (A + boundary-layer state) | 10.23% (-0.87) | 11.28% (-1.04) | 10.20% (-1.49) |
+| G (F + how fast transition moves) | 10.31% (-0.79) | 11.22% (-1.09) | 10.03% (-1.67) |
+
+Against what was written down:
+- P1 (neither reaches 0.5 points beyond A): true. F gains 0.28 and G 0.46 in the 10-fold test. The expected
+  range was 0.1 to 0.4, so G is above it. Both fail the success rule, which needs both cross-tunnel
+  directions: they are better than A learning on Princeton and testing on UIUC, and WORSE than A learning
+  on UIUC and testing on Princeton.
+- P2 (G within 0.15 of F): false. G is 0.18 better, just outside.
+- P3 (within-polar share above 70 percent after G): true, 78.6 percent (A was 77.9). The scatter inside a
+  polar did not shrink.
+- P4 (both within-polar correlations under 0.15): false. Inside a polar, the size of the leftover error
+  correlates -0.22 with the suction-side transition location and -0.17 with how fast transition moves.
+  Where transition sits well forward, or is moving fast, the error is larger.
+- P5 (noise under 15 percent of within-polar variance): true, about 5 percent. Two repeat runs of one model
+  differ by 3.7 percent, which is a single-measurement noise of about 0.033 in log units, against a
+  leftover within-polar sd of about 0.14. Measurement noise is not what is left over. (Only two model pairs
+  back this, so it is a rough figure.)
+
+What it means:
+- By the success rule written in advance, this fails, and the headline result stays correction A:
+  11.7 to 10.5 percent.
+- My written interpretation of a failure was too strong. I said the boundary-layer state "does not carry the
+  scatter". The data say it carries a little of it inside a mix of the two tunnels (0.3 to 0.5 points) and that
+  gain does not transfer reliably from one tunnel to the other.
+- The within-polar correlations are with the SIZE of the error, not its direction. A correction can only shift
+  the average error, and the average does not move with transition location. The size does. That points
+  away from a correction and toward an error bar: the boundary-layer state may tell a designer where
+  NeuralFoil is least reliable, which is a different and probably better use of it.
+- It is not measurement noise (5 percent), and it is not airfoil shape (entry 3). What remains is how the
+  flow itself behaves from one angle to the next in ways neither NeuralFoil nor XFoil carries.
+
+Next (not run; would need a new dated entry): add the boundary-layer state to the fitted error model
+(benchmark/fit_error_model.py), which predicts the size of the drag error, and test whether it predicts
+held-out error better across tunnels than the confidence score alone.

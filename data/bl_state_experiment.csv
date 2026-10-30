@@ -1,0 +1,21 @@
+analysis,item,value
+"1 change from NeuralFoil, 10-fold (points)",correction_A,-1.2099
+"1 change from NeuralFoil, 10-fold (points)",correction_F,-1.48991
+"1 change from NeuralFoil, 10-fold (points)",correction_G,-1.66602
+"1 gain beyond A, 10-fold (points)",correction_F,0.280015
+"1 gain beyond A, 10-fold (points)",correction_G,0.456121
+1 lower than A in both directions,correction_F,0
+1 lower than A in both directions,correction_G,0
+1 both cross-tunnel intervals below zero,correction_F,1
+1 both cross-tunnel intervals below zero,correction_G,1
+3 within-polar share of leftover squared error,after A,0.779272
+3 sd of leftover residual (log units),after A,0.162579
+3 within-polar share of leftover squared error,after F,0.789933
+3 sd of leftover residual (log units),after F,0.158933
+3 within-polar share of leftover squared error,after G,0.786253
+3 sd of leftover residual (log units),after G,0.15735
+4 within-polar spearman of |residual| with,xs,-0.219835
+4 within-polar spearman of |residual| with,jump_s,-0.174493
+"5 repeat runs, mean relative difference",two runs of one model,0.0368577
+5 single-measurement noise (log units),from repeat pairs,0.0326643
+5 share of within-polar variance noise could explain,noise var / within var,0.0517999

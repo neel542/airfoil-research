@@ -40,3 +40,16 @@ def test_residual_scatter_matches_record():
     assert abs(t.loc["within_polar", "value"] - 0.78) < 0.01
     assert abs(t.loc["between_airfoil", "value"] - 0.083) < 0.005
     assert abs(t.loc["thickness", "value"] - 0.413) < 0.005
+
+
+def test_boundary_layer_state_matches_record():
+    """Plan entry 4: F and G reproduce, and the features cover every point."""
+    import bl_state_experiment as bl
+    bl_state = pd.read_csv(os.path.join(ROOT, "data", "nf_bl_state.csv"))
+    assert len(bl_state) == 9130 and bl_state.notna().all().all()
+    tb.load = bl.load
+    res = tb.run({"G": bl.cand(bl.G_FEATS)}).set_index("split")
+    saved = pd.read_csv(os.path.join(ROOT, "data", "bl_state_bench.csv"))
+    saved = saved[saved.candidate == "correction_G"].set_index("split")
+    for split in saved.index:
+        assert abs(res.loc[split, "mean_abs_errCD"] - saved.loc[split, "mean_abs_errCD"]) < 1e-6
