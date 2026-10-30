@@ -109,3 +109,22 @@ Did it beat the baseline by more than the noise floor? On both tunnels? Where do
 ## Time budget (studies first)
 Hours per week I will give this:
 Day(s):
+
+---
+
+## Entry 2 (written 31 October 2026, before running)
+
+Why: entry 1 showed correction A helps below Re 150,000 (Re 60k: -3.6 to -3.8 points) and hurts
+above Re 300,000 (+0.4 to +1.1 points). I saw those band results before writing this, so the 150,000
+cutoff is informed by data from the same tunnels. It is not blind. The only blind check left is
+that it must hold in both cross-tunnel directions.
+
+- The change: correction A (log Re, NeuralFoil CL, CL squared, log Re times CL), fitted ONLY on
+  training points with Re <= 150,000, applied ONLY to test points with Re <= 150,000. Everything above
+  150,000 keeps NeuralFoil's drag unchanged. Ridge 1.0. Nothing else varied.
+- Prediction: the vs_neuralfoil interval is below zero in both cross-tunnel tests; the mean improves
+  by at least 1.2 points in both (entry 1 gave 1.19 and 0.86); no Re band above 150,000 changes.
+- Failure: either cross-tunnel interval includes zero, or the gain over entry 1 is under 0.2 points
+  (then the gate adds nothing).
+- Locked LTPT E387: it was already scored once under entry 1, so this is a second look, not a clean
+  test. It is reported as such.
