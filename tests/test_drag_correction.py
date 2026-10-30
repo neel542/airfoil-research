@@ -29,3 +29,14 @@ def test_gated_correction_matches_record():
     saved = pd.read_csv(os.path.join(ROOT, "data", "drag_correction_gated_bench.csv")).set_index("split")
     for split in saved.index:
         assert abs(res.loc[split, "mean_abs_errCD"] - saved.loc[split, "mean_abs_errCD"]) < 1e-6
+
+
+def test_residual_scatter_matches_record():
+    """Plan entry 3: what the error is made of after correction A."""
+    import residual_scatter as rs
+    rs.main.__globals__["print"] = lambda *a, **k: None
+    rs.main()
+    t = pd.read_csv(os.path.join(ROOT, "data", "residual_scatter.csv")).set_index("item")
+    assert abs(t.loc["within_polar", "value"] - 0.78) < 0.01
+    assert abs(t.loc["between_airfoil", "value"] - 0.083) < 0.005
+    assert abs(t.loc["thickness", "value"] - 0.413) < 0.005

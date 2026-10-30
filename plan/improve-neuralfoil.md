@@ -187,3 +187,41 @@ What would mean the predictions were wrong, and what to do:
   chase an airfoil-level variable (shape, edge radius, trailing-edge thickness) next.
 - P3 false: the scatter is not tied to lift extremes; look at angle of attack relative to stall.
 - P4 false (E gains 0.4 or more in both directions): a more flexible smooth model is worth pursuing.
+
+### Entry 3 result (31 October 2026)
+
+What the leftover error is made of (correction A, out-of-fold, 9,130 points, 94 airfoils, 667 polars at about 14 points each):
+
+| Part of the residual | Share of the sum of squares |
+|---|---|
+| An offset per airfoil | 8% |
+| An offset per polar (one airfoil at one Re) | 14% |
+| Scatter inside a polar | 78% |
+
+Against what was written down:
+- P1 (within-polar over 50 percent, between-airfoil under 25 percent): true, 78 and 8.
+  Small caveat: with about 14 points per polar, a polar's own mean soaks up some scatter, so the 14
+  percent between-polar share is partly noise (roughly 6 points of it).
+- P2 (both correlations under 0.3): half wrong. Camber 0.23, thickness 0.41. A thicker airfoil tends to
+  have its drag under-predicted by NeuralFoil's corrected value (about 0.9 percent per extra 1 percent
+  of chord thick). Post-hoc, per tunnel (not in the plan): thickness 0.28 in Princeton, 0.48 in UIUC,
+  same sign in both. But the airfoil offset is only 8 percent of the residual: removing every airfoil's
+  offset entirely would lower the mean error from 10.56 to 10.29 percent, at most 0.27 points.
+- P3 (CL extremes hold over 35 percent): false, but close. The 26 percent of points with CL at most 0 or
+  at least 1.2 hold 32 percent of the squared residual. Mean error by lift: 12.0 percent at CL below 0,
+  8.7 percent at CL 0.3 to 0.6, 13.2 percent above 1.2. A mild U shape, not a concentration.
+- P4 (E gains under 0.4 points beyond A; E worse than A in one direction): true. E gains 0.10 points
+  beyond A in the 10-fold test (-1.31 versus -1.21). E is slightly worse than A for Princeton (-1.14
+  versus -1.19) and better for UIUC (-1.18 versus -0.86).
+
+What it means:
+- A smooth correction on speed and lift has hit its limit at about 1.2 points. More flexible terms add
+  0.1.
+- About four fifths of the error left is scatter inside a single polar: the same airfoil at the same
+  speed, angle to angle. Repeat runs in one tunnel disagree by 3.7 percent, so noise accounts for some
+  of it, but not for a 10 percent error.
+- Airfoil shape is not the lever either: even a perfect shape-based correction is worth 0.3 points.
+- Where the scatter comes from is the open question. The laminar-run test (benchmark/laminar_run.py)
+  already ruled out one cause. The next candidates are the angle-to-angle jumps where transition or the
+  separation bubble moves, which would need NeuralFoil's or XFoil's per-point boundary-layer state as
+  input, not a smooth function of Re and CL.

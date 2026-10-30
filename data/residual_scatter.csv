@@ -1,0 +1,22 @@
+analysis,item,value
+1 share of residual sum of squares,between_airfoil,0.0830295
+1 share of residual sum of squares,between_polar,0.137698
+1 share of residual sum of squares,within_polar,0.779272
+1 context,points per polar,13.6882
+1 context,sd of residual (log units),0.162579
+2 spearman of airfoil mean residual,camber,0.229477
+2 spearman of airfoil mean residual,thickness,0.412968
+3 CL extremes,share of points,0.262212
+3 CL extremes,share of squared residual,0.321284
+3 mean |residual| by CL band (percent),"(-5.0, 0.0]",12.0328
+3 mean |residual| by CL band (percent),"(0.0, 0.3]",8.80505
+3 mean |residual| by CL band (percent),"(0.3, 0.6]",8.68348
+3 mean |residual| by CL band (percent),"(0.6, 0.9]",10.0203
+3 mean |residual| by CL band (percent),"(0.9, 1.2]",11.4429
+3 mean |residual| by CL band (percent),"(1.2, 5.0]",13.163
+"4 change from NeuralFoil, points",correction_A UIUC->Princeton,-1.18594
+"4 change from NeuralFoil, points",correction_A Princeton->UIUC,-0.858257
+"4 change from NeuralFoil, points",correction_A airfoil-CV,-1.2099
+"4 change from NeuralFoil, points",correction_E UIUC->Princeton,-1.14121
+"4 change from NeuralFoil, points",correction_E Princeton->UIUC,-1.1768
+"4 change from NeuralFoil, points",correction_E airfoil-CV,-1.30695
