@@ -225,3 +225,54 @@ What it means:
   already ruled out one cause. The next candidates are the angle-to-angle jumps where transition or the
   separation bubble moves, which would need NeuralFoil's or XFoil's per-point boundary-layer state as
   input, not a smooth function of Re and CL.
+
+---
+
+## Entry 4 (written 31 October 2026, before running)
+
+Question: does NeuralFoil's own picture of the boundary layer explain the scatter that is left after
+correction A? Entry 3 found 78 percent of the leftover squared error is scatter inside one polar. The
+paper (section 3.2, benchmark/laminar_run.py) found that drag error is larger where XFoil's laminar run on the
+suction side is short (partial rank correlation -0.17, strongest at Re below 130,000, about -0.28). Entry 4
+puts that idea inside the correction instead of correlating it, and adds a measure of how fast transition
+moves from one angle to the next.
+
+Inputs, all computed by NeuralFoil only (fast, and known when you make a prediction; XFoil is not used):
+- xs, xp: transition location on the suction and pressure side. The surface is chosen by the sign of
+  NeuralFoil's own CL (suction = upper if CL >= 0, lower if CL < 0), never by "upper", because the paper
+  showed the other choice reverses the sign of the effect below zero lift.
+- Hs, logtheta_s: shape factor and log momentum thickness at the trailing-edge station (the last of
+  NeuralFoil's 32 stations) on the suction side.
+- jump_s, jump_p: |d xtr / d alpha| on the suction and pressure side, from NeuralFoil at alpha plus and
+  minus 0.5 degrees (a fixed stencil, so it does not depend on how the tunnel spaced its angles).
+
+Candidates (ridge 1.0 on standardized inputs, same target log(CD_tunnel / CD_NeuralFoil), bench splits):
+- F = A + xs, xs^2, xp, Hs, logtheta_s
+- G = F + jump_s, jump_p, xs * logRe
+
+Not used: LTPT (already scored twice), NeuralFoil's confidence (tried in C, failed to transfer).
+
+Checks before anything is scored: the features come from re-running NeuralFoil with the validation scripts'
+settings (large model, n_crit 9, free transition); every re-computed CD must match the stored NF_CD to
+within one part in a million, or the run stops.
+
+Predictions:
+- P1: F and G both fail the success rule: neither is 0.5 points or more better than A in the 10-fold
+  test (A is -1.21, so neither reaches -1.71). Expected gain beyond A is 0.1 to 0.4 points, because
+  a rank correlation of -0.17 explains about 3 percent of variance.
+- P2: G is within 0.15 points of F in the 10-fold test (the jump terms add nothing).
+- P3: after G the within-polar share of the leftover squared error is still above 70 percent.
+- P4: inside a polar (polar means removed), the Spearman correlation between |residual| and xs, and
+  between |residual| and jump_s, are each below 0.15 in size.
+- P5: measurement noise explains under 15 percent of the within-polar variance. Estimate: the two paired
+  repeat models (data/repeatability_same_model.csv) give a single-measurement noise of about 0.033 in
+  log units, against a within-polar residual sd of about 0.14.
+
+Success rule: F or G is at least 0.5 points better than A in the 10-fold test, lower than A in both
+cross-tunnel directions, and has both cross-tunnel intervals below zero.
+
+If it succeeds: the boundary-layer state is worth adding to the correction; fit on both tunnels and score
+once on LTPT as a third look (labelled as such).
+If it fails, as predicted: NeuralFoil's own boundary-layer state does not carry the scatter. Then what is
+left is measurement scatter and physics neither NeuralFoil nor XFoil represent, and the correction work
+stops at A: a 1.2-point gain, 11.7 to 10.5 percent.
