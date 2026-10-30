@@ -151,3 +151,39 @@ What it means: the gate removed the harm above Re 300,000 but also removed gains
 Entry 1 (correct everywhere) is the better model. Keep it as the result: about 1.2 points, 11.7 to 10.5
 percent. A smooth correction tops out near 10 percent error; the rest is scatter that needs a different
 kind of idea, not another cutoff.
+
+---
+
+## Entry 3 (written 31 October 2026, before running)
+
+Why: entries 1 and 2 say a smooth correction on speed and lift is worth about 1.2 points and no more.
+After it, the mean drag error is about 10.5 percent. Before trying another correction, find out what
+the remaining error is made of. The decomposition below is run on the out-of-fold residuals of
+correction A (airfoil-CV, so no residual comes from a model that saw its own point).
+
+Residual r = log(CD_tunnel / CD_corrected), corrected by A, 10-fold by airfoil.
+
+Question: how much of r is a constant offset per airfoil, how much per polar (one airfoil at one Re),
+and how much scatter inside a polar? Does the offset follow airfoil shape? Where in lift and Re does the
+scatter sit? Would a more flexible smooth correction (E) get past A?
+
+- Analysis 1: sums of squares of r split into between-airfoil, between-polar-within-airfoil, within-polar.
+- Analysis 2: the Spearman correlation of each airfoil's mean r with its camber and with its thickness.
+- Analysis 3: share of the total squared residual coming from points with CL <= 0 or CL >= 1.2.
+- Candidate E: A plus CL^3, logRe^2, logRe^2 * CL, logRe * CL^2. Same ridge (1.0), same splits, bench scoring.
+  LTPT is not touched in this entry (it has already been scored twice).
+
+Predictions:
+- P1: within-polar scatter is more than 50 percent of the residual sum of squares, and between-airfoil
+  is under 25 percent.
+- P2: both Spearman correlations in analysis 2 are below 0.3 in size.
+- P3: the points with CL <= 0 or CL >= 1.2 (about 26 percent of all points) hold more than 35 percent
+  of the squared residual.
+- P4: E gains less than 0.4 points beyond A in the 10-fold test (E's change from NeuralFoil is above
+  -1.6, where A's is -1.21), and E is worse than A in at least one of the two cross-tunnel directions.
+
+What would mean the predictions were wrong, and what to do:
+- P1 false (airfoil or polar offsets are large): the error is mostly predictable per airfoil, so
+  chase an airfoil-level variable (shape, edge radius, trailing-edge thickness) next.
+- P3 false: the scatter is not tied to lift extremes; look at angle of attack relative to stall.
+- P4 false (E gains 0.4 or more in both directions): a more flexible smooth model is worth pursuing.
