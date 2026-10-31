@@ -355,6 +355,34 @@ file to the data files (25 tests). The config-driven
 tool (`design/airfoil_designer.py` + `configs/*.yaml`) reproduces any mission design
 from a single spec.
 
+## 9. Correction test bench
+
+`benchmark/testbench.py` fixes the points (the 9,130 matched points of
+`data/xfoil_decomposition.csv`), the three splits (UIUC to Princeton, Princeton
+to UIUC, 10-fold by airfoil with seed 0 and shared airfoils in one fold) and the
+score (mean |CD_pred - CD_tunnel| / CD_tunnel, 95% interval from 2,000 resamples
+of whole airfoils, improvement over NeuralFoil scored on the same resamples). A
+candidate is a function of (train, test) and sees only the training part. The
+baseline is asserted against `data/clustered_statistics.csv` on every run.
+
+Corrections multiply NeuralFoil's drag by exp(f), with f a ridge regression
+(penalty 1.0 on standardized inputs, fixed in advance) of log(CD_tunnel /
+CD_NeuralFoil) on features known at prediction time: log10(Re / 1e5), the
+NeuralFoil lift, its square and their product (A); plus camber and thickness
+(B); plus confidence (C); plus lift cubed, log Re squared and two cross terms
+(E); plus NeuralFoil's own boundary-layer state (F, G). That state comes from
+re-running NeuralFoil (large, n_crit 9, free transition) at the validation
+geometries and checking that the drag reproduces the stored value to 1e-6:
+transition location on each surface, the trailing-edge shape factor and
+log momentum thickness, and |d x_tr / d alpha| from a +/- 0.5 degree stencil,
+with the suction side chosen by the sign of NeuralFoil's own lift.
+
+Each experiment is a dated entry in `plan/improve-neuralfoil.md`, committed with
+its predictions and failure rule before the script that scores it was run. The
+entry 5 error-bar models are the Gamma regressions of `benchmark/fit_error_model.py`
+with the boundary-layer inputs added, scored by held-out Gamma deviance with the
+same splits.
+
 ## Key limitations
 
 - Absolute L/D values are surrogate estimates with an empirically measured error

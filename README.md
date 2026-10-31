@@ -45,6 +45,7 @@ Full paper: `PAPER.md` or `PAPER.html`. Short version: `SUMMARY.md`. Methods:
 | `rotor/` | What does that error cost a rotor and an aircraft? | Finished side study |
 | `design/` | Can we design better low-speed airfoils with it? | Earlier work; the manufacturing result is withdrawn |
 | `tools/` | Rebuild every figure, and the HTML paper | Support |
+| `plan/` | What was tried to fix the error, written down before each run | `plan/improve-neuralfoil.md`, five dated entries |
 | `data/`, `figures/` | Every result the paper quotes | Checked by `tests/` |
 
 The benchmark, in the order the scripts run:
@@ -59,6 +60,11 @@ The benchmark, in the order the scripts run:
 4. **Honest error bars and the noise floor:** `benchmark/clustered_statistics.py`, `benchmark/repeatability.py`.
 5. **Predict the error of any new prediction:** `benchmark/fit_error_model.py`.
 6. **Ideas that were tested and did not explain the error:** `benchmark/laminar_run.py`.
+7. **Try to fix the error, with the rules written first:** `benchmark/testbench.py` (the fixed
+   bench), `benchmark/drag_correction.py`, `benchmark/residual_scatter.py`,
+   `benchmark/nf_boundary_layer.py` then `benchmark/bl_state_experiment.py`,
+   `benchmark/bl_error_bar_experiment.py`, and `benchmark/drag_correction_figure.py`. One correction
+   survives (11.7 to 10.5 percent mean drag error); the others are in the plan file with their failures.
 
 Run any script from the repo root, for example `python benchmark/fit_error_model.py`.
 `pytest tests/` checks that every number in the paper still matches the data.
@@ -545,6 +551,13 @@ python benchmark/xfoil_decomposition.py       # XFoil at all 9,130 clean points:
 python benchmark/clustered_statistics.py      # airfoil-cluster bootstrap intervals + correlation anatomy
 python benchmark/fit_error_model.py           # cross-validated Gamma GLM error model -> data/error_model_fit.json
 python benchmark/repeatability.py             # same model, same tunnel, twice: the 3.7% noise floor
+python benchmark/testbench.py                # the fixed test bench and NeuralFoil's baseline on it
+python benchmark/drag_correction.py           # correction A, B, C, the Re gate; the locked LTPT look
+python benchmark/residual_scatter.py          # what the error left after correction A is made of
+python benchmark/nf_boundary_layer.py         # NeuralFoil's boundary-layer state at all 9,130 points (~2 min)
+python benchmark/bl_state_experiment.py       # does that state help the correction? (no, see the plan)
+python benchmark/bl_error_bar_experiment.py   # does it help the error model? (no, see the plan)
+python benchmark/drag_correction_figure.py    # figure 39
 python rotor/rotor_uncertainty.py         # the drag error through a hover rotor and a weight loop (~17 min)
 python rotor/rotor_uncertainty.py --explore     # just the rotor sizing sweep
 python rotor/rotor_uncertainty.py --from-cache  # redo the closure and figures, reuse the Monte Carlo
@@ -594,6 +607,8 @@ data/
   hover_swirl.csv          # swirl estimate against the power shortfall, CT/sigma 0.02 to 0.10
   langley_ltpt_e387/       # TM-4062 PDF (SHA-256 in source.json), text layer, parsed e387_ltpt.csv
   ltpt_neuralfoil_validation.csv # NeuralFoil against LTPT, per point
+  testbench_results.csv / drag_correction_*.csv / residual_scatter.csv   # the test bench and every correction tried
+  nf_bl_state.csv / bl_state_*.csv / bl_error_bar_*.csv   # NeuralFoil's boundary-layer state, and what it did and did not help
   zero_thrust_physics.csv  # per zero-thrust point: induced bound, n_crit ratios, matching transition
   zero_thrust_hub_fit.csv  # CP = hub + per-blade * sigma at each test and tip Re
   uncertainty_aware_sweep.csv
@@ -615,4 +630,5 @@ figures/
   36_bemt_validation.png   # the solver against measured propellers with a known section
   37_printed_rotor_prediction.png   # stand readings predicted for the printed E387 rotors
   38_hover_lowre.png       # measured hover rotors: zero-thrust profile power, power error over the sweep
+  39_drag_correction.png   # every correction tried on the drag error, and what the best one leaves behind
 ```

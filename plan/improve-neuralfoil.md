@@ -214,6 +214,11 @@ Against what was written down:
   beyond A in the 10-fold test (-1.31 versus -1.21). E is slightly worse than A for Princeton (-1.14
   versus -1.19) and better for UIUC (-1.18 versus -0.86).
 
+Erratum (31 October 2026, found while writing the paper): the "10.56 to 10.29 percent" above is the mean
+absolute LOG residual, not the paper's mean relative drag error. In the paper's own measure, removing every
+airfoil's offset takes 10.48 to 10.22 percent, 0.26 points. The conclusion (at most about a quarter of a
+point) stands.
+
 What it means:
 - A smooth correction on speed and lift has hit its limit at about 1.2 points. More flexible terms add
   0.1.

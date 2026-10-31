@@ -51,7 +51,10 @@ the UIUC data and vanishes in the Princeton data, and this paper shows why.
 A fitted model reads confidence, Reynolds number, angle and camber and
 predicts held-out drag error 14 percent better than a flat guess, in either
 tunnel. Running the model on the measured shape of each Princeton wing,
-instead of its drawing, removes about a sixth of the drag error. Carried
+instead of its drawing, removes about a sixth of the drag error. A correction learned in one tunnel and applied in the other trims the
+mean drag error from 11.7 to 10.5 percent, mostly below Re = 150,000. Six
+further corrections and one change to the error model, each written down
+before it was run, did not add a reliable second gain. Carried
 into a hovering rotor whose blade sits entirely inside the benchmark's
 Reynolds range, the drag error arrives divided by three, because two thirds
 of hover power is induced. Close the design loop, letting battery mass feed
@@ -171,6 +174,11 @@ that was measured.
 6. **A working design pipeline** for worst-case, multi-objective and
    build-tolerant airfoils, plus a version that uses the measured confidence
    calibration inside the design loop.
+7. **A test of whether the error can be corrected.** A correction learned in
+   one tunnel and applied in the other, scored on a fixed bench, with every
+   attempt written down before it ran. One survives and is worth 1.2 points of
+   drag error. Six others and one change to the error model did not add a
+   reliable second gain, and the failures are reported.
 
 ---
 
@@ -325,6 +333,38 @@ held out, where an airfoil in both tunnels is held out of both at once, plus
 training on one tunnel and testing on the other in both directions. The
 baselines are a flat constant and the six-bin confidence table from section
 3.1, both refitted on each training fold.
+
+### 2.9 A test bench, and rules written before each test
+
+Fit a correction to the points you then score it on and the result means
+nothing. With 94 airfoils it's easy to fool yourself even when you don't mean
+to. So the corrections in section 3.10 run on a fixed bench. It holds the
+9,130 matched points of section 2.7 and three splits that never change: learn
+on the UIUC tunnel and score Princeton, learn on Princeton and score UIUC, and
+10-fold cross-validation with whole airfoils held out. An airfoil measured in
+both tunnels stays in one fold. The score is the paper's own, the absolute
+difference between predicted and measured drag divided by the measured drag.
+The intervals resample whole airfoils 2,000 times, as in section 2.8, and so
+does the improvement over NeuralFoil. An idea counts as better only if the
+whole interval on that improvement sits below zero. A third tunnel stays
+locked away from all fitting: NASA Langley's LTPT table for the E387, 234
+clean points on one airfoil, scored once.
+
+Every attempt was written into a plan file before it ran. Each entry names the
+data it may touch, gives a number for the prediction, and says what result
+would count as failure. Each was committed to the project repository before
+anything was computed (commits 21d241a, 0e0d6cd, 62ba589, e2456b9 and be6c153),
+so the history shows the order. Results go into the same file, misses
+included.
+
+A correction multiplies NeuralFoil's drag by exp(f). Here f is a ridge
+regression of the log of measured over predicted drag, fitted on the training
+tunnel only, with a penalty of 1.0 on standardized inputs that was fixed before
+any result existed and never tuned. Its inputs are things known when a design
+is evaluated, never the measured lift. Correction A uses log10 of Re,
+NeuralFoil's own lift, that lift squared, and log Re times that lift. The others add
+inputs, named where they appear.
+
 
 ---
 
@@ -1298,6 +1338,118 @@ experiment shows something worth knowing on its own: trusting the surrogate
 blindly lands you, by default, in the region where it's known to be least
 reliable, and leaving that region is nearly free.
 
+### 3.10 Can a correction learned in one tunnel fix the other?
+
+**Why it might work.** Section 3.3 found that the drag error is XFoil's, so a
+bigger network won't fix it. But part of the error is a steady bias, and it
+leans the same way in both tunnels. NeuralFoil's drag is too high by 12 to 13
+percent on average at Re = 60,000. From Re = 300,000 up it's too low by 4 to 7
+percent. And at zero or negative lift it's too high by 10 to 14 percent. A bias that
+repeats in two independent tunnels ought to be learnable in one and removable
+in the other. Against that, most of the error looks like scatter, and the two
+archives disagree with each other by 10.9 percent, so some of the bias may
+belong to one tunnel.
+
+**The first test.** The simplest correction, A, works in both directions.
+Learn on UIUC, and Princeton's mean drag error falls from 11.10 to 9.92
+percent, a change of 1.19 points with a 95 percent interval of 0.80 to 1.59.
+Learn on Princeton, and UIUC's falls from 12.32 to 11.46, a change of 0.86
+points (interval 0.11 to 1.56). Pooled, with whole airfoils held out, it goes
+from 11.69 to 10.48. Both cross-tunnel intervals clear zero, so the bias is
+real and it travels. The prediction written beforehand had asked for at least
+a full point in both directions, and the UIUC side missed it by 0.14.
+
+The gain sits at the slow end. At Re = 60,000 the error falls from 16.8 to
+13.2 percent in Princeton and from 21.7 to 17.9 in UIUC. At the fast end it
+backfires: UIUC's band from Re = 300,000 to 400,000 goes from 9.8 to 10.2
+percent, and its band from 400,000 to 500,000 from 9.2 to 10.3. Fitted on both
+tunnels and scored once on the locked NASA Langley E387, the mean drag error
+went from 13.0 to 12.6 percent and the median from 11.2 to 10.2. It was better on 53
+percent of the 234 points. One airfoil gets no interval, so that is weak
+support, not strong.
+
+**Six more corrections, none of which did better.** Each row below was a
+separate attempt with its own written rule. Changes are in percentage points
+from NeuralFoil's drag error, so below zero is better.
+
+| Correction | Learn UIUC, score Princeton | Learn Princeton, score UIUC | 10-fold | The written rule |
+|---|---|---|---|---|
+| A: Re and lift | −1.19 | −0.86 | −1.21 | Missed by 0.14 on the UIUC side |
+| B: A plus camber, thickness | −0.86 | −0.40 | −1.25 | Failed, UIUC interval includes zero |
+| C: B plus confidence | −0.68 | −0.47 | −1.32 | Failed, UIUC interval includes zero |
+| A below Re 150,000 only | −0.82 | −0.92 | −0.96 | Failed, no gain over A |
+| E: more flexible Re and lift | −1.14 | −1.18 | −1.31 | 0.10 over A, as predicted |
+| F: A plus boundary-layer state | −0.87 | −1.04 | −1.49 | Failed, under 0.5 over A, worse learning on UIUC |
+| G: F plus transition movement | −0.79 | −1.09 | −1.67 | Failed, under 0.5 over A, worse learning on UIUC |
+
+Adding camber and thickness (B), and then NeuralFoil's confidence (C), made
+the cross-tunnel result worse. Learning on Princeton and scoring UIUC, their
+intervals ran from −1.28 to +0.63 and from −1.34 to +0.55 points, so they
+couldn't be told apart from no correction at all. Extra inputs let the model
+learn quirks of one tunnel, and the simpler model traveled better. Applying A
+only below Re = 150,000 removed the harm at the fast end but threw away the
+gains in the middle bands, and learning on UIUC it ended 0.37 points worse than
+A in Princeton. The 150,000 cutoff was picked after seeing A's results by
+band, so even that test was informed rather than blind. Letting the correction
+bend more, with lift cubed, Re squared and two cross terms (E), added 0.10
+points. A smooth function of speed and lift is used up.
+
+The last pair asked NeuralFoil itself what it thinks the boundary layer is
+doing. At every point it reports where transition sits on each surface, the
+shape and thickness of the layer at the trailing edge, and how fast transition
+moves over half a degree either side. Those went into F and G. The suction
+side was chosen by the sign of NeuralFoil's own lift, because section 3.3
+showed that always taking the upper surface reverses the sign of the effect
+below zero lift. Pooled, F and G gain 0.28 and 0.46 points over A, short of the half point
+the rule asked for. Learning on UIUC they do worse than A in Princeton, 10.23
+and 10.31 percent against 9.92, and learning on Princeton they do slightly
+better. The gain doesn't carry from tunnel to tunnel.
+
+**What is left.** After A, the leftover error breaks into three parts. An
+offset per airfoil is 8 percent of the squared error. An offset per polar, one
+airfoil at one Reynolds number, is 14 percent. Scatter inside a polar, from one
+angle to the next, is 78 percent, across 667 polars of about 14 points each.
+Remove every airfoil's offset perfectly and the mean error would only fall from
+10.48 to 10.22 percent. The offsets do follow shape a little: thicker sections
+have their drag under-predicted, with a rank correlation of 0.41 against
+thickness and 0.23 against camber. But that's a small part of the error. Nor is
+it measurement noise. Repeat runs of one model differ by 3.7 percent in drag,
+and that accounts for only about 5 percent of the scatter inside a polar,
+though only two repeat pairs back the figure.
+
+The scatter does lean one way. Inside a polar the leftover error is larger
+where transition sits further forward on the suction side, with a rank
+correlation of −0.22, and where transition is moving fast, −0.17. That is about
+the size of the error and not its direction, which is why a correction that
+shifts the average can't use it.
+
+**An error bar instead.** If the state says how big the error is, it belongs in
+the fitted error model of section 3.4. Seven boundary-layer inputs were added to
+the model that uses confidence and Reynolds number. Pooled, the model's fit score
+(the Gamma deviance it is fitted to) improved by 7.4 percent, and learning on
+UIUC by 7.9 percent. Learning on
+Princeton it improved by only 1.3 percent, and the interval reached past zero,
+so the rule written for it failed. A check made afterwards, not planned, points
+the same way. The published model of section 3.4 already carries angle of attack, camber
+and thickness, and it scores as well as the model with the boundary-layer state.
+Add the state on top of it and tunnel-to-tunnel prediction gets worse in both
+directions, with the whole interval above zero. Section 3.4's model stands as
+published. The idea also came from looking at these same points, so even the
+pooled gain isn't a clean confirmation.
+
+**Where that leaves it.** One correction survives. A trims the mean drag error
+from 11.7 to 10.5 percent, about a tenth, and most of the gain is below Re =
+150,000. Everything tried after it either missed its written rule or didn't
+carry between tunnels. Of the five written entries, three failed the rule
+written for them. One was met in direction and missed in size on one side. The
+last was a measurement of the leftover error, with four predictions, two of which
+held. The 78 percent that is scatter inside a polar isn't reached by a smooth
+function of speed and lift or by NeuralFoil's own boundary-layer state. Going
+further most likely needs measurements that record where transition actually
+happened, or a physical model of the bubble, and not another fit to these
+points.
+
+
 ---
 
 ## 4. Discussion
@@ -1317,7 +1469,10 @@ to reality than XFoil itself. The 11 to 12 percent drag error, the Re =
 60,000 over-prediction and the high-camber lift error are XFoil's physics,
 inherited whole. So anyone who wants better slow-speed drag than this won't
 get it from a bigger network trained on more XFoil. They'll need better
-physics to train on, or a correction from experiment.
+physics to train on, or a correction from experiment. Section
+3.10 tried the second route. A correction learned in one tunnel and applied in
+the other recovers about 1.2 points of the 11.7, and six further corrections
+did not add a reliable second gain.
 
 **A benchmark number is worth what it does downstream.** Eleven point seven
 percent is a scoreboard entry until someone asks what it costs. Section 3.5
@@ -1401,6 +1556,11 @@ predicted performance.
   the point-to-point variation, with a rank correlation of 0.39 out of
   sample. Its value is in the calibrated average and the percentile bands,
   not in nailing individual points.
+- **The correction tests are partly informed by the data they score.** The
+  Re = 150,000 gate was chosen after seeing A's results by Reynolds band, and
+  the error-bar test came from correlations found on the same points. The locked
+  LTPT tunnel has one airfoil and got a second look that was not a clean test.
+  The 1.2 points is a mean over these 94 airfoils, not a promise for a new one.
 - **The "expected drag error" attached to the optimized designs is a
   population statistic**, not a measurement of those designs.
 - **The laminar-run test is a null result and is reported as one.** Drag
@@ -1486,7 +1646,10 @@ the airfoil-level version of that result belongs to one sample. A fitted
 model turns confidence, Reynolds number, angle and camber into an expected
 drag error that carries over between tunnels. The transition inputs
 reproduce trip-strip measurements. Running the model on a wing's measured
-shape instead of its drawing removes about a sixth of the drag error. And
+shape instead of its drawing removes about a sixth of the drag error. A correction learned in one tunnel and applied in the other
+trims it from 11.7 to 10.5 percent, and nothing tried after that added a
+reliable second gain, because 78 percent of what's left is scatter inside a
+single polar. And
 fed back into the optimizer with its measured meaning, the confidence score
 moves designs out of the least reliable region for about 2 percent of
 predicted performance.
@@ -1530,6 +1693,11 @@ The author designed and directed this study: choosing the question, setting
 its goals and scope, and reviewing and interpreting every result. AI tools
 were used for parts of the code implementation, figure generation and
 drafting, under the author's direction.
+Sections 2.9 and 3.10 and the plan file behind them
+(`plan/improve-neuralfoil.md`) were drafted and run by an AI assistant (Claude,
+from Anthropic) at the author's request: it wrote the predictions and failure
+rule in each plan entry, wrote and ran the scripts, and drafted the text. The
+author set the question and decides what is reported.
 
 ---
 

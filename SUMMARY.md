@@ -132,6 +132,33 @@ second as it does hovering. Worse, that's almost exactly the speed the
 aircraft would choose to cruise at, because it's the cheapest. The speed you'd
 pick for endurance is the speed where this uncertainty bites hardest.
 
+## Can the error be fixed?
+
+The natural next question is whether you can correct for it. The error leans
+the same way in both tunnels: NeuralFoil's drag is too high at the slowest
+speeds and a little too low at the fastest. So a small correction was taught
+on one tunnel and used on the other.
+
+It works, a little. Taught on the Illinois data and used on Princeton's, it
+cuts the drag error from 11.1 percent to 9.9. Taught on Princeton and used on
+Illinois, 12.3 goes to 11.5. Pooled, 11.7 goes to 10.5. That's about a tenth
+of the error, and nearly all of it is at the slow end, below Re = 150,000.
+
+Then came six more ways of doing better, each written down with a prediction
+before it was run. Adding the wing's shape made it worse from one tunnel to
+the other. So did adding NeuralFoil's own confidence. Using the correction
+only at slow speeds was no better. Letting it bend more added a tenth of a
+point. Feeding it NeuralFoil's own picture of the boundary layer helped a
+little when the two tunnels were mixed and not reliably from one to the other.
+A model for the size of the error, using the same picture, did no better than
+the one already published.
+
+The reason is in what's left. Nearly four fifths of the error after the
+correction is scatter inside a single run, the same wing at the same speed,
+angle to angle. It isn't measurement noise, it isn't the wing's shape, and no
+smooth curve of speed and lift reaches it. Going further probably needs
+measurements that record where the flow actually changes over.
+
 ## The design side
 
 On the design side, a wing tuned for a single condition posts a spectacular

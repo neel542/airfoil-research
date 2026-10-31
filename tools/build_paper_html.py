@@ -179,6 +179,14 @@ FIGURE_INSERTS = [
          "confidence 0.16 to 0.96, costs 2% of predicted L/D. Right: the two "
          "extreme shapes."),
     ]),
+    ("though only two repeat pairs back the figure.", [
+        ("39_drag_correction.png",
+         "Figure 23. Left: the change in mean drag error from NeuralFoil, in "
+         "percentage points, for each of the seven corrections in three tests, with "
+         "95 percent intervals from resampling whole airfoils. Below zero is better. "
+         "Right: what the error is made of after correction A, as shares of the "
+         "squared error. Scatter inside a polar is 78 percent of it."),
+    ]),
 ]
 
 
