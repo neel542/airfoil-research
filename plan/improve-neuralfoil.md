@@ -325,3 +325,71 @@ What it means:
 Next (not run; would need a new dated entry): add the boundary-layer state to the fitted error model
 (benchmark/fit_error_model.py), which predicts the size of the drag error, and test whether it predicts
 held-out error better across tunnels than the confidence score alone.
+
+---
+
+## Entry 5 (written 31 October 2026, before running)
+
+Question: does NeuralFoil's boundary-layer state help predict how big its drag error will be at a given
+point, on data from a tunnel the error model never saw?
+
+Why: entry 4 found that inside one polar, the size of the leftover error correlates -0.22 with the
+suction-side transition location and -0.17 with how fast transition moves, while a mean correction gained
+almost nothing from the same inputs. A correction moves the average; these inputs seem to move the spread.
+The repo already has an error model (benchmark/fit_error_model.py): a Gamma regression that predicts the
+expected size of |CD_NF - CD_tunnel| / CD_tunnel from NeuralFoil's confidence, Reynolds number, angle of
+attack, camber and thickness. Entry 5 adds the boundary-layer state to it and asks if it predicts better.
+
+What is scored: the size of NeuralFoil's own relative drag error, y = max(|CD_NF - CD_tunnel| / CD_tunnel,
+1e-4), at the bench points with |CL_tunnel| > 0.1 (attached flow, the same domain the existing error model
+is defined on). Not the error after correction A. The fitted models are Gamma regressions with a log link,
+fitted exactly as fit_error_model.py fits them (same iteratively reweighted least squares, no penalty).
+Inputs are the ones entry 4 computed (data/nf_bl_state.csv): xs, xs^2, xp, log10(Hs), logtheta_s, jump_s,
+jump_p. Hs enters as log10(Hs) because it has a long tail (up to 38); that choice is made now, before any
+score.
+
+Models, fitted on the training part only:
+- baselines, as in fit_error_model.py: constant; confidence_only; confidence_Re (confidence and log Re);
+  full (confidence, log Re, alpha, alpha^2, camber, thickness)
+- candidates: confidence_Re_BL (confidence_Re plus the seven boundary-layer inputs); full_BL (full plus the
+  seven); BL_Re (log Re plus the seven, no confidence)
+
+Splits, the same as the bench: learn on UIUC and score on Princeton, learn on Princeton and score on UIUC,
+and 10 folds over airfoils from both tunnels (same fold assignment as testbench.py). Primary score: mean
+Gamma deviance on the held-out points (lower is better; it is the score the model is fitted to). Intervals
+come from resampling whole airfoils (2,000 resamples) on the paired difference from the baseline.
+Also reported: mean absolute error of the predicted size, Spearman correlation between predicted and actual
+size, and how often the actual error falls under the model's 80 percent band (should be near 0.80).
+
+The bar to beat is confidence_Re, not confidence_only: Reynolds number is the obvious confound, because
+transition moves forward as Re falls, so a gain over confidence_only could just be Re leaking in.
+
+Not used: LTPT (one airfoil, already scored twice), the correction models, XFoil.
+
+Limit, stated now: the idea came from looking at these same points (the correlations in entry 4). The
+folds and the cross-tunnel splits keep the fitting honest, but they do not make this a clean confirmation of
+a hypothesis formed in advance. A further tunnel would be the clean test.
+
+Predictions:
+- P1: confidence_Re_BL has lower mean deviance than confidence_Re in all three splits (the sign is right
+  everywhere), because the within-polar correlations are real.
+- P2: the gain is small: the 10-fold reduction in mean deviance is between 1 and 4 percent of
+  confidence_Re's.
+- P3: in at least one of the two cross-tunnel splits the interval on the deviance difference includes zero,
+  so the success rule below fails.
+- P4: BL_Re scores worse than confidence_Re in the 10-fold test (confidence still carries something the
+  seven boundary-layer numbers do not).
+- P5: full_BL gains less over full than confidence_Re_BL gains over confidence_Re, as a share of deviance
+  in the 10-fold test, because alpha, camber and thickness already stand in for part of the boundary-layer
+  state.
+
+Success rule (all three): confidence_Re_BL has lower mean deviance than confidence_Re with the whole
+interval below zero in both cross-tunnel splits; its 10-fold mean deviance is at least 2 percent lower; and
+its Spearman correlation is higher in both cross-tunnel splits.
+
+If it succeeds: the boundary-layer state goes into the published error model (fit on both tunnels, the
+coverage of its bands checked, the JSON and the site's error bar updated), and the paper says the error
+bar, not the correction, is where NeuralFoil's own boundary-layer state is useful.
+If it fails, as predicted: the existing error model stays as it is, and the work that can be done from
+NeuralFoil's own outputs is finished. The next step would need new measurements (a third tunnel) or a
+physical model of the bubble, neither of which is a script.
