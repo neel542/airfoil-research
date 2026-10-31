@@ -53,3 +53,20 @@ def test_boundary_layer_state_matches_record():
     saved = saved[saved.candidate == "correction_G"].set_index("split")
     for split in saved.index:
         assert abs(res.loc[split, "mean_abs_errCD"] - saved.loc[split, "mean_abs_errCD"]) < 1e-6
+
+
+def test_error_bar_experiment_matches_record():
+    """Plan entry 5: the error-bar models reproduce, and the recorded success rule stays failed."""
+    import numpy as np
+    import bl_error_bar_experiment as eb
+    d = eb.load()
+    assert len(d) == 8211 and d.airfoil.nunique() == 94
+    saved = pd.read_csv(os.path.join(ROOT, "data", "bl_error_bar_bench.csv"))
+    for m in ["confidence_Re", "confidence_Re_BL"]:
+        te, mu, _ = eb.predictions(d, m)["airfoil-CV"]
+        row = saved[(saved.model == m) & (saved.split == "airfoil-CV")].iloc[0]
+        assert abs(eb.deviance(te.y.to_numpy(), mu).mean() - row.mean_deviance) < 1e-5
+    rule = pd.read_csv(os.path.join(ROOT, "data", "bl_error_bar_experiment.csv"))
+    assert rule[rule.analysis == "2 success rule"].value.iloc[0] == 0
+    p2u = saved[(saved.model == "confidence_Re_BL") & (saved.split == "Princeton->UIUC")].iloc[0]
+    assert p2u.vs_bar_hi > 0      # the interval includes zero, which is why the rule fails

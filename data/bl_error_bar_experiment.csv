@@ -1,0 +1,69 @@
+analysis,item,value
+"1 deviance change, confidence_Re_BL minus confidence_Re",UIUC->Princeton,-0.0808986
+"1 same, as a share of confidence_Re's deviance",UIUC->Princeton,-0.0790544
+3 interval upper end of that change,UIUC->Princeton,-0.0481938
+"1 deviance change, confidence_Re_BL minus confidence_Re",Princeton->UIUC,-0.0121076
+"1 same, as a share of confidence_Re's deviance",Princeton->UIUC,-0.0130389
+3 interval upper end of that change,Princeton->UIUC,0.0249667
+"1 deviance change, confidence_Re_BL minus confidence_Re",airfoil-CV,-0.0718622
+"1 same, as a share of confidence_Re's deviance",airfoil-CV,-0.0735453
+3 interval upper end of that change,airfoil-CV,-0.0458488
+"4 deviance, BL_Re minus confidence_Re",UIUC->Princeton,-0.0489244
+"4 deviance, BL_Re minus confidence_Re",Princeton->UIUC,0.0484963
+"4 deviance, BL_Re minus confidence_Re",airfoil-CV,-0.0344854
+5 share gained: full_BL over full,UIUC->Princeton,-0.018148
+5 share gained: confidence_Re_BL over confidence_Re,UIUC->Princeton,0.0790544
+5 share gained: full_BL over full,Princeton->UIUC,-0.02338
+5 share gained: confidence_Re_BL over confidence_Re,Princeton->UIUC,0.0130389
+5 share gained: full_BL over full,airfoil-CV,0.00658544
+5 share gained: confidence_Re_BL over confidence_Re,airfoil-CV,0.0735453
+6 coverage of the 80 percent band,confidence_Re UIUC->Princeton,0.812856
+6 coverage of the 80 percent band,confidence_Re Princeton->UIUC,0.815519
+6 coverage of the 80 percent band,confidence_Re airfoil-CV,0.815857
+6 coverage of the 80 percent band,confidence_Re_BL UIUC->Princeton,0.797676
+6 coverage of the 80 percent band,confidence_Re_BL Princeton->UIUC,0.782728
+6 coverage of the 80 percent band,confidence_Re_BL airfoil-CV,0.79089
+6 coverage of the 80 percent band,full UIUC->Princeton,0.805266
+6 coverage of the 80 percent band,full Princeton->UIUC,0.771214
+6 coverage of the 80 percent band,full airfoil-CV,0.7943
+6 coverage of the 80 percent band,full_BL UIUC->Princeton,0.79815
+6 coverage of the 80 percent band,full_BL Princeton->UIUC,0.777722
+6 coverage of the 80 percent band,full_BL airfoil-CV,0.790038
+"6 spearman, predicted vs actual size",confidence_Re_BL UIUC->Princeton,0.350306
+"6 spearman, predicted vs actual size",confidence_Re UIUC->Princeton,0.228673
+"6 spearman, predicted vs actual size",confidence_Re_BL Princeton->UIUC,0.368447
+"6 spearman, predicted vs actual size",confidence_Re Princeton->UIUC,0.359994
+"6 spearman, predicted vs actual size",confidence_Re_BL airfoil-CV,0.388274
+"6 spearman, predicted vs actual size",confidence_Re airfoil-CV,0.29344
+2 success rule part,both cross-tunnel intervals below zero,0
+2 success rule part,10-fold at least 2 percent lower,1
+2 success rule part,spearman higher in both cross-tunnel splits,1
+2 success rule,all three,0
+2 sign right in all three splits,confidence_Re_BL below confidence_Re,1
+"8 post hoc (not in the plan): deviance, full_BL minus full",UIUC->Princeton change,0.0167545
+"8 post hoc (not in the plan): deviance, full_BL minus full",UIUC->Princeton interval low,0.00266558
+"8 post hoc (not in the plan): deviance, full_BL minus full",UIUC->Princeton interval high,0.0313096
+"8 post hoc (not in the plan): deviance, full_BL minus full",Princeton->UIUC change,0.0210912
+"8 post hoc (not in the plan): deviance, full_BL minus full",Princeton->UIUC interval low,0.00643503
+"8 post hoc (not in the plan): deviance, full_BL minus full",Princeton->UIUC interval high,0.0368887
+"8 post hoc (not in the plan): deviance, full_BL minus full",airfoil-CV change,-0.00593883
+"8 post hoc (not in the plan): deviance, full_BL minus full",airfoil-CV interval low,-0.0133322
+"8 post hoc (not in the plan): deviance, full_BL minus full",airfoil-CV interval high,0.00237564
+"8 post hoc (not in the plan): deviance, confidence_Re_BL minus full",UIUC->Princeton change,0.0192165
+"8 post hoc (not in the plan): deviance, confidence_Re_BL minus full",UIUC->Princeton interval low,0.0020935
+"8 post hoc (not in the plan): deviance, confidence_Re_BL minus full",UIUC->Princeton interval high,0.0375053
+"8 post hoc (not in the plan): deviance, confidence_Re_BL minus full",Princeton->UIUC change,0.0143589
+"8 post hoc (not in the plan): deviance, confidence_Re_BL minus full",Princeton->UIUC interval low,-0.0141629
+"8 post hoc (not in the plan): deviance, confidence_Re_BL minus full",Princeton->UIUC interval high,0.0411928
+"8 post hoc (not in the plan): deviance, confidence_Re_BL minus full",airfoil-CV change,0.00343948
+"8 post hoc (not in the plan): deviance, confidence_Re_BL minus full",airfoil-CV interval low,-0.0104334
+"8 post hoc (not in the plan): deviance, confidence_Re_BL minus full",airfoil-CV interval high,0.0171436
+7 full-data fit: change in expected error size per 1 sd of the input (percent),log_unconf,25.3347
+7 full-data fit: change in expected error size per 1 sd of the input (percent),log_Re,-10.948
+7 full-data fit: change in expected error size per 1 sd of the input (percent),xs,-29.5916
+7 full-data fit: change in expected error size per 1 sd of the input (percent),xs2,27.8018
+7 full-data fit: change in expected error size per 1 sd of the input (percent),xp,-7.42719
+7 full-data fit: change in expected error size per 1 sd of the input (percent),log_Hs,7.97009
+7 full-data fit: change in expected error size per 1 sd of the input (percent),logtheta_s,22.3674
+7 full-data fit: change in expected error size per 1 sd of the input (percent),jump_s,5.62138
+7 full-data fit: change in expected error size per 1 sd of the input (percent),jump_p,1.30964

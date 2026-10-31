@@ -393,3 +393,75 @@ bar, not the correction, is where NeuralFoil's own boundary-layer state is usefu
 If it fails, as predicted: the existing error model stays as it is, and the work that can be done from
 NeuralFoil's own outputs is finished. The next step would need new measurements (a third tunnel) or a
 physical model of the bubble, neither of which is a script.
+
+### Entry 5 result (31 October 2026)
+
+Points: 8,211 attached-flow points, 94 airfoils (3,995 UIUC, 4,216 Princeton). Sanity check: the four
+baselines on this point set score a 10-fold mean absolute error of the predicted size within 0.0006 of
+fit_error_model.py's published run (constant 0.0862 against 0.0867, confidence_only 0.0789 against 0.0794,
+confidence_Re 0.0766 against 0.0771, full 0.0739 against 0.0742). The point set and folds differ slightly,
+so they are not identical, but the setup is the same.
+
+Mean Gamma deviance on held-out points (lower is better):
+
+| Model | Learn UIUC, score Princeton | Learn Princeton, score UIUC | 10-fold |
+|---|---|---|---|
+| constant | 1.137 | 1.184 | 1.150 |
+| confidence_only | 1.055 | 0.982 | 1.016 |
+| confidence_Re (the bar) | 1.023 | 0.929 | 0.977 |
+| confidence_Re_BL | 0.942 | 0.917 | 0.905 |
+| BL_Re | 0.974 | 0.977 | 0.943 |
+| full (the published model) | 0.923 | 0.902 | 0.902 |
+| full_BL | 0.940 | 0.923 | 0.896 |
+
+confidence_Re_BL minus confidence_Re, with the 95 percent interval from resampling airfoils:
+- Learn UIUC, score Princeton: -0.081 (-0.116 to -0.048), 7.9 percent lower
+- Learn Princeton, score UIUC: -0.012 (-0.050 to +0.025), 1.3 percent lower
+- 10-fold: -0.072 (-0.099 to -0.046), 7.4 percent lower
+
+Spearman correlation of predicted with actual error size, confidence_Re_BL against confidence_Re: 0.350
+against 0.229, 0.368 against 0.360, 0.388 against 0.293. The 80 percent band covers 79.8, 78.3 and 79.1
+percent of held-out points for confidence_Re_BL (confidence_Re: 81.3, 81.6, 81.6).
+
+Against what was written down:
+- P1 (lower deviance in all three splits): true.
+- P2 (10-fold reduction between 1 and 4 percent): false. It is 7.4 percent.
+- P3 (an interval includes zero in a cross-tunnel split): true, learn Princeton and score UIUC.
+- P4 (BL_Re worse than confidence_Re in the 10-fold test): false. BL_Re is 3.5 percent better in the 10-fold
+  test (interval -0.069 to -0.0003) and better learning on UIUC, but worse learning on Princeton (+0.048,
+  interval +0.001 to +0.095). Confidence adds to it (confidence_Re_BL is better still), so the two carry
+  partly different information.
+- P5 (full_BL gains less over full than confidence_Re_BL over confidence_Re): true. 0.7 percent against
+  7.4 percent in the 10-fold test.
+
+Success rule: FAILS. The 10-fold test is 7.4 percent lower (needs 2) and the Spearman correlation is higher
+in both cross-tunnel splits, but the learn-Princeton, score-UIUC interval reaches +0.025, so not both
+cross-tunnel intervals are below zero. By the rule written in advance, the error model is not updated.
+
+Post hoc, not in the plan, run after seeing the table because the published model is "full", not
+confidence_Re (deviance change, interval):
+- full_BL minus full: +0.017 (+0.003 to +0.031) learning on UIUC, +0.021 (+0.006 to +0.037) learning on
+  Princeton, -0.006 (-0.013 to +0.002) in the 10-fold test.
+- confidence_Re_BL minus full: +0.019 (+0.002 to +0.038), +0.014 (-0.014 to +0.041), +0.003 (-0.010 to
+  +0.017).
+
+What it means:
+- The boundary-layer state does say something about how big the error is. The gain over the Re-and-confidence
+  model is real in the pooled test and in one tunnel direction.
+- But the published model already gets that gain from angle of attack, camber and thickness: it scores as well
+  as confidence_Re_BL everywhere (post hoc: confidence_Re_BL is never better than it, and is worse by
+  0.019 learning on UIUC). Adding the state on top of the published model makes tunnel-to-tunnel prediction
+  worse in both directions, with the whole interval above zero. That is consistent with the state mostly
+  repeating what alpha and shape already tell the model, and overfitting on top of them.
+- The gain is lopsided: 7.9 percent learning on UIUC, 1.3 percent learning on Princeton. Entry 4's
+  correction was lopsided the other way round. I have no explanation for either, so this should not be read
+  as a finding about either tunnel.
+- The 80 percent band under-covers slightly with the state in (78 to 80 percent against 81 to 82), so it
+  would also need re-calibrating if it were used.
+- Limit, as stated before running: the idea came from these points.
+
+Where this leaves the work. From NeuralFoil's own outputs, the correction work ends at A: 11.7 to 10.5
+percent mean drag error, and the error model stays as published. Entries 2 to 5 each tried to go further and
+none passed its written rule. The honest framing for the paper is one positive result (A), plus four
+recorded attempts that did not add to it. Going further needs something new: a third tunnel's data, or a
+physical model of the laminar separation bubble. Neither is a regression on this data.
